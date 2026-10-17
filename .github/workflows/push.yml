@@ -1,0 +1,80 @@
+name: Generate Commit History and Deploy
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate Commit Info File
+        run: |
+          OUTPUT_FILE="repository.cominfo"
+          
+          echo "=== REPOSITORY COMMIT HISTORY ===" > "$OUTPUT_FILE"
+          echo "Generated at: $(date -u +"%Y-%m-%d %H:%M:%SZ")" >> "$OUTPUT_FILE"
+          echo "==================================" >> "$OUTPUT_FILE"
+          echo "" >> "$OUTPUT_FILE"
+
+          PREV_EPOCH=0
+
+          while IFS='|' read -r HASH AUTHOR TITLE DESC TIME_ISO TIME_EPOCH; do
+            if [ "$PREV_EPOCH" -eq 0 ]; then
+              DIFF_STR="First commit (0 seconds)"
+            else
+              DIFF_SEC=$((TIME_EPOCH - PREV_EPOCH))
+              if [ "$DIFF_SEC" -lt 0 ]; then
+                DIFF_SEC=0
+              fi
+              
+              DAYS=$((DIFF_SEC / 86400))
+              HOURS=$(((DIFF_SEC % 86400) / 3600))
+              MINS=$(((DIFF_SEC % 3600) / 60))
+              SECS=$((DIFF_SEC % 60))
+              
+              DIFF_STR=""
+              [ "$DAYS" -gt 0 ] && DIFF_STR="${DIFF_STR}${DAYS}d "
+              [ "$HOURS" -gt 0 ] && DIFF_STR="${DIFF_STR}${HOURS}h "
+              [ "$MINS" -gt 0 ] && DIFF_STR="${DIFF_STR}${MINS}m "
+              DIFF_STR="${DIFF_STR}${SECS}s"
+            fi
+            
+            PREV_EPOCH="$TIME_EPOCH"
+
+            echo "--------------------------------------------------" >> "$OUTPUT_FILE"
+            echo "Commit Hash : $HASH" >> "$OUTPUT_FILE"
+            echo "Author      : $AUTHOR" >> "$OUTPUT_FILE"
+            echo "Title       : $TITLE" >> "$OUTPUT_FILE"
+            echo "Time        : $TIME_ISO" >> "$OUTPUT_FILE"
+            echo "Time Delta  : $DIFF_STR after previous commit" >> "$OUTPUT_FILE"
+            echo "Description :" >> "$OUTPUT_FILE"
+            if [ -n "$DESC" ]; then
+              printf "%s\n" "$DESC" | sed 's/^/  /' >> "$OUTPUT_FILE"
+            else
+              echo "  (No description provided)" >> "$OUTPUT_FILE"
+            fi
+            echo "" >> "$OUTPUT_FILE"
+
+          done < <(git log --reverse --format="%H|%an|%s|%b|%ad|%at" --date=iso-strict)
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Artifact for Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
