@@ -19,7 +19,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Generate Commit Info and Sitemap
+      - name: Generate Site Structure, Sitemap, and Commits
         env:
           REPO_NAME: ${{ github.repository }}
         run: |
@@ -41,11 +41,11 @@ jobs:
               ""
           ]
           
-          sitemap_html = f"""<!DOCTYPE html>
+          commits_html = f"""<!DOCTYPE html>
           <html lang="en">
           <head>
               <meta charset="UTF-8">
-              <title>Sitemap & Commit History</title>
+              <title>Commit History</title>
               <style>
                   body {{ background: #0d1117; color: #c9d1d9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 16px; margin: 0; }}
                   h2 {{ margin-top: 0; font-size: 1.2rem; color: #f0f6fc; border-bottom: 1px solid #30363d; padding-bottom: 8px; }}
@@ -57,12 +57,12 @@ jobs:
                   .time {{ color: #8b949e; font-size: 0.8rem; font-family: monospace; }}
                   .delta {{ color: #d2a8ff; font-size: 0.8rem; font-family: monospace; }}
                   .desc {{ color: #8b949e; white-space: pre-wrap; margin-top: 8px; font-family: monospace; font-size: 0.85rem; background: #0d1117; padding: 8px; border-radius: 0; border: 1px solid #21262d; }}
-                  a {{ color: #58a6ff; text-decoration: none; }}
+                  a {{ color: #6e7681; text-decoration: none; }}
                   a:active {{ color: #ffffff; background: #808080; }}
               </style>
           </head>
           <body>
-              <h2>Commit History Sitemap</h2>
+              <h2>Repository Commits</h2>
           """
           
           prev_epoch = None
@@ -113,7 +113,7 @@ jobs:
               esc_desc = html.escape(desc.strip()) if desc.strip() else "(No description provided)"
               short_hash = commit_hash[:7]
               
-              sitemap_html += f"""
+              commits_html += f"""
               <div class="commit">
                   <div class="header-row">
                       <span class="hash"><a href="https://github.com/{repo_name}/commit/{commit_hash}" target="_blank">{short_hash}</a></span>
@@ -128,13 +128,66 @@ jobs:
               </div>
               """
           
-          sitemap_html += """</body>\n</html>"""
+          commits_html += """</body>\n</html>"""
           
+          os.makedirs("commits", exist_ok=True)
           with open("repository.cominfo", "w", encoding="utf-8") as f:
               f.write("\n".join(cominfo_lines))
               
-          with open("sitemap.html", "w", encoding="utf-8") as f:
-              f.write(sitemap_html)
+          with open("commits/index.html", "w", encoding="utf-8") as f:
+              f.write(commits_html)
+
+          # Generate an actual XML sitemap scanning HTML files
+          html_files = []
+          for root, dirs, files in os.walk("."):
+              if ".git" in root or "commits" in root:
+                  continue
+              for file in files:
+                  if file.endswith(".html") and file != "index.html":
+                      rel_path = os.path.relpath(os.path.join(root, file), ".")
+                      html_files.append(rel_path.replace("\\", "/"))
+
+          sitemap_xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+          sitemap_xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+          sitemap_xml += '  <url>\n    <loc>https://' + repo_name.split('/')[0] + '.github.io/' + repo_name.split('/')[1] + '/</loc>\n  </url>\n'
+          sitemap_xml += '  <url>\n    <loc>https://' + repo_name.split('/')[0] + '.github.io/' + repo_name.split('/')[1] + '/commits/</loc>\n  </url>\n'
+          
+          for hfile in html_files:
+              sitemap_xml += f'  <url>\n    <loc>https://{repo_name.split("/")[0]}.github.io/{repo_name.split("/")[1]}/{hfile}</loc>\n  </url>\n'
+          
+          sitemap_xml += '</urlset>'
+
+          with open("sitemap.xml", "w", encoding="utf-8") as f:
+              f.write(sitemap_xml)
+
+          # Generate sleek root index.html
+          root_html = """<!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <title>Index</title>
+              <style>
+                  body { background: #0d1117; color: #c9d1d9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 24px; margin: 0; }
+                  h1 { font-size: 1.4rem; color: #f0f6fc; border-bottom: 1px solid #30363d; padding-bottom: 8px; }
+                  ul { padding-left: 20px; }
+                  li { margin-bottom: 8px; }
+                  a { color: #6e7681; text-decoration: none; }
+                  a:active { color: #ffffff; background: #808080; }
+              </style>
+          </head>
+          <body>
+              <h1>Site Directory</h1>
+              <p>Explore site resources below:</p>
+              <ul>
+                  <li><a href="commits/">Commit History (/commits)</a></li>
+                  <li><a href="sitemap.xml">XML Sitemap</a></li>
+                  <li><a href="repository.cominfo">Repository Cominfo File</a></li>
+              </ul>
+          </body>
+          </html>"""
+
+          with open("index.html", "w", encoding="utf-8") as f:
+              f.write(root_html)
           EOF
 
       - name: Setup Pages
