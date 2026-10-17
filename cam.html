@@ -76,12 +76,9 @@
 
         video,
         canvas {
-            max-width: 100%;
-            max-height: 100%;
+            width: 100%;
+            height: 100%;
             object-fit: contain;
-        }
-
-        canvas {
             display: block;
         }
 
@@ -232,6 +229,8 @@
             justify-content: center;
             gap: 1rem;
             z-index: 10;
+            padding: 1.5rem;
+            text-align: center;
         }
 
         .inline-status {
@@ -263,7 +262,6 @@
 
     <div class="container">
 
-        <!-- Preview Pane with Canvas Output -->
         <div class="preview-pane">
             <div class="video-box" id="video-container">
                 <video id="webcam" autoplay playsinline muted style="display: none;"></video>
@@ -276,7 +274,9 @@
                 </div>
 
                 <div id="placeholder" class="placeholder-screen">
-                    <p style="font-size: 0.875rem; color: #9ca3af;">Camera feed is currently offline</p>
+                    <p style="font-size: 0.875rem; color: #9ca3af;" id="placeholder-text">Camera feed is currently
+                        offline. Note: Browser security policies require HTTPS or localhost to access camera devices.
+                    </p>
                     <button class="btn btn-primary" onclick="initCamera()">Initialize Camera Stream</button>
                 </div>
             </div>
@@ -292,6 +292,8 @@
             <div class="control-group">
                 <label for="resolution-select">Forced Resolution</label>
                 <select id="resolution-select" onchange="handleResolutionChange()">
+                    <option value="32">32p (56 x 32)</option>
+                    <option value="64">64p (114 x 64)</option>
                     <option value="144">144p (256 x 144)</option>
                     <option value="240">240p (426 x 240)</option>
                     <option value="360">360p (640 x 360)</option>
@@ -359,6 +361,8 @@
         let isRecording = false;
 
         const resolutionMap = {
+            "32": { w: 56, h: 32 },
+            "64": { w: 114, h: 64 },
             "144": { w: 256, h: 144 },
             "240": { w: 426, h: 240 },
             "360": { w: 640, h: 360 },
@@ -376,7 +380,7 @@
             statusBox.style.display = 'block';
             setTimeout(() => {
                 statusBox.style.display = 'none';
-            }, 4000);
+            }, 5000);
         }
 
         function showInfo() {
@@ -424,22 +428,57 @@
         }
 
         async function initCamera() {
-            try {
-                mediaStream = await navigator.mediaDevices.getUserMedia({
-                    video: { width: { ideal: 3840 }, height: { ideal: 2160 }, frameRate: { ideal: 60 } },
-                    audio: true
-                });
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                showStatus('Error: MediaDevices API not supported in this browser or environment.');
+                document.getElementById('placeholder-text').innerText = 'Camera Error: MediaDevices API not available. Ensure you are using a secure connection (HTTPS or localhost).';
+                return;
+            }
 
+            try {
+                showStatus('Requesting camera access...');
+
+                let stream;
+                try {
+                    // First attempt with basic constraints to ensure maximum hardware compatibility
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: true,
+                        audio: true
+                    });
+                } catch (err1) {
+                    // Second attempt video-only fallback
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: true,
+                        audio: false
+                    });
+                }
+
+                mediaStream = stream;
                 const videoEl = document.getElementById('webcam');
                 videoEl.srcObject = mediaStream;
-                await videoEl.play();
+
+                await videoEl.play().catch(e => {
+                    console.warn('Autoplay warning:', e);
+                });
 
                 document.getElementById('placeholder').style.display = 'none';
                 document.getElementById('top-status-dot').classList.add('active');
 
                 startPipeline();
+                showStatus('Camera stream initialized successfully.');
             } catch (err) {
-                showStatus('Camera Error: Could not initialize camera stream. Check browser permissions.');
+                console.error('Camera initialization error:', err);
+                let errorMsg = 'Could not access camera.';
+                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                    errorMsg = 'Permission denied. Please allow camera access in browser settings.';
+                } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                    errorMsg = 'No camera device found connected to this system.';
+                } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+                    errorMsg = 'Camera is already in use by another application or tab.';
+                } else {
+                    errorMsg = `Camera Error: ${err.message || err.name}`;
+                }
+                showStatus(errorMsg);
+                document.getElementById('placeholder-text').innerText = errorMsg + ' Check browser permissions and ensure no other app is using the webcam.';
             }
         }
 
@@ -461,7 +500,7 @@
             function renderLoop(timestamp) {
                 renderLoopId = requestAnimationFrame(renderLoop);
 
-                if (!mediaStream || videoEl.paused || videoEl.ended) return;
+                if (!mediaStream || videoEl.paused || videoEl.ended || videoEl.readyState < 2) return;
 
                 let targetFps = parseFloat(document.getElementById('fps-input').value);
                 if (isNaN(targetFps) || targetFps <= 0) targetFps = 30;
@@ -494,10 +533,10 @@
                     ctx.imageSmoothingEnabled = qualityVal >= 60;
                 }
 
-                ctx.drawImage(videoEl, 0, 0, renderW, renderH);
+                try {
+                    ctx.drawImage(videoEl, 0, 0, renderW, renderH);
 
-                if (qualityVal < 40) {
-                    try {
+                    if (qualityVal < 40) {
                         const imgData = ctx.getImageData(0, 0, renderW, renderH);
                         const data = imgData.data;
                         const factor = Math.max(2, Math.floor(8 * (1 - qualityVal / 40)));
@@ -507,7 +546,9 @@
                             data[i + 2] = Math.round(data[i + 2] / (factor * 10)) * (factor * 10);
                         }
                         ctx.putImageData(imgData, 0, 0);
-                    } catch (e) { }
+                    }
+                } catch (e) {
+                    // Ignore transient drawing errors when video is buffering
                 }
 
                 document.getElementById('hud-res').innerText = `${dims.w}x${dims.h}`;
