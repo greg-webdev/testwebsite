@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%; background-color: #121212;">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Controller Pro</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #121212;
+            color: #d1d5db;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: #181818;
+            border-bottom: 1px solid #2a2a2a;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #f3f4f6;
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            padding: 1rem;
+            gap: 1rem;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+                overflow-y: auto;
+            }
+        }
+
+        .preview-pane {
+            flex: 2;
+            background-color: #181818;
+            border: 1px solid #2a2a2a;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            position: relative;
+        }
+
+        .video-box {
+            flex: 1;
+            background-color: #000;
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            min-height: 300px;
+        }
+
+        video,
+        canvas {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .controls-pane {
+            flex: 1;
+            background-color: #181818;
+            border: 1px solid #2a2a2a;
+            border-radius: 4px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            overflow-y: auto;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.375rem;
+        }
+
+        label {
+            font-size: 0.8125rem;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            background-color: #121212;
+            border: 1px solid #2a2a2a;
+            color: #f3f4f6;
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            outline: none;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            border-color: #4b5563;
+        }
+
+        input[type="range"] {
+            accent-color: #4b5563;
+            width: 100%;
+            background: transparent;
+        }
+
+        .btn {
+            background-color: #242424;
+            color: #9ca3af;
+            border: 1px solid #333333;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 0.15s, background-color 0.15s;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background-color: #2a2a2a;
+            color: #ffffff;
+        }
+
+        .btn-primary {
+            background-color: #2e2e2e;
+            color: #e5e7eb;
+            border-color: #404040;
+        }
+
+        .btn-primary:hover {
+            background-color: #383838;
+            color: #ffffff;
+        }
+
+        .btn-danger {
+            background-color: #3b1c1c;
+            color: #fca5a5;
+            border-color: #5c2828;
+        }
+
+        .btn-danger:hover {
+            background-color: #4c2222;
+            color: #fee2e2;
+        }
+
+        .row {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .row>* {
+            flex: 1;
+        }
+
+        .hud {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: rgba(18, 18, 18, 0.85);
+            border: 1px solid #2a2a2a;
+            padding: 0.375rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-family: monospace;
+            color: #9ca3af;
+            pointer-events: none;
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #6b7280;
+            display: inline-block;
+        }
+
+        .status-indicator.active {
+            background-color: #10b981;
+        }
+
+        .link-muted {
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 0.75rem;
+            transition: color 0.15s;
+        }
+
+        .link-muted:hover {
+            color: #d1d5db;
+        }
+
+        .placeholder-screen {
+            position: absolute;
+            inset: 0;
+            background-color: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            z-index: 10;
+        }
+
+        .inline-status {
+            font-size: 0.8125rem;
+            color: #9ca3af;
+            line-height: 1.4;
+            padding: 0.5rem;
+            background: #121212;
+            border: 1px solid #2a2a2a;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div class="status-indicator" id="top-status-dot"></div>
+            <h1>Camera Controller Pro</h1>
+        </div>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <span id="recording-badge"
+                style="font-size: 0.75rem; font-family: monospace; color: #ef4444; display: none;">REC</span>
+            <a href="#" class="link-muted" onclick="showInfo(); return false;">System Info</a>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <!-- Preview Pane with Canvas Output -->
+        <div class="preview-pane">
+            <div class="video-box" id="video-container">
+                <video id="webcam" autoplay playsinline muted style="display: none;"></video>
+                <canvas id="output-canvas"></canvas>
+
+                <div class="hud">
+                    <span>FPS: <strong id="hud-fps" style="color: #f3f4f6;">--</strong></span>
+                    <span>RES: <strong id="hud-res" style="color: #f3f4f6;">----x----</strong></span>
+                    <span>QUALITY: <strong id="hud-quality" style="color: #f3f4f6;">100%</strong></span>
+                </div>
+
+                <div id="placeholder" class="placeholder-screen">
+                    <p style="font-size: 0.875rem; color: #9ca3af;">Camera feed is currently offline</p>
+                    <button class="btn btn-primary" onclick="initCamera()">Initialize Camera Stream</button>
+                </div>
+            </div>
+
+            <div class="row" style="margin-top: 1rem;">
+                <button class="btn" onclick="takeSnapshot()">Capture Snapshot</button>
+                <button class="btn btn-primary" id="rec-btn" onclick="toggleRecording()">Start Recording</button>
+            </div>
+        </div>
+
+        <div class="controls-pane">
+
+            <div class="control-group">
+                <label for="resolution-select">Forced Resolution</label>
+                <select id="resolution-select" onchange="handleResolutionChange()">
+                    <option value="144">144p (256 x 144)</option>
+                    <option value="240">240p (426 x 240)</option>
+                    <option value="360">360p (640 x 360)</option>
+                    <option value="480">480p (854 x 480)</option>
+                    <option value="720">720p HD (1280 x 720)</option>
+                    <option value="1080" selected>1080p Full HD (1920 x 1080)</option>
+                    <option value="1440">1440p QHD (2560 x 1440)</option>
+                    <option value="2160">4K UHD (3840 x 2160)</option>
+                    <option value="4320">8K FUHD (7680 x 4320)</option>
+                    <option value="custom">Custom Dimensions</option>
+                </select>
+            </div>
+
+            <div class="row" id="custom-res-row" style="display: none;">
+                <div class="control-group">
+                    <label for="custom-w">Width</label>
+                    <input type="number" id="custom-w" value="1920" min="64" max="8192">
+                </div>
+                <div class="control-group">
+                    <label for="custom-h">Height</label>
+                    <input type="number" id="custom-h" value="1080" min="64" max="4320">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="fps-input">Framerate (0.02 to 360 FPS)</label>
+                <input type="number" id="fps-input" value="30" min="0.02" max="360" step="any">
+            </div>
+
+            <div class="control-group">
+                <div style="display: flex; justify-content: space-between;">
+                    <label for="bitrate-slider">Bitrate & Compression Degradation</label>
+                    <span id="bitrate-label" style="font-size: 0.75rem; color: #6b7280; font-family: monospace;">Normal
+                        Quality</span>
+                </div>
+                <input type="range" id="bitrate-slider" min="1" max="100" value="100"
+                    oninput="updateBitrateLabel(this.value)">
+                <span style="font-size: 0.70rem; color: #525252;">Lower values introduce aggressive pixelation, color
+                    crushing, and blocky compression artifacts.</span>
+            </div>
+
+            <div class="control-group">
+                <label for="rec-bitrate">Recorder Bitrate Target (kbps)</label>
+                <input type="number" id="rec-bitrate" value="5000" min="100" max="100000" step="100">
+            </div>
+
+            <button class="btn btn-primary" style="margin-top: auto;" onclick="applySettings()">Apply Pipeline
+                Settings</button>
+            <div id="status-message" class="inline-status" style="display: none;"></div>
+
+        </div>
+
+    </div>
+
+    <script>
+        let mediaStream = null;
+        let renderLoopId = null;
+        let lastRenderTime = 0;
+        let frameCount = 0;
+        let lastFpsUpdate = performance.now();
+        let measuredFps = 0;
+
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let isRecording = false;
+
+        const resolutionMap = {
+            "144": { w: 256, h: 144 },
+            "240": { w: 426, h: 240 },
+            "360": { w: 640, h: 360 },
+            "480": { w: 854, h: 480 },
+            "720": { w: 1280, h: 720 },
+            "1080": { w: 1920, h: 1080 },
+            "1440": { w: 2560, h: 1440 },
+            "2160": { w: 3840, h: 2160 },
+            "4320": { w: 7680, h: 4320 }
+        };
+
+        function showStatus(text) {
+            const statusBox = document.getElementById('status-message');
+            statusBox.innerText = text;
+            statusBox.style.display = 'block';
+            setTimeout(() => {
+                statusBox.style.display = 'none';
+            }, 4000);
+        }
+
+        function showInfo() {
+            showStatus('System Information: Captures webcam feed through a custom canvas pipeline supporting low/high framerates from 0.02 to 360 FPS, 144p to 8K resolutions, compression shittification filters, and direct recording.');
+        }
+
+        function handleResolutionChange() {
+            const val = document.getElementById('resolution-select').value;
+            const customRow = document.getElementById('custom-res-row');
+            if (val === 'custom') {
+                customRow.style.display = 'flex';
+            } else {
+                customRow.style.display = 'none';
+                if (resolutionMap[val]) {
+                    document.getElementById('custom-w').value = resolutionMap[val].w;
+                    document.getElementById('custom-h').value = resolutionMap[val].h;
+                }
+            }
+        }
+
+        function updateBitrateLabel(val) {
+            const label = document.getElementById('bitrate-label');
+            if (val >= 95) {
+                label.innerText = 'Normal Quality';
+            } else if (val >= 60) {
+                label.innerText = 'Slight Compression Artifacts';
+            } else if (val >= 30) {
+                label.innerText = 'Heavy Blocky Pixelation';
+            } else if (val >= 10) {
+                label.innerText = 'Extreme Low-Fi Shittified';
+            } else {
+                label.innerText = 'Unrecognizable Chaos';
+            }
+        }
+
+        function getTargetDimensions() {
+            const selectVal = document.getElementById('resolution-select').value;
+            if (selectVal === 'custom') {
+                return {
+                    w: parseInt(document.getElementById('custom-w').value) || 1920,
+                    h: parseInt(document.getElementById('custom-h').value) || 1080
+                };
+            }
+            return resolutionMap[selectVal] || { w: 1920, h: 1080 };
+        }
+
+        async function initCamera() {
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: { ideal: 3840 }, height: { ideal: 2160 }, frameRate: { ideal: 60 } },
+                    audio: true
+                });
+
+                const videoEl = document.getElementById('webcam');
+                videoEl.srcObject = mediaStream;
+                await videoEl.play();
+
+                document.getElementById('placeholder').style.display = 'none';
+                document.getElementById('top-status-dot').classList.add('active');
+
+                startPipeline();
+            } catch (err) {
+                showStatus('Camera Error: Could not initialize camera stream. Check browser permissions.');
+            }
+        }
+
+        function applySettings() {
+            if (!mediaStream) {
+                showStatus('Notice: Please initialize the camera stream first.');
+                return;
+            }
+            showStatus('Pipeline Updated: Framerate, resolution, and compression filters applied.');
+        }
+
+        function startPipeline() {
+            if (renderLoopId) cancelAnimationFrame(renderLoopId);
+
+            const videoEl = document.getElementById('webcam');
+            const canvas = document.getElementById('output-canvas');
+            const ctx = canvas.getContext('2d', { alpha: false });
+
+            function renderLoop(timestamp) {
+                renderLoopId = requestAnimationFrame(renderLoop);
+
+                if (!mediaStream || videoEl.paused || videoEl.ended) return;
+
+                let targetFps = parseFloat(document.getElementById('fps-input').value);
+                if (isNaN(targetFps) || targetFps <= 0) targetFps = 30;
+                if (targetFps > 360) targetFps = 360;
+                if (targetFps < 0.02) targetFps = 0.02;
+
+                const frameInterval = 1000 / targetFps;
+                const elapsed = timestamp - lastRenderTime;
+
+                if (elapsed < frameInterval) {
+                    return;
+                }
+                lastRenderTime = timestamp - (elapsed % frameInterval);
+
+                const dims = getTargetDimensions();
+                const qualityVal = parseInt(document.getElementById('bitrate-slider').value);
+
+                let renderW = dims.w;
+                let renderH = dims.h;
+
+                if (qualityVal < 95) {
+                    const scaleFactor = Math.max(0.02, qualityVal / 100);
+                    renderW = Math.max(16, Math.floor(dims.w * scaleFactor));
+                    renderH = Math.max(9, Math.floor(dims.h * scaleFactor));
+                }
+
+                if (canvas.width !== renderW || canvas.height !== renderH) {
+                    canvas.width = renderW;
+                    canvas.height = renderH;
+                    ctx.imageSmoothingEnabled = qualityVal >= 60;
+                }
+
+                ctx.drawImage(videoEl, 0, 0, renderW, renderH);
+
+                if (qualityVal < 40) {
+                    try {
+                        const imgData = ctx.getImageData(0, 0, renderW, renderH);
+                        const data = imgData.data;
+                        const factor = Math.max(2, Math.floor(8 * (1 - qualityVal / 40)));
+                        for (let i = 0; i < data.length; i += 4) {
+                            data[i] = Math.round(data[i] / (factor * 10)) * (factor * 10);
+                            data[i + 1] = Math.round(data[i + 1] / (factor * 10)) * (factor * 10);
+                            data[i + 2] = Math.round(data[i + 2] / (factor * 10)) * (factor * 10);
+                        }
+                        ctx.putImageData(imgData, 0, 0);
+                    } catch (e) { }
+                }
+
+                document.getElementById('hud-res').innerText = `${dims.w}x${dims.h}`;
+                document.getElementById('hud-quality').innerText = `${qualityVal}%`;
+
+                frameCount++;
+                if (timestamp - lastFpsUpdate >= 1000) {
+                    measuredFps = Math.round((frameCount * 1000) / (timestamp - lastFpsUpdate));
+                    document.getElementById('hud-fps').innerText = measuredFps;
+                    frameCount = 0;
+                    lastFpsUpdate = timestamp;
+                }
+            }
+
+            renderLoopId = requestAnimationFrame(renderLoop);
+        }
+
+        function takeSnapshot() {
+            const canvas = document.getElementById('output-canvas');
+            if (!mediaStream) {
+                showStatus('Notice: Camera stream must be active to capture snapshots.');
+                return;
+            }
+
+            const dataUrl = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = `snapshot-${Date.now()}.png`;
+            link.href = dataUrl;
+            link.click();
+        }
+
+        function toggleRecording() {
+            if (!mediaStream) {
+                showStatus('Notice: Camera stream must be active to record video.');
+                return;
+            }
+
+            if (!isRecording) {
+                const canvas = document.getElementById('output-canvas');
+                const targetFps = parseFloat(document.getElementById('fps-input').value) || 30;
+                const canvasStream = canvas.captureStream(Math.min(60, Math.max(1, targetFps)));
+
+                const audioTracks = mediaStream.getAudioTracks();
+                if (audioTracks.length > 0) {
+                    canvasStream.addTrack(audioTracks[0]);
+                }
+
+                const recBitrate = parseInt(document.getElementById('rec-bitrate').value) * 1000 || 5000000;
+
+                let options = { mimeType: 'video/webm;codecs=vp9' };
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                    options = { mimeType: 'video/webm' };
+                }
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                    options = {};
+                }
+
+                options.videoBitsPerSecond = recBitrate;
+
+                recordedChunks = [];
+                try {
+                    mediaRecorder = new MediaRecorder(canvasStream, options);
+                } catch (e) {
+                    mediaRecorder = new MediaRecorder(canvasStream);
+                }
+
+                mediaRecorder.ondataavailable = function (event) {
+                    if (event.data && event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = function () {
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `recording-${Date.now()}.webm`;
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(() => {
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(url);
+                    }, 100);
+                };
+
+                mediaRecorder.start();
+                isRecording = true;
+                const recBtn = document.getElementById('rec-btn');
+                recBtn.innerText = 'Stop & Save Recording';
+                recBtn.className = 'btn btn-danger';
+                document.getElementById('recording-badge').style.display = 'inline';
+
+            } else {
+                mediaRecorder.stop();
+                isRecording = false;
+                const recBtn = document.getElementById('rec-btn');
+                recBtn.innerText = 'Start Recording';
+                recBtn.className = 'btn btn-primary';
+                document.getElementById('recording-badge').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+
+</html>
