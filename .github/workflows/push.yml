@@ -62,7 +62,11 @@ jobs:
 
           PREV_EPOCH=0
 
-          while IFS='|' read -r HASH AUTHOR TITLE DESC TIME_ISO TIME_EPOCH; do
+          git log --reverse --format="%H|%an|%s|%b|%ad|%at" --date=iso-strict | while IFS='|' read -r HASH AUTHOR TITLE DESC TIME_ISO TIME_EPOCH; do
+            if [ -z "$HASH" ]; then
+              continue
+            fi
+
             if [ "$PREV_EPOCH" -eq 0 ]; then
               DIFF_STR="First commit (0 seconds)"
             else
@@ -120,9 +124,9 @@ jobs:
                   </div>
                   <div class="desc">$([ -n "$ESC_DESC" ] && echo "$ESC_DESC" || echo "(No description provided)")</div>
               </div>
-          EOC
+EOC
 
-          done < <(git log --reverse --format="%H|%an|%s|%b|%ad|%at" --date=iso-strict)
+          done
 
           # Close sitemap.html
           echo "</body>" >> "$SITEMAP_FILE"
