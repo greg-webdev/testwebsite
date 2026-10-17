@@ -19,7 +19,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Generate Site Structure, Sitemap, and Commits
+      - name: Generate Site Structure, Sitemap, Commits, and Latest Files
         env:
           REPO_NAME: ${{ github.repository }}
         run: |
@@ -41,25 +41,29 @@ jobs:
               ""
           ]
           
+          common_style = """
+              body { background: #121212; color: #d0d0d0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 24px; margin: 0; }
+              h1, h2 { color: #f0f0f0; border-bottom: 1px solid #333; padding-bottom: 8px; }
+              .card { background: #1a1a1a; border: 1px solid #333; border-radius: 4px; padding: 12px; margin-bottom: 12px; font-size: 0.9rem; }
+              .header-row { display: flex; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 8px; }
+              .hash { font-family: monospace; }
+              .author { color: #8bc34a; font-weight: bold; }
+              .title { color: #f0f0f0; font-weight: bold; font-size: 1rem; margin: 6px 0; }
+              .time { color: #888; font-size: 0.8rem; font-family: monospace; }
+              .delta { color: #ba68c8; font-size: 0.8rem; font-family: monospace; }
+              .desc { color: #888; white-space: pre-wrap; margin-top: 8px; font-family: monospace; font-size: 0.85rem; background: #121212; padding: 8px; border-radius: 4px; border: 1px solid #222; }
+              ul { padding-left: 20px; }
+              li { margin-bottom: 8px; }
+              a { color: #777777; text-decoration: none; }
+              a:hover, a:active { color: #ffffff; background: #555555; }
+          """
+
           commits_html = f"""<!DOCTYPE html>
           <html lang="en">
           <head>
               <meta charset="UTF-8">
               <title>Commit History</title>
-              <style>
-                  body {{ background: #0d1117; color: #c9d1d9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 16px; margin: 0; }}
-                  h2 {{ margin-top: 0; font-size: 1.2rem; color: #f0f6fc; border-bottom: 1px solid #30363d; padding-bottom: 8px; }}
-                  .commit {{ background: #161b22; border: 1px solid #30363d; border-radius: 0; padding: 12px; margin-bottom: 12px; font-size: 0.9rem; }}
-                  .header-row {{ display: flex; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 8px; }}
-                  .hash {{ font-family: monospace; }}
-                  .author {{ color: #7ee787; font-weight: bold; }}
-                  .title {{ color: #f0f6fc; font-weight: bold; font-size: 1rem; margin: 6px 0; }}
-                  .time {{ color: #8b949e; font-size: 0.8rem; font-family: monospace; }}
-                  .delta {{ color: #d2a8ff; font-size: 0.8rem; font-family: monospace; }}
-                  .desc {{ color: #8b949e; white-space: pre-wrap; margin-top: 8px; font-family: monospace; font-size: 0.85rem; background: #0d1117; padding: 8px; border-radius: 0; border: 1px solid #21262d; }}
-                  a {{ color: #6e7681; text-decoration: none; }}
-                  a:active {{ color: #ffffff; background: #808080; }}
-              </style>
+              <style>{common_style}</style>
           </head>
           <body>
               <h2>Repository Commits</h2>
@@ -114,7 +118,7 @@ jobs:
               short_hash = commit_hash[:7]
               
               commits_html += f"""
-              <div class="commit">
+              <div class="card">
                   <div class="header-row">
                       <span class="hash"><a href="https://github.com/{repo_name}/commit/{commit_hash}" target="_blank">{short_hash}</a></span>
                       <span class="author">{esc_author}</span>
@@ -137,50 +141,95 @@ jobs:
           with open("commits/index.html", "w", encoding="utf-8") as f:
               f.write(commits_html)
 
-          # Generate an actual XML sitemap scanning HTML files
-          html_files = []
+          # Get latest changed files from the most recent commit
+          latest_files_cmd = ["git", "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"]
+          latest_files_res = subprocess.run(latest_files_cmd, capture_output=True, text=True, check=True)
+          changed_files = [f.strip() for f in latest_files_res.stdout.split("\n") if f.strip()]
+
+          latest_html = f"""<!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <title>Latest Changed Files</title>
+              <style>{common_style}</style>
+          </head>
+          <body>
+              <h2>Latest Changed Files</h2>
+              <ul>
+          """
+
+          for file_path in changed_files:
+              esc_path = html.escape(file_path)
+              latest_html += f'    <li><a href="../{file_path}">{esc_path}</a></li>\n'
+
+          if not changed_files:
+              latest_html += '    <li>No files found.</li>\n'
+
+          latest_html += """
+              </ul>
+          </body>
+          </html>
+          """
+
+          os.makedirs("latest", exist_ok=True)
+          with open("latest/index.html", "w", encoding="utf-8") as f:
+              f.write(latest_html)
+
+          # Gather all HTML pages and assets for sitemap.html
+          site_pages = [
+              ("Home", "index.html"),
+              ("Commit History", "commits/"),
+              ("Latest Changed Files", "latest/"),
+              ("Repository Cominfo", "repository.cominfo")
+          ]
+          
           for root, dirs, files in os.walk("."):
-              if ".git" in root or "commits" in root:
+              if ".git" in root:
                   continue
               for file in files:
-                  if file.endswith(".html") and file != "index.html":
-                      rel_path = os.path.relpath(os.path.join(root, file), ".")
-                      html_files.append(rel_path.replace("\\", "/"))
+                  if file.endswith(".html") and root == "." and file != "index.html":
+                      rel = file
+                      site_pages.append((rel, rel))
 
-          sitemap_xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
-          sitemap_xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-          sitemap_xml += '  <url>\n    <loc>https://' + repo_name.split('/')[0] + '.github.io/' + repo_name.split('/')[1] + '/</loc>\n  </url>\n'
-          sitemap_xml += '  <url>\n    <loc>https://' + repo_name.split('/')[0] + '.github.io/' + repo_name.split('/')[1] + '/commits/</loc>\n  </url>\n'
-          
-          for hfile in html_files:
-              sitemap_xml += f'  <url>\n    <loc>https://{repo_name.split("/")[0]}.github.io/{repo_name.split("/")[1]}/{hfile}</loc>\n  </url>\n'
-          
-          sitemap_xml += '</urlset>'
+          sitemap_html = f"""<!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <title>HTML Sitemap</title>
+              <style>{common_style}</style>
+          </head>
+          <body>
+              <h2>HTML Sitemap</h2>
+              <ul>
+          """
 
-          with open("sitemap.xml", "w", encoding="utf-8") as f:
-              f.write(sitemap_xml)
+          for label, path in site_pages:
+              sitemap_html += f'    <li><a href="{path}">{label} ({path})</a></li>\n'
+
+          sitemap_html += """
+              </ul>
+          </body>
+          </html>
+          """
+
+          with open("sitemap.html", "w", encoding="utf-8") as f:
+              f.write(sitemap_html)
 
           # Generate sleek root index.html
-          root_html = """<!DOCTYPE html>
+          root_html = f"""<!DOCTYPE html>
           <html lang="en">
           <head>
               <meta charset="UTF-8">
               <title>Index</title>
-              <style>
-                  body { background: #0d1117; color: #c9d1d9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 24px; margin: 0; }
-                  h1 { font-size: 1.4rem; color: #f0f6fc; border-bottom: 1px solid #30363d; padding-bottom: 8px; }
-                  ul { padding-left: 20px; }
-                  li { margin-bottom: 8px; }
-                  a { color: #6e7681; text-decoration: none; }
-                  a:active { color: #ffffff; background: #808080; }
-              </style>
+              <style>{common_style}</style>
           </head>
           <body>
               <h1>Site Directory</h1>
               <p>Explore site resources below:</p>
               <ul>
                   <li><a href="commits/">Commit History (/commits)</a></li>
-                  <li><a href="sitemap.xml">XML Sitemap</a></li>
+                  <li><a href="latest/">Latest Changed Files (/latest)</a></li>
+                  <li><a href="sitemap.html">HTML Sitemap</a></li>
                   <li><a href="repository.cominfo">Repository Cominfo File</a></li>
               </ul>
           </body>
