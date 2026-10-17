@@ -23,114 +23,119 @@ jobs:
         env:
           REPO_NAME: ${{ github.repository }}
         run: |
-          COMINFO_FILE="repository.cominfo"
-          SITEMAP_FILE="sitemap.html"
-          
-          # Initialize cominfo
-          echo "=== REPOSITORY COMMIT HISTORY ===" > "$COMINFO_FILE"
-          echo "Generated at: $(date -u +"%Y-%m-%d %H:%M:%SZ")" >> "$COMINFO_FILE"
-          echo "==================================" >> "$COMINFO_FILE"
-          echo "" >> "$COMINFO_FILE"
+          python3 - << 'EOF'
+          import subprocess
+          import os
+          import html
+          from datetime import datetime, timezone
 
-          # Initialize sitemap.html with no rounded corners and link click effects
-          cat << 'EOF' > "$SITEMAP_FILE"
-          <!DOCTYPE html>
+          repo_name = os.environ.get("REPO_NAME", "")
+          
+          cmd = ["git", "log", "--reverse", "--format=%H|%an|%s|%b|%ad|%at", "--date=iso-strict"]
+          result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+          
+          cominfo_lines = [
+              "=== REPOSITORY COMMIT HISTORY ===",
+              f"Generated at: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%SZ')}",
+              "==================================",
+              ""
+          ]
+          
+          sitemap_html = f"""<!DOCTYPE html>
           <html lang="en">
           <head>
               <meta charset="UTF-8">
               <title>Sitemap & Commit History</title>
               <style>
-                  body { background: #0d1117; color: #c9d1d9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 16px; margin: 0; }
-                  h2 { margin-top: 0; font-size: 1.2rem; color: #f0f6fc; border-bottom: 1px solid #30363d; padding-bottom: 8px; }
-                  .commit { background: #161b22; border: 1px solid #30363d; border-radius: 0; padding: 12px; margin-bottom: 12px; font-size: 0.9rem; }
-                  .header-row { display: flex; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 8px; }
-                  .hash { font-family: monospace; }
-                  .author { color: #7ee787; font-weight: bold; }
-                  .title { color: #f0f6fc; font-weight: bold; font-size: 1rem; margin: 6px 0; }
-                  .time { color: #8b949e; font-size: 0.8rem; font-family: monospace; }
-                  .delta { color: #d2a8ff; font-size: 0.8rem; font-family: monospace; }
-                  .desc { color: #8b949e; white-space: pre-wrap; margin-top: 8px; font-family: monospace; font-size: 0.85rem; background: #0d1117; padding: 8px; border-radius: 0; border: 1px solid #21262d; }
-                  
-                  /* Link styling with text fade to white and grey background on click */
-                  a { color: #58a6ff; text-decoration: none; }
-                  a:active { color: #ffffff; background: #808080; }
+                  body {{ background: #0d1117; color: #c9d1d9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 16px; margin: 0; }}
+                  h2 {{ margin-top: 0; font-size: 1.2rem; color: #f0f6fc; border-bottom: 1px solid #30363d; padding-bottom: 8px; }}
+                  .commit {{ background: #161b22; border: 1px solid #30363d; border-radius: 0; padding: 12px; margin-bottom: 12px; font-size: 0.9rem; }}
+                  .header-row {{ display: flex; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 8px; }}
+                  .hash {{ font-family: monospace; }}
+                  .author {{ color: #7ee787; font-weight: bold; }}
+                  .title {{ color: #f0f6fc; font-weight: bold; font-size: 1rem; margin: 6px 0; }}
+                  .time {{ color: #8b949e; font-size: 0.8rem; font-family: monospace; }}
+                  .delta {{ color: #d2a8ff; font-size: 0.8rem; font-family: monospace; }}
+                  .desc {{ color: #8b949e; white-space: pre-wrap; margin-top: 8px; font-family: monospace; font-size: 0.85rem; background: #0d1117; padding: 8px; border-radius: 0; border: 1px solid #21262d; }}
+                  a {{ color: #58a6ff; text-decoration: none; }}
+                  a:active {{ color: #ffffff; background: #808080; }}
               </style>
           </head>
           <body>
               <h2>Commit History Sitemap</h2>
-          EOF
-
-          PREV_EPOCH=0
-
-          git log --reverse --format="%H|%an|%s|%b|%ad|%at" --date=iso-strict | while IFS='|' read -r HASH AUTHOR TITLE DESC TIME_ISO TIME_EPOCH; do
-            if [ -z "$HASH" ]; then
-              continue
-            fi
-
-            if [ "$PREV_EPOCH" -eq 0 ]; then
-              DIFF_STR="First commit (0 seconds)"
-            else
-              DIFF_SEC=$((TIME_EPOCH - PREV_EPOCH))
-              if [ "$DIFF_SEC" -lt 0 ]; then
-                DIFF_SEC=0
-              fi
+          """
+          
+          prev_epoch = None
+          
+          for line in result.stdout.strip().split("\n"):
+              if not line:
+                  continue
+              parts = line.split("|", 5)
+              if len(parts) < 6:
+                  continue
+              commit_hash, author, title, desc, time_iso, time_epoch_str = parts
+              time_epoch = int(time_epoch_str)
               
-              DAYS=$((DIFF_SEC / 86400))
-              HOURS=$(((DIFF_SEC % 86400) / 3600))
-              MINS=$(((DIFF_SEC % 3600) / 60))
-              SECS=$((DIFF_SEC % 60))
+              if prev_epoch is None:
+                  diff_str = "First commit (0 seconds)"
+              else:
+                  diff_sec = max(0, time_epoch - prev_epoch)
+                  days = diff_sec // 86400
+                  hours = (diff_sec % 86400) // 3600
+                  mins = (diff_sec % 3600) // 60
+                  secs = diff_sec % 60
+                  
+                  parts_time = []
+                  if days > 0: parts_time.append(f"{days}d")
+                  if hours > 0: parts_time.append(f"{hours}h")
+                  if mins > 0: parts_time.append(f"{mins}m")
+                  parts_time.append(f"{secs}s")
+                  diff_str = " ".join(parts_time)
               
-              DIFF_STR=""
-              [ "$DAYS" -gt 0 ] && DIFF_STR="${DIFF_STR}${DAYS}d "
-              [ "$HOURS" -gt 0 ] && DIFF_STR="${DIFF_STR}${HOURS}h "
-              [ "$MINS" -gt 0 ] && DIFF_STR="${DIFF_STR}${MINS}m "
-              DIFF_STR="${DIFF_STR}${SECS}s"
-            fi
-            
-            PREV_EPOCH="$TIME_EPOCH"
-
-            # Append to .cominfo
-            echo "--------------------------------------------------" >> "$COMINFO_FILE"
-            echo "Commit Hash : $HASH" >> "$COMINFO_FILE"
-            echo "Author      : $AUTHOR" >> "$COMINFO_FILE"
-            echo "Title       : $TITLE" >> "$COMINFO_FILE"
-            echo "Time        : $TIME_ISO" >> "$COMINFO_FILE"
-            echo "Time Delta  : $DIFF_STR after previous commit" >> "$COMINFO_FILE"
-            echo "Description :" >> "$COMINFO_FILE"
-            if [ -n "$DESC" ]; then
-              printf "%s\n" "$DESC" | sed 's/^/  /' >> "$COMINFO_FILE"
-            else
-              echo "  (No description provided)" >> "$COMINFO_FILE"
-            fi
-            echo "" >> "$COMINFO_FILE"
-
-            # Escape HTML special chars
-            ESC_TITLE=$(echo "$TITLE" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
-            ESC_AUTHOR=$(echo "$AUTHOR" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
-            ESC_DESC=$(echo "$DESC" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
-            SHORT_HASH=$(echo "$HASH" | cut -c1-7)
-
-            # Append card to sitemap.html with clickable commit link
-            cat << EOC >> "$SITEMAP_FILE"
+              prev_epoch = time_epoch
+              
+              cominfo_lines.append("--------------------------------------------------")
+              cominfo_lines.append(f"Commit Hash : {commit_hash}")
+              cominfo_lines.append(f"Author      : {author}")
+              cominfo_lines.append(f"Title       : {title}")
+              cominfo_lines.append(f"Time        : {time_iso}")
+              cominfo_lines.append(f"Time Delta  : {diff_str} after previous commit")
+              cominfo_lines.append("Description :")
+              if desc.strip():
+                  for desc_line in desc.strip().split("\n"):
+                      cominfo_lines.append(f"  {desc_line}")
+              else:
+                  cominfo_lines.append("  (No description provided)")
+              cominfo_lines.append("")
+              
+              esc_title = html.escape(title)
+              esc_author = html.escape(author)
+              esc_desc = html.escape(desc.strip()) if desc.strip() else "(No description provided)"
+              short_hash = commit_hash[:7]
+              
+              sitemap_html += f"""
               <div class="commit">
                   <div class="header-row">
-                      <span class="hash"><a href="https://github.com/$REPO_NAME/commit/$HASH" target="_blank">$SHORT_HASH</a></span>
-                      <span class="author">$ESC_AUTHOR</span>
+                      <span class="hash"><a href="https://github.com/{repo_name}/commit/{commit_hash}" target="_blank">{short_hash}</a></span>
+                      <span class="author">{esc_author}</span>
                   </div>
-                  <div class="title">$ESC_TITLE</div>
+                  <div class="title">{esc_title}</div>
                   <div class="header-row">
-                      <span class="time">Time: $TIME_ISO</span>
-                      <span class="delta">Delta: +$DIFF_STR</span>
+                      <span class="time">Time: {time_iso}</span>
+                      <span class="delta">Delta: +{diff_str}</span>
                   </div>
-                  <div class="desc">$([ -n "$ESC_DESC" ] && echo "$ESC_DESC" || echo "(No description provided)")</div>
+                  <div class="desc">{esc_desc}</div>
               </div>
-EOC
-
-          done
-
-          # Close sitemap.html
-          echo "</body>" >> "$SITEMAP_FILE"
-          echo "</html>" >> "$SITEMAP_FILE"
+              """
+          
+          sitemap_html += """</body>\n</html>"""
+          
+          with open("repository.cominfo", "w", encoding="utf-8") as f:
+              f.write("\n".join(cominfo_lines))
+              
+          with open("sitemap.html", "w", encoding="utf-8") as f:
+              f.write(sitemap_html)
+          EOF
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
