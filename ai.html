@@ -624,19 +624,16 @@
 
         /* ===== CallChip Loader Styles ===== */
         .call-chip {
-            --cc-size: 34px;
+            --cc-size: 38px;
             --cc-font: 13px;
-            --cc-pad: 12px;
-            --cc-gap: 7px;
-            --cc-radius: 10px;
-            --cc-color: currentColor;
-            --cc-surface: #27272a;
-            --cc-progress: currentColor;
-            --cc-progress-pct: 8%;
+            --cc-pad: 16px;
+            --cc-gap: 10px;
+            --cc-radius: 12px;
+            --cc-color: #ffffff;
+            --cc-surface: rgba(24, 24, 27, 0.95);
+            --cc-progress: var(--primary);
             --cc-done: #22c55e;
             --cc-error: #ef4444;
-            --cc-wash-pct: 14%;
-            --cc-expected: 2500ms;
             --cc-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 
             position: relative;
@@ -649,12 +646,14 @@
             border-radius: var(--cc-radius);
             overflow: hidden;
             background: var(--cc-surface);
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(34, 197, 94, 0.2);
             color: var(--cc-color);
             font-size: var(--cc-font);
             line-height: 1;
             white-space: nowrap;
             user-select: none;
-            transition: transform 160ms var(--cc-ease-out);
+            transition: all 200ms var(--cc-ease-out);
         }
 
         .call-chip[data-status='error'] { cursor: pointer; }
@@ -663,10 +662,9 @@
         .call-chip__fill {
             position: absolute;
             inset: 0;
-            background: color-mix(in srgb, var(--cc-progress) var(--cc-progress-pct), transparent);
+            background: linear-gradient(90deg, rgba(34, 197, 94, 0.3), rgba(34, 197, 94, 0.55));
             transform: scaleX(0);
             transform-origin: left center;
-            clip-path: inset(0 0 0 0);
             pointer-events: none;
         }
 
@@ -1332,9 +1330,9 @@
                         await engineRef.current.unload();
                     }
 
-                    // Configure sliding window and larger context to prevent ContextWindowSizeExceededError
+                    // Use sliding_window_size with context_window_size: -1 as required by WebLLM
                     const chatOpts = {
-                        context_window_size: 8192,
+                        context_window_size: -1,
                         sliding_window_size: 4096,
                         attention_sink_size: 4
                     };
@@ -1682,20 +1680,33 @@
                             </div>
                         </header>
 
+                        {/* Eye-catching Sticky Model Loader Banner */}
+                        {loadingState.active && (
+                            <div style={{
+                                padding: "16px 24px",
+                                background: "rgba(15, 23, 42, 0.92)",
+                                backdropFilter: "blur(14px)",
+                                borderBottom: "1px solid var(--border)",
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: "8px",
+                                zIndex: 20,
+                                boxShadow: "0 8px 30px rgba(0,0,0,0.4)"
+                            }}>
+                                <UniversalLoader 
+                                    style={loaderStyle}
+                                    name="webllm" 
+                                    argument={selectedModel.split('-')[0]} 
+                                    status="running" 
+                                    progress={loadingState.progress}
+                                    text={loadingState.text}
+                                />
+                            </div>
+                        )}
+
                         <div className="chat-stream">
-                            {/* Live Model Loader with Customizable Look */}
-                            {loadingState.active && (
-                                <div style={{ display: "flex", justifyContent: "center", margin: "12px 0" }}>
-                                    <UniversalLoader 
-                                        style={loaderStyle}
-                                        name="webllm" 
-                                        argument={selectedModel.split('-')[0]} 
-                                        status="running" 
-                                        progress={loadingState.progress}
-                                        text={loadingState.text}
-                                    />
-                                </div>
-                            )}
 
                             {messages.length === 0 ? (
                                 <div style={{ margin: "auto", textAlign: "center", maxWidth: 440, padding: 20 }}>
