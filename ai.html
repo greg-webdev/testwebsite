@@ -1332,6 +1332,13 @@
                         await engineRef.current.unload();
                     }
 
+                    // Configure sliding window and larger context to prevent ContextWindowSizeExceededError
+                    const chatOpts = {
+                        context_window_size: 8192,
+                        sliding_window_size: 4096,
+                        attention_sink_size: 4
+                    };
+
                     const engine = await window.webllm.CreateMLCEngine(modelId, {
                         initProgressCallback: (report) => {
                             setLoadingState({
@@ -1340,7 +1347,7 @@
                                 progress: report.progress || 0.1
                             });
                         }
-                    });
+                    }, chatOpts);
 
                     engineRef.current = engine;
                     setEngineReady(true);
@@ -1405,21 +1412,27 @@
                 setInput("");
                 setIsGenerating(true);
 
+                let fullText = "";
+                let currentTokens = 0;
+                let canvasPopped = false;
+
                 try {
                     const systemMsg = {
                         role: "system",
                         content: "You are an expert full-stack coder. Provide clean, modern code. Default to a single-file implementation (HTML with inline CSS and JS) unless the user requests multiple files or separating them into index.html, style.css, and script.js is cleaner. When using multiple files, prefix each code block with its filename (e.g. ```html index.html or ```css style.css)."
                     };
 
+                    // Context Guard: Keep the system prompt + recent messages to avoid exceeding the model's token limits
+                    let cleanHistory = newMessages.map(m => ({ role: m.role, content: m.content }));
+                    if (cleanHistory.length > 8) {
+                        cleanHistory = cleanHistory.slice(-8); // Keep last 8 turns of conversation
+                    }
+
                     const asyncChunks = await engineRef.current.chat.completions.create({
-                        messages: [systemMsg, ...newMessages.map(m => ({ role: m.role, content: m.content }))],
+                        messages: [systemMsg, ...cleanHistory],
                         stream: true,
                         temperature: temperature
                     });
-
-                    let fullText = "";
-                    let currentTokens = 0;
-                    let canvasPopped = false;
 
                     for await (const chunk of asyncChunks) {
                         const delta = chunk.choices[0]?.delta?.content || "";
@@ -1450,10 +1463,11 @@
                     }
                 } catch (err) {
                     console.error("Inference Error:", err);
+                    const errorMsg = (err && err.message) ? err.message : String(err);
                     setSessions(prev => prev.map(s => {
                         if (s.id === currentSessionId) {
                             const updated = s.messages.map(m => 
-                                m.id === aiId ? { ...m, content: fullText + "\n\nError: " + (err.message || err) } : m
+                                m.id === aiId ? { ...m, content: (fullText ? fullText + "\n\n" : "") + "Error: " + errorMsg } : m
                             );
                             return { ...s, messages: updated };
                         }
@@ -1477,6 +1491,19 @@
                     return { __html: marked.parse(content) };
                 } catch (e) {
                     return { __html: content };
+                }
+            };
+
+            // Open canvas view in a clean about:blank tab with all CSS & JS files bundled
+            const openInAboutBlank = () => {
+                const fullHtml = bundleMultiFiles(virtualFiles, false);
+                const win = window.open('about:blank', '_blank');
+                if (win) {
+                    win.document.open();
+                    win.document.write(fullHtml);
+                    win.document.close();
+                } else {
+                    alert("Pop-up blocked! Please allow pop-ups for this site to open in a new tab.");
                 }
             };
 
@@ -1798,6 +1825,15 @@
                                 </div>
 
                                 <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                                    <button 
+                                        className="btn-action"
+                                        onClick={openInAboutBlank}
+                                        title="Open full page in about:blank (New Tab)"
+                                        style={{ color: "var(--accent)", borderColor: "var(--border-active)" }}
+                                    >
+                                        <i className="fa-solid fa-arrow-up-right-from-square"></i>
+                                        <span>about:blank</span>
+                                    </button>
                                     <button 
                                         className="btn-action"
                                         onClick={() => handleDownload(virtualFiles)}
