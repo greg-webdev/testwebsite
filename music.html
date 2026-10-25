@@ -2780,161 +2780,211 @@ SUBDIVISION RULES:
         }
     });
 </script>
-    <!-- Firebase Community Integration[cite: 1] -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, orderBy, limit, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+   <!-- Firebase Community Integration -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, query, orderBy, limit, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDGWtTvbqxu5TxETs8YP2M60MOuZRvNAME",
-            authDomain: "music-13f42.firebaseapp.com",
-            projectId: "music-13f42",
-            storageBucket: "music-13f42.firebasestorage.app",
-            messagingSenderId: "222215160043",
-            appId: "1:222215160043:web:9d80c44a74144654f17eae"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyDGWtTvbqxu5TxETs8YP2M60MOuZRvNAME",
+        authDomain: "music-13f42.firebaseapp.com",
+        projectId: "music-13f42",
+        storageBucket: "music-13f42.firebasestorage.app",
+        messagingSenderId: "222215160043",
+        appId: "1:222215160043:web:9d80c44a74144654f17eae"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-        let currentUser = null;
-        let customArtistName = localStorage.getItem("beatstudio_artist_name") || "";
+    let currentUser = null;
+    let customArtistName = localStorage.getItem("beatstudio_artist_name") || "";
 
-        signInAnonymously(auth).catch(() => {
-            document.getElementById("authStatusText").textContent = "DISCONNECTED";
-        });
+    // Guarantee auth state with promise fallback
+    async function ensureAuth() {
+        if (auth.currentUser) {
+            currentUser = auth.currentUser;
+            return currentUser;
+        }
+        try {
+            const cred = await signInAnonymously(auth);
+            currentUser = cred.user;
+            return currentUser;
+        } catch (err) {
+            console.error("Auth sign-in failed:", err);
+            throw err;
+        }
+    }
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                currentUser = user;
-                if (!customArtistName) {
-                    customArtistName = "Producer_" + user.uid.slice(0, 5);
-                    localStorage.setItem("beatstudio_artist_name", customArtistName);
-                }
-                document.getElementById("customArtistName").value = customArtistName;
-                document.getElementById("authStatusText").textContent = `ONLINE: ${user.uid.slice(0, 6)}`;
-            }
-        });
+    // Auto-login on load
+    ensureAuth().catch(() => {
+        document.getElementById("authStatusText").textContent = "DISCONNECTED";
+    });
 
-        document.getElementById("saveArtistNameBtn").addEventListener("click", () => {
-            const inputVal = document.getElementById("customArtistName").value.trim();
-            if (inputVal) {
-                customArtistName = inputVal;
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUser = user;
+            if (!customArtistName) {
+                customArtistName = "Producer_" + user.uid.slice(0, 5);
                 localStorage.setItem("beatstudio_artist_name", customArtistName);
-                showToast(`Artist set to "${customArtistName}"`);
             }
-        });
+            document.getElementById("customArtistName").value = customArtistName;
+            document.getElementById("authStatusText").textContent = `ONLINE: ${user.uid.slice(0, 6)}`;
+        }
+    });
 
-        const shareModal = document.getElementById("shareModal");
-        const shareMusicBtn = document.getElementById("shareMusicBtn");
-        const shareModalClose = document.getElementById("shareModalClose");
-        const cancelShareBtn = document.getElementById("cancelShareBtn");
+    document.getElementById("saveArtistNameBtn").addEventListener("click", () => {
+        const inputVal = document.getElementById("customArtistName").value.trim();
+        if (inputVal) {
+            customArtistName = inputVal;
+            localStorage.setItem("beatstudio_artist_name", customArtistName);
+            showToast(`Artist set to "${customArtistName}"`);
+        }
+    });
 
-        shareMusicBtn.addEventListener("click", () => {
-            document.getElementById("statBpm").textContent = `BPM: ${bpm}`;
-            document.getElementById("statMeter").textContent = `METER: ${currentMeter}`;
-            shareModal.classList.add("open");
-        });
+    const shareModal = document.getElementById("shareModal");
+    const shareMusicBtn = document.getElementById("shareMusicBtn");
+    const shareModalClose = document.getElementById("shareModalClose");
+    const cancelShareBtn = document.getElementById("cancelShareBtn");
 
-        const closeModal = () => shareModal.classList.remove("open");
-        shareModalClose.addEventListener("click", closeModal);
-        cancelShareBtn.addEventListener("click", closeModal);
+    shareMusicBtn.addEventListener("click", () => {
+        document.getElementById("statBpm").textContent = `BPM: ${bpm}`;
+        document.getElementById("statMeter").textContent = `METER: ${currentMeter}`;
+        shareModal.classList.add("open");
+    });
 
-        const tabShareBtn = document.getElementById("tabShareBtn");
-        const tabFeedBtn = document.getElementById("tabFeedBtn");
-        const tabShareContent = document.getElementById("tabShareContent");
-        const tabFeedContent = document.getElementById("tabFeedContent");
+    const closeModal = () => shareModal.classList.remove("open");
+    shareModalClose.addEventListener("click", closeModal);
+    cancelShareBtn.addEventListener("click", closeModal);
 
-        tabShareBtn.addEventListener("click", () => {
-            tabShareBtn.classList.add("active");
-            tabFeedBtn.classList.remove("active");
-            tabShareContent.style.display = "flex";
-            tabFeedContent.style.display = "none";
-        });
+    const tabShareBtn = document.getElementById("tabShareBtn");
+    const tabFeedBtn = document.getElementById("tabFeedBtn");
+    const tabShareContent = document.getElementById("tabShareContent");
+    const tabFeedContent = document.getElementById("tabFeedContent");
 
-        tabFeedBtn.addEventListener("click", () => {
-            tabFeedBtn.classList.add("active");
-            tabShareBtn.classList.remove("active");
-            tabShareContent.style.display = "none";
-            tabFeedContent.style.display = "flex";
-            loadBeatsFeed();
-        });
+    tabShareBtn.addEventListener("click", () => {
+        tabShareBtn.classList.add("active");
+        tabFeedBtn.classList.remove("active");
+        tabShareContent.style.display = "flex";
+        tabFeedContent.style.display = "none";
+    });
 
-        document.getElementById("publishBeatBtn").addEventListener("click", async () => {
-            if (!currentUser) return alert("Connecting to cloud...");
+    tabFeedBtn.addEventListener("click", () => {
+        tabFeedBtn.classList.add("active");
+        tabShareBtn.classList.remove("active");
+        tabShareContent.style.display = "none";
+        tabFeedContent.style.display = "flex";
+        loadBeatsFeed();
+    });
+
+    // Clean serialization helper to eliminate any undefined values
+    function sanitizeForFirestore(obj) {
+        return JSON.parse(JSON.stringify(obj, (key, value) => {
+            return value === undefined ? null : value;
+        }));
+    }
+
+    document.getElementById("publishBeatBtn").addEventListener("click", async () => {
+        const publishBtn = document.getElementById("publishBeatBtn");
+        publishBtn.disabled = true;
+        publishBtn.textContent = "PUBLISHING...";
+
+        try {
+            const user = await ensureAuth();
             const title = document.getElementById("shareTitle").value.trim();
-            if (!title) return alert("Enter a beat title!");
-
-            const payload = getBeatDataPayload();
-            try {
-                await addDoc(collection(db, "beats"), {
-                    title: title,
-                    author: customArtistName || ("Producer_" + currentUser.uid.slice(0, 5)),
-                    genre: document.getElementById("shareGenre").value,
-                    description: document.getElementById("shareDesc").value.trim(),
-                    bg: document.getElementById("shareBg").value.trim(),
-                    meter: currentMeter,
-                    bpm: bpm,
-                    tracks: payload.tracks,
-                    pitches: payload.pitches,
-                    velocities: payload.velocities,
-                    chords: payload.chords,
-                    createdAt: serverTimestamp()
-                });
-                showToast(`"${title}" published!`);
-                tabFeedBtn.click();
-            } catch (err) {
-                alert("Error sharing beat: " + err.message);
+            if (!title) {
+                alert("Enter a beat title!");
+                publishBtn.disabled = false;
+                publishBtn.textContent = "PUBLISH BEAT";
+                return;
             }
-        });
 
-        function loadBeatsFeed() {
-            const feedList = document.getElementById("beatsFeedList");
-            const q = query(collection(db, "beats"), orderBy("createdAt", "desc"), limit(40));
-            onSnapshot(q, (snapshot) => {
-                feedList.innerHTML = '';
-                if (snapshot.empty) {
-                    feedList.innerHTML = '<div style="text-align:center; padding:2rem; font-size:0.7rem; color:var(--text-muted);">No tracks shared yet.</div>';
-                    return;
-                }
-                snapshot.forEach(docSnap => {
-                    const beat = docSnap.data();
-                    const card = document.createElement("div");
-                    card.className = "beat-card";
-                    card.innerHTML = `
-                        <div class="beat-card-header">
-                            <div>
-                                <div class="beat-card-title">${escapeHtml(beat.title || "UNTITLED")}</div>
-                                <div class="beat-card-meta">
-                                    <span>BY ${escapeHtml(beat.author || "ANONYMOUS")}</span>
-                                    <span>•</span>
-                                    <span class="genre-pill">${escapeHtml(beat.genre || "BEAT")}</span>
-                                    <span>•</span>
-                                    <span>${beat.meter || "4/4"}</span>
-                                    <span>•</span>
-                                    <span>${beat.bpm || 130} BPM</span>
-                                </div>
-                            </div>
-                            <button class="load-card-btn btn-primary" style="padding:3px 8px; font-size:0.62rem;">LOAD</button>
-                        </div>
-                    `;
-                    card.querySelector(".load-card-btn").addEventListener("click", () => {
-                        loadBeatData(beat);
-                        closeModal();
-                        showToast(`Loaded "${beat.title}"`);
-                    });
-                    feedList.appendChild(card);
-                });
+            const rawPayload = getBeatDataPayload();
+
+            // Explicitly sanitize all nested dictionaries
+            const docData = sanitizeForFirestore({
+                title: title,
+                author: customArtistName || ("Producer_" + user.uid.slice(0, 5)),
+                authorId: user.uid,
+                genre: document.getElementById("shareGenre").value || "Other",
+                description: document.getElementById("shareDesc").value.trim() || "",
+                bg: document.getElementById("shareBg").value.trim() || "",
+                meter: currentMeter || "4/4",
+                bpm: Number(bpm) || 130,
+                tracks: rawPayload.tracks || {},
+                pitches: rawPayload.pitches || {},
+                velocities: rawPayload.velocities || {},
+                chords: rawPayload.chords || {},
+                clips: rawPayload.clips || []
             });
-        }
 
-        function escapeHtml(text) {
-            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-            return String(text).replace(/[&<>"']/g, m => map[m]);
+            // Set server timestamp after JSON parsing
+            docData.createdAt = serverTimestamp();
+
+            await addDoc(collection(db, "beats"), docData);
+            showToast(`"${title}" published!`);
+            document.getElementById("shareTitle").value = "";
+            document.getElementById("shareDesc").value = "";
+            tabFeedBtn.click();
+        } catch (err) {
+            console.error("Firestore write failure:", err);
+            alert("Error sharing beat: " + err.message);
+        } finally {
+            publishBtn.disabled = false;
+            publishBtn.textContent = "PUBLISH BEAT";
         }
-    </script>
+    });
+
+    function loadBeatsFeed() {
+        const feedList = document.getElementById("beatsFeedList");
+        const q = query(collection(db, "beats"), orderBy("createdAt", "desc"), limit(40));
+        onSnapshot(q, (snapshot) => {
+            feedList.innerHTML = '';
+            if (snapshot.empty) {
+                feedList.innerHTML = '<div style="text-align:center; padding:2rem; font-size:0.7rem; color:var(--text-muted);">No tracks shared yet.</div>';
+                return;
+            }
+            snapshot.forEach(docSnap => {
+                const beat = docSnap.data();
+                const card = document.createElement("div");
+                card.className = "beat-card";
+                card.innerHTML = `
+                    <div class="beat-card-header">
+                        <div>
+                            <div class="beat-card-title">${escapeHtml(beat.title || "UNTITLED")}</div>
+                            <div class="beat-card-meta">
+                                <span>BY ${escapeHtml(beat.author || "ANONYMOUS")}</span>
+                                <span>•</span>
+                                <span class="genre-pill">${escapeHtml(beat.genre || "BEAT")}</span>
+                                <span>•</span>
+                                <span>${beat.meter || "4/4"}</span>
+                                <span>•</span>
+                                <span>${beat.bpm || 130} BPM</span>
+                            </div>
+                        </div>
+                        <button class="load-card-btn btn-primary" style="padding:3px 8px; font-size:0.62rem;">LOAD</button>
+                    </div>
+                `;
+                card.querySelector(".load-card-btn").addEventListener("click", () => {
+                    loadBeatData(beat);
+                    closeModal();
+                    showToast(`Loaded "${beat.title}"`);
+                });
+                feedList.appendChild(card);
+            });
+        }, (err) => {
+            console.error("Feed snapshot error:", err);
+            feedList.innerHTML = `<div style="text-align:center; padding:2rem; font-size:0.7rem; color:#f87171;">Error loading feed: ${err.message}</div>`;
+        });
+    }
+
+    function escapeHtml(text) {
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+        return String(text).replace(/[&<>"']/g, m => map[m]);
+    }
+</script>
 </body>
 
 </html>
