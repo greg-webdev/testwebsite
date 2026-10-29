@@ -52,14 +52,25 @@ jobs:
               .time { color: #888; font-size: 0.8rem; font-family: monospace; }
               .delta { color: #ba68c8; font-size: 0.8rem; font-family: monospace; }
               .desc { color: #888; white-space: pre-wrap; margin-top: 8px; font-family: monospace; font-size: 0.85rem; background: #121212; padding: 8px; border-radius: 4px; border: 1px solid #222; }
-              ul { padding-left: 20px; list-style-type: square; }
-              li { margin-bottom: 6px; }
-              a { color: #777777; text-decoration: none; }
-              a:hover, a:active { color: #ffffff; background: #555555; }
-              details { margin: 6px 0 6px 12px; }
-              summary { cursor: pointer; color: #999999; font-weight: 600; padding: 2px 0; user-select: none; }
-              summary:hover { color: #ffffff; }
-              .tree-container { background: #1a1a1a; border: 1px solid #333; border-radius: 4px; padding: 16px; margin-top: 16px; }
+              ul { list-style: none; padding-left: 0; margin: 0; }
+              li { margin: 4px 0; }
+              a { color: #777777; text-decoration: none; cursor: pointer; display: inline-block; padding: 2px 4px; border-radius: 2px; }
+              a:hover, a:active { color: #ffffff; background: #2a2a2a; }
+              .tree-container { background: #1a1a1a; border: 1px solid #333; border-radius: 4px; padding: 16px; margin-top: 16px; font-family: monospace; font-size: 0.9rem; }
+              details { margin: 4px 0; }
+              details > summary {
+                  list-style: none;
+                  cursor: pointer;
+                  color: #777777;
+                  display: inline-block;
+                  padding: 2px 4px;
+                  border-radius: 2px;
+                  user-select: none;
+              }
+              details > summary::-webkit-details-marker { display: none; }
+              details > summary:hover { color: #ffffff; background: #2a2a2a; }
+              details[open] > summary { color: #a0a0a0; }
+              .branch { margin-left: 18px; border-left: 1px solid #262626; padding-left: 10px; }
           """
 
           commits_html = f"""<!DOCTYPE html>
@@ -179,7 +190,7 @@ jobs:
           with open("latest/index.html", "w", encoding="utf-8") as f:
               f.write(latest_html)
 
-          # Recursive tree generation for expandable folder structure
+          # Directory tree data structure
           def make_tree_node():
               return {"_dirs": {}, "_files": []}
 
@@ -198,13 +209,17 @@ jobs:
                   if not file.startswith(".git"):
                       curr["_files"].append((file, os.path.normpath(os.path.join(rel_root, file)).replace("\\", "/")))
 
-          def render_tree(node, current_path=""):
+          def render_tree(node):
               html_out = ""
               for dirname in sorted(node["_dirs"].keys()):
-                  sub_path = f"{current_path}/{dirname}" if current_path else dirname
-                  sub_content = render_tree(node["_dirs"][dirname], sub_path)
+                  sub_content = render_tree(node["_dirs"][dirname])
                   esc_dir = html.escape(dirname)
-                  html_out += f'<details><summary>{esc_dir}/</summary>\n<div style="margin-left: 14px;">{sub_content}</div>\n</details>\n'
+                  html_out += f"""<details>
+                      <summary>{esc_dir}/</summary>
+                      <div class="branch">
+                          {sub_content}
+                      </div>
+                  </details>\n"""
               
               if node["_files"]:
                   html_out += '<ul>\n'
