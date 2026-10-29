@@ -52,10 +52,14 @@ jobs:
               .time { color: #888; font-size: 0.8rem; font-family: monospace; }
               .delta { color: #ba68c8; font-size: 0.8rem; font-family: monospace; }
               .desc { color: #888; white-space: pre-wrap; margin-top: 8px; font-family: monospace; font-size: 0.85rem; background: #121212; padding: 8px; border-radius: 4px; border: 1px solid #222; }
-              ul { padding-left: 20px; }
-              li { margin-bottom: 8px; }
+              ul { padding-left: 20px; list-style-type: square; }
+              li { margin-bottom: 6px; }
               a { color: #777777; text-decoration: none; }
               a:hover, a:active { color: #ffffff; background: #555555; }
+              details { margin: 6px 0 6px 12px; }
+              summary { cursor: pointer; color: #999999; font-weight: 600; padding: 2px 0; user-select: none; }
+              summary:hover { color: #ffffff; }
+              .tree-container { background: #1a1a1a; border: 1px solid #333; border-radius: 4px; padding: 16px; margin-top: 16px; }
           """
 
           commits_html = f"""<!DOCTYPE html>
@@ -175,21 +179,42 @@ jobs:
           with open("latest/index.html", "w", encoding="utf-8") as f:
               f.write(latest_html)
 
-          # Gather all HTML pages and assets for sitemap.html
-          site_pages = [
-              ("Home", "index.html"),
-              ("Commit History", "commits/"),
-              ("Latest Changed Files", "latest/"),
-              ("Repository Cominfo", "repository.cominfo")
-          ]
-          
+          # Recursive tree generation for expandable folder structure
+          def make_tree_node():
+              return {"_dirs": {}, "_files": []}
+
+          fs_tree = make_tree_node()
+
           for root, dirs, files in os.walk("."):
-              if ".git" in root:
-                  continue
-              for file in files:
-                  if file.endswith(".html") and root == "." and file != "index.html":
-                      rel = file
-                      site_pages.append((rel, rel))
+              dirs[:] = [d for d in dirs if not d.startswith(".git")]
+              rel_root = os.path.relpath(root, ".")
+              curr = fs_tree
+              if rel_root != ".":
+                  for segment in rel_root.split(os.sep):
+                      if segment not in curr["_dirs"]:
+                          curr["_dirs"][segment] = make_tree_node()
+                      curr = curr["_dirs"][segment]
+              for file in sorted(files):
+                  if not file.startswith(".git"):
+                      curr["_files"].append((file, os.path.normpath(os.path.join(rel_root, file)).replace("\\", "/")))
+
+          def render_tree(node, current_path=""):
+              html_out = ""
+              for dirname in sorted(node["_dirs"].keys()):
+                  sub_path = f"{current_path}/{dirname}" if current_path else dirname
+                  sub_content = render_tree(node["_dirs"][dirname], sub_path)
+                  esc_dir = html.escape(dirname)
+                  html_out += f'<details><summary>{esc_dir}/</summary>\n<div style="margin-left: 14px;">{sub_content}</div>\n</details>\n'
+              
+              if node["_files"]:
+                  html_out += '<ul>\n'
+                  for filename, full_path in node["_files"]:
+                      esc_name = html.escape(filename)
+                      html_out += f'    <li><a href="{full_path}">{esc_name}</a></li>\n'
+                  html_out += '</ul>\n'
+              return html_out
+
+          tree_markup = render_tree(fs_tree)
 
           sitemap_html = f"""<!DOCTYPE html>
           <html lang="en">
@@ -200,14 +225,9 @@ jobs:
           </head>
           <body>
               <h2>HTML Sitemap</h2>
-              <ul>
-          """
-
-          for label, path in site_pages:
-              sitemap_html += f'    <li><a href="{path}">{label} ({path})</a></li>\n'
-
-          sitemap_html += """
-              </ul>
+              <div class="tree-container">
+                  {tree_markup}
+              </div>
           </body>
           </html>
           """
