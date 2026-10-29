@@ -79,8 +79,9 @@
 
         .input-row {
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
-            gap: 10px;
+            gap: 4px 10px;
             counter-increment: n;
         }
 
@@ -97,6 +98,22 @@
             display: none;
         }
 
+        .input-preview {
+            flex-basis: 100%;
+            order: 1;
+            padding-left: 44px;
+            color: #696f7c;
+            font-size: 12px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            word-break: break-all;
+        }
+
+        .input-preview:empty,
+        .error-message:empty,
+        .formula-eval:empty {
+            display: none;
+        }
+
         input[type="text"] {
             background-color: #121316;
             border: 1px solid #23252b;
@@ -104,7 +121,8 @@
             color: #e4e7eb;
             font-size: 13px;
             padding: 8px 12px;
-            width: 100%;
+            flex: 1;
+            min-width: 0;
             outline: none;
             transition: border-color 0.15s ease;
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -162,11 +180,6 @@
             color: #d25f5f;
             font-size: 11px;
             margin-top: 8px;
-        }
-
-        .error-message:empty,
-        .formula-eval:empty {
-            display: none;
         }
 
         .section-title {
@@ -307,6 +320,24 @@
             51%, 100% { opacity: 0; }
         }
 
+        .thinking::after {
+            content: "";
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            margin-left: 6px;
+            border: 1.5px solid #353840;
+            border-top-color: #9aa1ad;
+            border-radius: 50%;
+            vertical-align: -1px;
+            opacity: 0;
+            animation: spin 0.6s linear infinite, fadeIn 0.15s ease 0.1s forwards;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
         .summary-box {
             display: flex;
             flex-direction: column;
@@ -420,11 +451,13 @@
 
             <div class="inputs-container" id="inputs-container">
                 <div class="input-row">
-                    <input type="text" inputmode="numeric" placeholder="Enter integer..." autocomplete="off" spellcheck="false">
+                    <input type="text" placeholder="Enter integer or expression..." autocomplete="off" spellcheck="false">
+                    <span class="input-preview"></span>
                     <button type="button" class="btn-clear-row">remove</button>
                 </div>
                 <div class="input-row">
-                    <input type="text" inputmode="numeric" placeholder="Enter integer..." autocomplete="off" spellcheck="false">
+                    <input type="text" placeholder="Enter integer or expression..." autocomplete="off" spellcheck="false">
+                    <span class="input-preview"></span>
                     <button type="button" class="btn-clear-row">remove</button>
                 </div>
             </div>
@@ -514,6 +547,8 @@
         const lcmSummaryVal = document.getElementById('lcm-summary-val');
 
         let isCalculating = false;
+        let calcRunId = 0;
+        let lastInputsKey = '';
         let autoScrollEnabled = true;
         let lastScrollY = window.scrollY;
 
@@ -550,11 +585,70 @@
         const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
         function sanitizeInput(val) {
-            return val.trim().replace(/,/g, '');
+            return val.trim().replace(/[\s\u00A0\u202F,'_]/g, '');
         }
 
-        function isValidBigIntString(str) {
-            return /^[1-9]\d*$/.test(str);
+        function formatNum(val) {
+            return BigInt(val).toLocaleString();
+        }
+
+        function evaluateExpression(str) {
+            const s = sanitizeInput(str).replace(/×/g, '*').replace(/−/g, '-');
+            if (!/^[\d+\-*^()]+$/.test(s)) return null;
+            try {
+                const expr = s.replace(/\^/g, '**').replace(/\b0*(\d+)\b/g, '$1n');
+                const res = Function(`"use strict"; return (${expr});`)();
+                return typeof res === 'bigint' && res > 0n ? res : null;
+            } catch {
+                return null;
+            }
+        }
+
+        async function updateInputPreview(input) {
+            const preview = input.parentElement?.querySelector('.input-preview');
+            if (!preview) return;
+            const runId = (input._runId = (input._runId || 0) + 1);
+            const evaluated = evaluateExpression(input.value);
+            if (evaluated === null) {
+                preview.classList.remove('thinking');
+                preview.innerHTML = '';
+                return;
+            }
+            preview.innerHTML = `= ${formatNum(evaluated)}`;
+            if (evaluated === 1n) {
+                preview.classList.remove('thinking');
+                return;
+            }
+            preview.classList.add('thinking');
+            const factors = await factorizeBigInt(evaluated, null, () => input._runId !== runId);
+            if (input._runId === runId) {
+                preview.classList.remove('thinking');
+                if (factors) {
+                    preview.innerHTML = `= ${formatNum(evaluated)} = ${formatIndexNotation(factors)}`;
+                }
+            }
+        }
+
+        function getInputsKey() {
+            return Array.from(inputsContainer.querySelectorAll('input'))
+                .map(i => sanitizeInput(i.value))
+                .filter(v => v.length > 0)
+                .join(',');
+        }
+
+        function invalidateCalculationIfChanged() {
+            const currentKey = getInputsKey();
+            if (currentKey === lastInputsKey) return;
+            lastInputsKey = currentKey;
+            calcRunId++;
+            errorMsg.textContent = '';
+            outputArea.style.display = 'none';
+            if (isCalculating) {
+                isCalculating = false;
+                btnCalc.disabled = false;
+                btnCalc.classList.remove('thinking');
+                btnReset.disabled = false;
+            }
         }
 
         function updateURLFromInputs() {
@@ -578,31 +672,40 @@
         function createInputRow(value = '') {
             const row = inputsContainer.firstElementChild.cloneNode(true);
             row.querySelector('input').value = value;
+            const preview = row.querySelector('.input-preview');
+            preview.textContent = '';
+            preview.classList.remove('thinking');
             return row;
         }
 
         inputsContainer.addEventListener('input', (e) => {
+            if (e.target.matches('input')) {
+                updateInputPreview(e.target);
+            }
             const lastInput = inputsContainer.lastElementChild.querySelector('input');
             if (e.target === lastInput && sanitizeInput(lastInput.value).length > 0) {
                 inputsContainer.appendChild(createInputRow());
             }
+            invalidateCalculationIfChanged();
             updateURLFromInputs();
         });
 
         inputsContainer.addEventListener('click', (e) => {
-            if (!isCalculating && e.target.matches('.btn-clear-row')) {
+            if (e.target.matches('.btn-clear-row')) {
                 e.target.closest('.input-row').remove();
+                invalidateCalculationIfChanged();
                 updateURLFromInputs();
             }
         });
 
-        async function factorizeBigInt(n, logCallback) {
+        async function factorizeBigInt(n, logCallback, shouldAbort) {
             const factors = {};
             let current = n;
 
             const countFactor = async (d) => {
                 let power = 0;
                 while (current % d === 0n) {
+                    if (shouldAbort?.()) return;
                     power++;
                     current = current / d;
                     if (logCallback) {
@@ -622,6 +725,7 @@
             let iterations = 0;
 
             while (d * d <= current) {
+                if (shouldAbort?.()) return null;
                 if (current % d === 0n) {
                     await countFactor(d);
                 } else {
@@ -632,6 +736,7 @@
                     }
                 }
             }
+            if (shouldAbort?.()) return null;
 
             if (current > 1n) {
                 const primeKey = current.toString();
@@ -647,13 +752,10 @@
         function formatIndexNotation(factorMap) {
             const primes = Object.keys(factorMap).map(p => BigInt(p)).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
             if (primes.length === 0) return '1';
-            return primes.map(p => {
-                const exp = factorMap[p.toString()];
-                return exp > 1 ? `${p}<sup>${exp}</sup>` : `${p}`;
-            }).join(' &times; ');
+            return primes.map(p => `${formatNum(p)}<sup>${factorMap[p.toString()]}</sup>`).join(' &times; ');
         }
 
-        async function animateDeduction(factorMap, notationEl, evalEl) {
+        async function animateDeduction(factorMap, notationEl, evalEl, runId) {
             const primes = Object.keys(factorMap).map(p => BigInt(p)).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
             let val = 1n;
             const parts = [];
@@ -663,22 +765,23 @@
             } else {
                 notationEl.classList.add('typing');
                 for (let i = 0; i < primes.length; i++) {
+                    if (runId !== calcRunId) return null;
                     const p = primes[i];
                     const exp = factorMap[p.toString()];
                     let termVal = 1n;
                     for (let e = 0; e < exp; e++) termVal *= p;
                     val *= termVal;
 
-                    const termStr = exp > 1 ? `${p}<sup>${exp}</sup>` : `${p}`;
-                    parts.push(termStr);
+                    parts.push(`${formatNum(p)}<sup>${exp}</sup>`);
                     notationEl.innerHTML = parts.join(' &times; ');
                     autoScroll();
                     await sleep(550);
                 }
+                if (runId !== calcRunId) return null;
                 notationEl.classList.remove('typing');
             }
 
-            evalEl.innerHTML = `= <span class="final-val">${val.toString()}</span>`;
+            evalEl.innerHTML = `= <span class="final-val">${formatNum(val)}</span>`;
             autoScroll();
             return val;
         }
@@ -698,21 +801,20 @@
 
             const numbers = [];
             for (let v of rawValues) {
-                if (!isValidBigIntString(v)) {
-                    errorMsg.textContent = `Invalid entry: "${v}". Please enter positive integers greater than 0.`;
+                const evaluated = evaluateExpression(v);
+                if (evaluated === null) {
+                    errorMsg.textContent = `Invalid entry: "${v}". Please enter positive integers or valid expressions greater than 0.`;
                     return;
                 }
-                try {
-                    numbers.push(BigInt(v));
-                } catch {
-                    errorMsg.textContent = `Could not parse "${v}".`;
-                    return;
-                }
+                numbers.push(evaluated);
             }
 
+            const runId = ++calcRunId;
+            lastInputsKey = getInputsKey();
             isCalculating = true;
             autoScrollEnabled = true;
             btnCalc.disabled = true;
+            btnCalc.classList.add('thinking');
             btnReset.disabled = true;
 
             // Clear previous outputs
@@ -739,35 +841,40 @@
                 block.className = 'step-block';
 
                 const heading = document.createElement('div');
-                heading.className = 'step-heading';
-                heading.textContent = `N${i + 1} = ${num.toString()}`;
+                heading.className = 'step-heading thinking';
+                heading.textContent = `N${i + 1} = ${formatNum(num)}`;
                 block.appendChild(heading);
 
                 factorsContainer.appendChild(block);
                 autoScroll();
 
                 const factors = await factorizeBigInt(num, async (prime, remainder) => {
+                    if (runId !== calcRunId) return;
                     const row = document.createElement('div');
                     row.className = 'log-row';
-                    row.innerHTML = `<span class="active-num">&divide; ${prime.toString()}</span> <span style="color:#4a4e57">&rarr;</span> <span class="final-factor">${remainder.toString()}</span>`;
+                    row.innerHTML = `<span class="active-num">&divide; ${formatNum(prime)}</span> <span style="color:#4a4e57">&rarr;</span> <span class="final-factor">${formatNum(remainder)}</span>`;
                     block.appendChild(row);
                     autoScroll();
                     await sleep(15);
-                });
+                }, () => runId !== calcRunId);
+                if (runId !== calcRunId) return;
+                heading.classList.remove('thinking');
 
                 allFactorizations.push({ number: num, factors });
 
                 const formRow = document.createElement('div');
                 formRow.className = 'log-row index-form';
-                formRow.innerHTML = `Index Form: ${num.toString()} = ${formatIndexNotation(factors)}`;
+                formRow.innerHTML = `Index Form: ${formatNum(num)} = ${formatIndexNotation(factors)}`;
                 block.appendChild(formRow);
                 autoScroll();
 
                 await sleep(35);
+                if (runId !== calcRunId) return;
             }
 
             // Step 2: Base & Power Analysis (Slow pace: 450ms delays)
             await sleep(250);
+            if (runId !== calcRunId) return;
             cardComparison.style.display = 'block';
             autoScroll();
 
@@ -798,24 +905,30 @@
                 const compRow = document.createElement('div');
                 compRow.className = 'comp-row';
                 compRow.innerHTML = `
-                    <div class="prime-num">${pStr}</div>
+                    <div class="prime-num">${formatNum(p)}</div>
                     <div class="comp-val">min(${powers.join(', ')}) = ${minPow}</div>
                     <div class="comp-val">max(${powers.join(', ')}) = ${maxPow}</div>
                 `;
                 compGrid.appendChild(compRow);
                 autoScroll();
                 await sleep(450);
+                if (runId !== calcRunId) return;
             }
 
             // Step 3: Deduction & Construction (Slow paced typing: 550ms delays)
             cardDeduction.style.display = 'block';
             autoScroll();
             await sleep(350);
+            if (runId !== calcRunId) return;
 
-            const hcfVal = await animateDeduction(hcfFactors, hcfNotation, hcfEval);
+            const hcfVal = await animateDeduction(hcfFactors, hcfNotation, hcfEval, runId);
+            if (runId !== calcRunId) return;
             await sleep(500);
-            const lcmVal = await animateDeduction(lcmFactors, lcmNotation, lcmEval);
+            if (runId !== calcRunId) return;
+            const lcmVal = await animateDeduction(lcmFactors, lcmNotation, lcmEval, runId);
+            if (runId !== calcRunId) return;
             await sleep(400);
+            if (runId !== calcRunId) return;
 
             // Step 4: Summary Section
             cardSummary.style.display = 'block';
@@ -824,19 +937,20 @@
                 const div = document.createElement('div');
                 div.className = 'summary-item';
                 div.innerHTML = `
-                    <div class="summary-name">N${idx + 1} (${item.number.toString()})</div>
+                    <div class="summary-name">N${idx + 1} (${formatNum(item.number)})</div>
                     <div class="summary-val">${formatIndexNotation(item.factors)}</div>
                 `;
                 summaryContainer.appendChild(div);
             });
 
-            hcfSummaryVal.innerHTML = `${formatIndexNotation(hcfFactors)} &nbsp;= ${hcfVal.toString()}`;
-            lcmSummaryVal.innerHTML = `${formatIndexNotation(lcmFactors)} &nbsp;= ${lcmVal.toString()}`;
+            hcfSummaryVal.innerHTML = `${formatIndexNotation(hcfFactors)} &nbsp;= ${formatNum(hcfVal)}`;
+            lcmSummaryVal.innerHTML = `${formatIndexNotation(lcmFactors)} &nbsp;= ${formatNum(lcmVal)}`;
 
             autoScroll();
 
             isCalculating = false;
             btnCalc.disabled = false;
+            btnCalc.classList.remove('thinking');
             btnReset.disabled = false;
         });
 
@@ -846,7 +960,15 @@
             errorMsg.textContent = '';
             outputArea.style.display = 'none';
             inputsContainer.querySelectorAll('.input-row:nth-child(n+3)').forEach(row => row.remove());
-            inputsContainer.querySelectorAll('input').forEach(inp => inp.value = '');
+            inputsContainer.querySelectorAll('input').forEach(inp => {
+                inp.value = '';
+                inp._runId = (inp._runId || 0) + 1;
+            });
+            inputsContainer.querySelectorAll('.input-preview').forEach(p => {
+                p.textContent = '';
+                p.classList.remove('thinking');
+            });
+            lastInputsKey = '';
 
             updateURLFromInputs();
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -867,7 +989,9 @@
             const inputs = inputsContainer.querySelectorAll('input');
             values.forEach((val, idx) => {
                 inputs[idx].value = val;
+                updateInputPreview(inputs[idx]);
             });
+            lastInputsKey = getInputsKey();
         }
 
         initFromURL();
