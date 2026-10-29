@@ -79,8 +79,9 @@
 
         .input-row {
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
-            gap: 10px;
+            gap: 4px 10px;
             counter-increment: n;
         }
 
@@ -98,11 +99,13 @@
         }
 
         .input-preview {
+            flex-basis: 100%;
+            order: 1;
+            padding-left: 44px;
             color: #696f7c;
             font-size: 12px;
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-            white-space: nowrap;
-            flex-shrink: 0;
+            word-break: break-all;
         }
 
         .input-preview:empty,
@@ -118,7 +121,8 @@
             color: #e4e7eb;
             font-size: 13px;
             padding: 8px 12px;
-            width: 100%;
+            flex: 1;
+            min-width: 0;
             outline: none;
             transition: border-color 0.15s ease;
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -314,6 +318,24 @@
         @keyframes blink {
             0%, 50% { opacity: 1; }
             51%, 100% { opacity: 0; }
+        }
+
+        .thinking::after {
+            content: "";
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            margin-left: 6px;
+            border: 1.5px solid #353840;
+            border-top-color: #9aa1ad;
+            border-radius: 50%;
+            vertical-align: -1px;
+            opacity: 0;
+            animation: spin 0.6s linear infinite, fadeIn 0.15s ease 0.1s forwards;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         .summary-box {
@@ -580,11 +602,29 @@
             }
         }
 
-        function updateInputPreview(input) {
+        async function updateInputPreview(input) {
             const preview = input.parentElement?.querySelector('.input-preview');
             if (!preview) return;
+            const runId = (input._runId = (input._runId || 0) + 1);
             const evaluated = evaluateExpression(input.value);
-            preview.textContent = evaluated !== null ? `= ${formatNum(evaluated)}` : '';
+            if (evaluated === null) {
+                preview.classList.remove('thinking');
+                preview.innerHTML = '';
+                return;
+            }
+            preview.innerHTML = `= ${formatNum(evaluated)}`;
+            if (evaluated === 1n) {
+                preview.classList.remove('thinking');
+                return;
+            }
+            preview.classList.add('thinking');
+            const factors = await factorizeBigInt(evaluated, null, () => input._runId !== runId);
+            if (input._runId === runId) {
+                preview.classList.remove('thinking');
+                if (factors) {
+                    preview.innerHTML = `= ${formatNum(evaluated)} = ${formatIndexNotation(factors)}`;
+                }
+            }
         }
 
         function updateURLFromInputs() {
@@ -608,7 +648,9 @@
         function createInputRow(value = '') {
             const row = inputsContainer.firstElementChild.cloneNode(true);
             row.querySelector('input').value = value;
-            row.querySelector('.input-preview').textContent = '';
+            const preview = row.querySelector('.input-preview');
+            preview.textContent = '';
+            preview.classList.remove('thinking');
             return row;
         }
 
@@ -630,7 +672,7 @@
             }
         });
 
-        async function factorizeBigInt(n, logCallback) {
+        async function factorizeBigInt(n, logCallback, shouldAbort) {
             const factors = {};
             let current = n;
 
@@ -663,6 +705,7 @@
                     step = 6n - step;
                     if (++iterations % 100000 === 0) {
                         await sleep(0);
+                        if (shouldAbort?.()) return null;
                     }
                 }
             }
@@ -739,6 +782,7 @@
             isCalculating = true;
             autoScrollEnabled = true;
             btnCalc.disabled = true;
+            btnCalc.classList.add('thinking');
             btnReset.disabled = true;
 
             // Clear previous outputs
@@ -765,7 +809,7 @@
                 block.className = 'step-block';
 
                 const heading = document.createElement('div');
-                heading.className = 'step-heading';
+                heading.className = 'step-heading thinking';
                 heading.textContent = `N${i + 1} = ${formatNum(num)}`;
                 block.appendChild(heading);
 
@@ -780,6 +824,7 @@
                     autoScroll();
                     await sleep(15);
                 });
+                heading.classList.remove('thinking');
 
                 allFactorizations.push({ number: num, factors });
 
@@ -863,6 +908,7 @@
 
             isCalculating = false;
             btnCalc.disabled = false;
+            btnCalc.classList.remove('thinking');
             btnReset.disabled = false;
         });
 
@@ -872,8 +918,14 @@
             errorMsg.textContent = '';
             outputArea.style.display = 'none';
             inputsContainer.querySelectorAll('.input-row:nth-child(n+3)').forEach(row => row.remove());
-            inputsContainer.querySelectorAll('input').forEach(inp => inp.value = '');
-            inputsContainer.querySelectorAll('.input-preview').forEach(p => p.textContent = '');
+            inputsContainer.querySelectorAll('input').forEach(inp => {
+                inp.value = '';
+                inp._runId = (inp._runId || 0) + 1;
+            });
+            inputsContainer.querySelectorAll('.input-preview').forEach(p => {
+                p.textContent = '';
+                p.classList.remove('thinking');
+            });
 
             updateURLFromInputs();
             window.scrollTo({ top: 0, behavior: 'smooth' });
