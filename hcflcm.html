@@ -647,10 +647,7 @@
         function formatIndexNotation(factorMap) {
             const primes = Object.keys(factorMap).map(p => BigInt(p)).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
             if (primes.length === 0) return '1';
-            return primes.map(p => {
-                const exp = factorMap[p.toString()];
-                return exp > 1 ? `${p}<sup>${exp}</sup>` : `${p}`;
-            }).join(' &times; ');
+            return primes.map(p => `${p}<sup>${factorMap[p.toString()]}</sup>`).join(' &times; ');
         }
 
         async function animateDeduction(factorMap, notationEl, evalEl) {
@@ -669,8 +666,7 @@
                     for (let e = 0; e < exp; e++) termVal *= p;
                     val *= termVal;
 
-                    const termStr = exp > 1 ? `${p}<sup>${exp}</sup>` : `${p}`;
-                    parts.push(termStr);
+                    parts.push(`${p}<sup>${exp}</sup>`);
                     notationEl.innerHTML = parts.join(' &times; ');
                     autoScroll();
                     await sleep(550);
