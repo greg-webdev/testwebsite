@@ -550,7 +550,35 @@
         const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
         function sanitizeInput(val) {
-            return val.trim().replace(/,/g, '');
+            return val.trim().replace(/[\s\u00A0\u202F,'_]/g, '');
+        }
+
+        function formatNum(val) {
+            return BigInt(val).toLocaleString();
+        }
+
+        function formatInputElement(input) {
+            const raw = sanitizeInput(input.value);
+            if (!isValidBigIntString(raw)) return;
+
+            const oldVal = input.value;
+            const cursor = input.selectionStart ?? oldVal.length;
+            let digitsBeforeCursor = 0;
+            for (let i = 0; i < cursor; i++) {
+                if (/\d/.test(oldVal[i])) digitsBeforeCursor++;
+            }
+
+            const formatted = formatNum(raw);
+            if (formatted === oldVal) return;
+
+            input.value = formatted;
+            let newCursor = 0;
+            let digitsSeen = 0;
+            while (newCursor < formatted.length && digitsSeen < digitsBeforeCursor) {
+                if (/\d/.test(formatted[newCursor])) digitsSeen++;
+                newCursor++;
+            }
+            input.setSelectionRange(newCursor, newCursor);
         }
 
         function isValidBigIntString(str) {
@@ -582,6 +610,9 @@
         }
 
         inputsContainer.addEventListener('input', (e) => {
+            if (e.target.matches('input')) {
+                formatInputElement(e.target);
+            }
             const lastInput = inputsContainer.lastElementChild.querySelector('input');
             if (e.target === lastInput && sanitizeInput(lastInput.value).length > 0) {
                 inputsContainer.appendChild(createInputRow());
@@ -647,7 +678,7 @@
         function formatIndexNotation(factorMap) {
             const primes = Object.keys(factorMap).map(p => BigInt(p)).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
             if (primes.length === 0) return '1';
-            return primes.map(p => `${p}<sup>${factorMap[p.toString()]}</sup>`).join(' &times; ');
+            return primes.map(p => `${formatNum(p)}<sup>${factorMap[p.toString()]}</sup>`).join(' &times; ');
         }
 
         async function animateDeduction(factorMap, notationEl, evalEl) {
@@ -666,7 +697,7 @@
                     for (let e = 0; e < exp; e++) termVal *= p;
                     val *= termVal;
 
-                    parts.push(`${p}<sup>${exp}</sup>`);
+                    parts.push(`${formatNum(p)}<sup>${exp}</sup>`);
                     notationEl.innerHTML = parts.join(' &times; ');
                     autoScroll();
                     await sleep(550);
@@ -674,7 +705,7 @@
                 notationEl.classList.remove('typing');
             }
 
-            evalEl.innerHTML = `= <span class="final-val">${val.toString()}</span>`;
+            evalEl.innerHTML = `= <span class="final-val">${formatNum(val)}</span>`;
             autoScroll();
             return val;
         }
@@ -736,7 +767,7 @@
 
                 const heading = document.createElement('div');
                 heading.className = 'step-heading';
-                heading.textContent = `N${i + 1} = ${num.toString()}`;
+                heading.textContent = `N${i + 1} = ${formatNum(num)}`;
                 block.appendChild(heading);
 
                 factorsContainer.appendChild(block);
@@ -745,7 +776,7 @@
                 const factors = await factorizeBigInt(num, async (prime, remainder) => {
                     const row = document.createElement('div');
                     row.className = 'log-row';
-                    row.innerHTML = `<span class="active-num">&divide; ${prime.toString()}</span> <span style="color:#4a4e57">&rarr;</span> <span class="final-factor">${remainder.toString()}</span>`;
+                    row.innerHTML = `<span class="active-num">&divide; ${formatNum(prime)}</span> <span style="color:#4a4e57">&rarr;</span> <span class="final-factor">${formatNum(remainder)}</span>`;
                     block.appendChild(row);
                     autoScroll();
                     await sleep(15);
@@ -755,7 +786,7 @@
 
                 const formRow = document.createElement('div');
                 formRow.className = 'log-row index-form';
-                formRow.innerHTML = `Index Form: ${num.toString()} = ${formatIndexNotation(factors)}`;
+                formRow.innerHTML = `Index Form: ${formatNum(num)} = ${formatIndexNotation(factors)}`;
                 block.appendChild(formRow);
                 autoScroll();
 
@@ -794,7 +825,7 @@
                 const compRow = document.createElement('div');
                 compRow.className = 'comp-row';
                 compRow.innerHTML = `
-                    <div class="prime-num">${pStr}</div>
+                    <div class="prime-num">${formatNum(p)}</div>
                     <div class="comp-val">min(${powers.join(', ')}) = ${minPow}</div>
                     <div class="comp-val">max(${powers.join(', ')}) = ${maxPow}</div>
                 `;
@@ -820,14 +851,14 @@
                 const div = document.createElement('div');
                 div.className = 'summary-item';
                 div.innerHTML = `
-                    <div class="summary-name">N${idx + 1} (${item.number.toString()})</div>
+                    <div class="summary-name">N${idx + 1} (${formatNum(item.number)})</div>
                     <div class="summary-val">${formatIndexNotation(item.factors)}</div>
                 `;
                 summaryContainer.appendChild(div);
             });
 
-            hcfSummaryVal.innerHTML = `${formatIndexNotation(hcfFactors)} &nbsp;= ${hcfVal.toString()}`;
-            lcmSummaryVal.innerHTML = `${formatIndexNotation(lcmFactors)} &nbsp;= ${lcmVal.toString()}`;
+            hcfSummaryVal.innerHTML = `${formatIndexNotation(hcfFactors)} &nbsp;= ${formatNum(hcfVal)}`;
+            lcmSummaryVal.innerHTML = `${formatIndexNotation(lcmFactors)} &nbsp;= ${formatNum(lcmVal)}`;
 
             autoScroll();
 
@@ -862,7 +893,7 @@
             }
             const inputs = inputsContainer.querySelectorAll('input');
             values.forEach((val, idx) => {
-                inputs[idx].value = val;
+                inputs[idx].value = isValidBigIntString(val) ? formatNum(val) : val;
             });
         }
 
