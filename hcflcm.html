@@ -177,10 +177,6 @@
         }
 
         .log-row {
-            display: flex;
-            align-items: baseline;
-            flex-wrap: wrap;
-            gap: 8px;
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             color: #818793;
             padding: 3px 0;
@@ -265,10 +261,6 @@
             color: #e4e7eb;
             font-size: 13px;
             min-height: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: baseline;
-            gap: 6px;
         }
 
         .formula-eval {
@@ -332,6 +324,7 @@
             font-size: 9px;
             color: #9aa1ad;
             margin-left: 1px;
+            line-height: 0;
         }
 
         #output-area {
@@ -434,8 +427,33 @@
         const summaryContainer = document.getElementById('summary-container');
 
         let isCalculating = false;
+        let autoScrollEnabled = true;
+        let lastScrollY = window.scrollY;
+
+        function isNearBottom(threshold = 40) {
+            return window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - threshold;
+        }
+
+        window.addEventListener('wheel', (e) => {
+            if (e.deltaY < 0) {
+                autoScrollEnabled = false;
+            } else if (e.deltaY > 0 && isNearBottom()) {
+                autoScrollEnabled = true;
+            }
+        }, { passive: true });
+
+        window.addEventListener('scroll', () => {
+            const currentY = window.scrollY;
+            if (currentY < lastScrollY - 2) {
+                autoScrollEnabled = false;
+            } else if (isNearBottom()) {
+                autoScrollEnabled = true;
+            }
+            lastScrollY = currentY;
+        }, { passive: true });
 
         function autoScroll() {
+            if (!autoScrollEnabled) return;
             window.scrollTo({
                 top: document.documentElement.scrollHeight,
                 behavior: 'smooth'
@@ -634,6 +652,7 @@
             }
 
             isCalculating = true;
+            autoScrollEnabled = true;
             btnCalc.disabled = true;
             btnReset.disabled = true;
 
