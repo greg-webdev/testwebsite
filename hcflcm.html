@@ -320,6 +320,18 @@
             text-align: right;
         }
 
+        .summary-item.highlight {
+            border-color: #2c3038;
+        }
+
+        .summary-item.highlight .summary-name {
+            color: #a4abb8;
+        }
+
+        .summary-item.highlight .summary-val {
+            color: #ffffff;
+        }
+
         sup {
             font-size: 9px;
             color: #9aa1ad;
@@ -327,15 +339,14 @@
             line-height: 0;
         }
 
-        abbr.term-tooltip {
+        abbr[data-tooltip] {
             position: relative;
             text-decoration: underline dotted #5c616c;
             text-underline-offset: 3px;
             cursor: help;
         }
 
-        abbr.term-tooltip::after {
-            content: attr(data-tooltip);
+        abbr[data-tooltip]::after {
             position: absolute;
             bottom: calc(100% + 6px);
             left: 50%;
@@ -359,8 +370,16 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
         }
 
-        abbr.term-tooltip:hover::after,
-        abbr.term-tooltip:focus::after {
+        abbr[data-tooltip="hcf"]::after {
+            content: "Highest Common Factor";
+        }
+
+        abbr[data-tooltip="lcm"]::after {
+            content: "Lowest Common Multiple";
+        }
+
+        abbr[data-tooltip]:hover::after,
+        abbr[data-tooltip]:focus::after {
             opacity: 1;
             visibility: visible;
         }
@@ -378,7 +397,7 @@
         <!-- Input Control Panel -->
         <div class="card">
             <div class="card-header">
-                <div class="title"><abbr class="term-tooltip" data-tooltip="Highest Common Factor" tabindex="0">HCF</abbr> and <abbr class="term-tooltip" data-tooltip="Lowest Common Multiple" tabindex="0">LCM</abbr> Calculator</div>
+                <div class="title"><abbr data-tooltip="hcf" tabindex="0">HCF</abbr> and <abbr data-tooltip="lcm" tabindex="0">LCM</abbr> Calculator</div>
             </div>
 
             <div class="inputs-container" id="inputs-container">
@@ -414,8 +433,8 @@
                 <div class="comparison-grid" id="comp-grid">
                     <div class="comp-header">
                         <div>Base</div>
-                        <div>Min Power (<abbr class="term-tooltip" data-tooltip="Highest Common Factor" tabindex="0">HCF</abbr>)</div>
-                        <div>Max Power (<abbr class="term-tooltip" data-tooltip="Lowest Common Multiple" tabindex="0">LCM</abbr>)</div>
+                        <div>Min Power (<abbr data-tooltip="hcf" tabindex="0">HCF</abbr>)</div>
+                        <div>Max Power (<abbr data-tooltip="lcm" tabindex="0">LCM</abbr>)</div>
                     </div>
                 </div>
             </div>
@@ -425,13 +444,13 @@
                 <div class="section-title">Step 3: Deduction (Index Notation)</div>
 
                 <div class="formula-card">
-                    <div class="formula-label">Highest Common Factor (<abbr class="term-tooltip" data-tooltip="Highest Common Factor" tabindex="0">HCF</abbr>)</div>
+                    <div class="formula-label">Highest Common Factor (<abbr data-tooltip="hcf" tabindex="0">HCF</abbr>)</div>
                     <div class="formula-content" id="hcf-notation"><span class="cursor"></span></div>
                     <div class="formula-eval" id="hcf-eval" style="display: none;"></div>
                 </div>
 
                 <div class="formula-card">
-                    <div class="formula-label">Lowest Common Multiple (<abbr class="term-tooltip" data-tooltip="Lowest Common Multiple" tabindex="0">LCM</abbr>)</div>
+                    <div class="formula-label">Lowest Common Multiple (<abbr data-tooltip="lcm" tabindex="0">LCM</abbr>)</div>
                     <div class="formula-content" id="lcm-notation"><span class="cursor"></span></div>
                     <div class="formula-eval" id="lcm-eval" style="display: none;"></div>
                 </div>
@@ -590,21 +609,6 @@
         const initialInputs = inputsContainer.querySelectorAll('input');
         initialInputs.forEach(inp => inp.addEventListener('input', handleInputChange));
 
-        function bigIntSqrt(val) {
-            if (val < 0n) return 0n;
-            if (val === 0n) return 0n;
-            let x0 = val / 2n;
-            if (x0 !== 0n) {
-                let x1 = (x0 + val / x0) / 2n;
-                while (x1 < x0) {
-                    x0 = x1;
-                    x1 = (x0 + val / x0) / 2n;
-                }
-                return x0;
-            }
-            return 1n;
-        }
-
         async function factorizeBigInt(n, logCallback) {
             const factors = {};
             let current = n;
@@ -628,6 +632,7 @@
 
             let d = 5n;
             let step = 2n;
+            let iterations = 0;
 
             while (d * d <= current) {
                 if (current % d === 0n) {
@@ -635,6 +640,9 @@
                 } else {
                     d += step;
                     step = 6n - step;
+                    if (++iterations % 100000 === 0) {
+                        await sleep(0);
+                    }
                 }
             }
 
@@ -656,6 +664,46 @@
                 const exp = factorMap[p.toString()];
                 return exp > 1 ? `${p}<sup>${exp}</sup>` : `${p}`;
             }).join(' &times; ');
+        }
+
+        async function animateDeduction(factorMap, notationEl, evalEl) {
+            const primes = Object.keys(factorMap).map(p => BigInt(p)).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+            let val = 1n;
+            const parts = [];
+
+            if (primes.length === 0) {
+                notationEl.innerHTML = '1';
+            } else {
+                for (let i = 0; i < primes.length; i++) {
+                    const p = primes[i];
+                    const exp = factorMap[p.toString()];
+                    let termVal = 1n;
+                    for (let e = 0; e < exp; e++) termVal *= p;
+                    val *= termVal;
+
+                    const termStr = exp > 1 ? `${p}<sup>${exp}</sup>` : `${p}`;
+                    parts.push(termStr);
+                    notationEl.innerHTML = parts.join(' &times; ') + '<span class="cursor"></span>';
+                    autoScroll();
+                    await sleep(550);
+                }
+                notationEl.innerHTML = parts.join(' &times; ');
+            }
+
+            evalEl.innerHTML = `= <span class="final-val">${val.toString()}</span>`;
+            evalEl.style.display = 'block';
+            autoScroll();
+            return val;
+        }
+
+        function createSummaryRow(nameHtml, valHtml, isHighlight = false) {
+            const div = document.createElement('div');
+            div.className = isHighlight ? 'summary-item highlight' : 'summary-item';
+            div.innerHTML = `
+                <div class="summary-name">${nameHtml}</div>
+                <div class="summary-val">${valHtml}</div>
+            `;
+            return div;
         }
 
         btnCalc.addEventListener('click', async () => {
@@ -696,13 +744,7 @@
 
             // Clear previous outputs
             factorsContainer.innerHTML = '';
-            compGrid.innerHTML = `
-                <div class="comp-header">
-                    <div>Base</div>
-                    <div>Min Power (<abbr class="term-tooltip" data-tooltip="Highest Common Factor" tabindex="0">HCF</abbr>)</div>
-                    <div>Max Power (<abbr class="term-tooltip" data-tooltip="Lowest Common Multiple" tabindex="0">LCM</abbr>)</div>
-                </div>
-            `;
+            compGrid.querySelectorAll('.comp-row').forEach(row => row.remove());
             hcfNotation.innerHTML = '<span class="cursor"></span>';
             hcfEval.style.display = 'none';
             hcfEval.innerHTML = '';
@@ -808,91 +850,32 @@
             autoScroll();
             await sleep(350);
 
-            // Animate HCF
-            const hcfPrimes = Object.keys(hcfFactors).map(p => BigInt(p)).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
-            let hcfVal = 1n;
-            const hcfParts = [];
-
-            if (hcfPrimes.length === 0) {
-                hcfNotation.innerHTML = '1';
-                hcfVal = 1n;
-            } else {
-                for (let i = 0; i < hcfPrimes.length; i++) {
-                    const p = hcfPrimes[i];
-                    const exp = hcfFactors[p.toString()];
-                    let termVal = 1n;
-                    for (let e = 0; e < exp; e++) termVal *= p;
-                    hcfVal *= termVal;
-
-                    const termStr = exp > 1 ? `${p}<sup>${exp}</sup>` : `${p}`;
-                    hcfParts.push(termStr);
-                    hcfNotation.innerHTML = hcfParts.join(' &times; ') + '<span class="cursor"></span>';
-                    autoScroll();
-                    await sleep(550);
-                }
-                hcfNotation.innerHTML = hcfParts.join(' &times; ');
-            }
-
-            hcfEval.innerHTML = `= <span class="final-val">${hcfVal.toString()}</span>`;
-            hcfEval.style.display = 'block';
-            autoScroll();
+            const hcfVal = await animateDeduction(hcfFactors, hcfNotation, hcfEval);
             await sleep(500);
-
-            // Animate LCM
-            const lcmPrimes = Object.keys(lcmFactors).map(p => BigInt(p)).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
-            let lcmVal = 1n;
-            const lcmParts = [];
-
-            for (let i = 0; i < lcmPrimes.length; i++) {
-                const p = lcmPrimes[i];
-                const exp = lcmFactors[p.toString()];
-                let termVal = 1n;
-                for (let e = 0; e < exp; e++) termVal *= p;
-                lcmVal *= termVal;
-
-                const termStr = exp > 1 ? `${p}<sup>${exp}</sup>` : `${p}`;
-                lcmParts.push(termStr);
-                lcmNotation.innerHTML = lcmParts.join(' &times; ') + '<span class="cursor"></span>';
-                autoScroll();
-                await sleep(550);
-            }
-            lcmNotation.innerHTML = lcmParts.join(' &times; ');
-
-            lcmEval.innerHTML = `= <span class="final-val">${lcmVal.toString()}</span>`;
-            lcmEval.style.display = 'block';
-            autoScroll();
+            const lcmVal = await animateDeduction(lcmFactors, lcmNotation, lcmEval);
             await sleep(400);
 
             // Step 4: Summary Section
             cardSummary.style.display = 'block';
 
             allFactorizations.forEach((item, idx) => {
-                const div = document.createElement('div');
-                div.className = 'summary-item';
-                div.innerHTML = `
-                    <div class="summary-name">N${idx + 1} (${item.number.toString()})</div>
-                    <div class="summary-val">${formatIndexNotation(item.factors)}</div>
-                `;
-                summaryContainer.appendChild(div);
+                summaryContainer.appendChild(createSummaryRow(
+                    `N${idx + 1} (${item.number.toString()})`,
+                    formatIndexNotation(item.factors)
+                ));
             });
 
-            const hcfSummary = document.createElement('div');
-            hcfSummary.className = 'summary-item';
-            hcfSummary.style.borderColor = '#2c3038';
-            hcfSummary.innerHTML = `
-                <div class="summary-name" style="color: #a4abb8;"><abbr class="term-tooltip" data-tooltip="Highest Common Factor" tabindex="0">HCF</abbr></div>
-                <div class="summary-val" style="color: #ffffff;">${formatIndexNotation(hcfFactors)} &nbsp;= ${hcfVal.toString()}</div>
-            `;
-            summaryContainer.appendChild(hcfSummary);
+            summaryContainer.appendChild(createSummaryRow(
+                `<abbr data-tooltip="hcf" tabindex="0">HCF</abbr>`,
+                `${formatIndexNotation(hcfFactors)} &nbsp;= ${hcfVal.toString()}`,
+                true
+            ));
 
-            const lcmSummary = document.createElement('div');
-            lcmSummary.className = 'summary-item';
-            lcmSummary.style.borderColor = '#2c3038';
-            lcmSummary.innerHTML = `
-                <div class="summary-name" style="color: #a4abb8;"><abbr class="term-tooltip" data-tooltip="Lowest Common Multiple" tabindex="0">LCM</abbr></div>
-                <div class="summary-val" style="color: #ffffff;">${formatIndexNotation(lcmFactors)} &nbsp;= ${lcmVal.toString()}</div>
-            `;
-            summaryContainer.appendChild(lcmSummary);
+            summaryContainer.appendChild(createSummaryRow(
+                `<abbr data-tooltip="lcm" tabindex="0">LCM</abbr>`,
+                `${formatIndexNotation(lcmFactors)} &nbsp;= ${lcmVal.toString()}`,
+                true
+            ));
 
             autoScroll();
 
