@@ -74,20 +74,27 @@
             flex-direction: column;
             gap: 8px;
             margin-bottom: 16px;
+            counter-reset: n;
         }
 
         .input-row {
             display: flex;
             align-items: center;
             gap: 10px;
+            counter-increment: n;
         }
 
-        .input-label {
+        .input-row::before {
+            content: "N" counter(n);
             color: #5c616c;
             font-size: 11px;
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             width: 34px;
             flex-shrink: 0;
+        }
+
+        .input-row:nth-child(-n+2) .btn-clear-row {
+            display: none;
         }
 
         input[type="text"] {
@@ -155,6 +162,10 @@
             color: #d25f5f;
             font-size: 11px;
             margin-top: 8px;
+        }
+
+        .error-message:empty,
+        .formula-eval:empty {
             display: none;
         }
 
@@ -176,17 +187,23 @@
             font-size: 12px;
         }
 
+        .step-heading {
+            color: #e4e7eb;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 12px;
+        }
+
         .log-row {
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             color: #818793;
             padding: 3px 0;
-            opacity: 0;
-            transition: opacity 0.15s ease;
+            animation: fadeIn 0.15s ease forwards;
             word-break: break-all;
         }
 
-        .log-row.visible {
-            opacity: 1;
+        .log-row.index-form {
+            color: #9aa1ad;
+            margin-top: 2px;
         }
 
         .log-row .active-num {
@@ -221,12 +238,12 @@
             grid-template-columns: 80px 1fr 1fr;
             color: #818793;
             padding: 4px 0;
-            opacity: 0;
-            transition: opacity 0.25s ease;
+            animation: fadeIn 0.25s ease forwards;
         }
 
-        .comp-row.visible {
-            opacity: 1;
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .comp-row .prime-num {
@@ -274,7 +291,8 @@
             font-weight: 500;
         }
 
-        .cursor {
+        .formula-content.typing::after {
+            content: "";
             display: inline-block;
             width: 6px;
             height: 12px;
@@ -401,13 +419,13 @@
             </div>
 
             <div class="inputs-container" id="inputs-container">
-                <div class="input-row" data-index="0">
-                    <div class="input-label">N1</div>
+                <div class="input-row">
                     <input type="text" inputmode="numeric" placeholder="Enter integer..." autocomplete="off" spellcheck="false">
+                    <button type="button" class="btn-clear-row">remove</button>
                 </div>
-                <div class="input-row" data-index="1">
-                    <div class="input-label">N2</div>
+                <div class="input-row">
                     <input type="text" inputmode="numeric" placeholder="Enter integer..." autocomplete="off" spellcheck="false">
+                    <button type="button" class="btn-clear-row">remove</button>
                 </div>
             </div>
 
@@ -445,21 +463,31 @@
 
                 <div class="formula-card">
                     <div class="formula-label">Highest Common Factor (<abbr data-tooltip="hcf" tabindex="0">HCF</abbr>)</div>
-                    <div class="formula-content" id="hcf-notation"><span class="cursor"></span></div>
-                    <div class="formula-eval" id="hcf-eval" style="display: none;"></div>
+                    <div class="formula-content" id="hcf-notation"></div>
+                    <div class="formula-eval" id="hcf-eval"></div>
                 </div>
 
                 <div class="formula-card">
                     <div class="formula-label">Lowest Common Multiple (<abbr data-tooltip="lcm" tabindex="0">LCM</abbr>)</div>
-                    <div class="formula-content" id="lcm-notation"><span class="cursor"></span></div>
-                    <div class="formula-eval" id="lcm-eval" style="display: none;"></div>
+                    <div class="formula-content" id="lcm-notation"></div>
+                    <div class="formula-eval" id="lcm-eval"></div>
                 </div>
             </div>
 
             <!-- Step 4: Summary -->
             <div class="card" id="card-summary" style="display: none;">
                 <div class="section-title">Summary</div>
-                <div class="summary-box" id="summary-container"></div>
+                <div class="summary-box">
+                    <div class="summary-box" id="summary-container" style="margin-top: 0;"></div>
+                    <div class="summary-item highlight">
+                        <div class="summary-name"><abbr data-tooltip="hcf" tabindex="0">HCF</abbr></div>
+                        <div class="summary-val" id="hcf-summary-val"></div>
+                    </div>
+                    <div class="summary-item highlight">
+                        <div class="summary-name"><abbr data-tooltip="lcm" tabindex="0">LCM</abbr></div>
+                        <div class="summary-val" id="lcm-summary-val"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -482,6 +510,8 @@
         const lcmNotation = document.getElementById('lcm-notation');
         const lcmEval = document.getElementById('lcm-eval');
         const summaryContainer = document.getElementById('summary-container');
+        const hcfSummaryVal = document.getElementById('hcf-summary-val');
+        const lcmSummaryVal = document.getElementById('lcm-summary-val');
 
         let isCalculating = false;
         let autoScrollEnabled = true;
@@ -545,69 +575,26 @@
             window.history.replaceState(null, '', newRelativeUrl);
         }
 
-        function reindexInputs() {
-            const rows = inputsContainer.querySelectorAll('.input-row');
-            rows.forEach((row, idx) => {
-                row.dataset.index = idx;
-                const label = row.querySelector('.input-label');
-                if (label) {
-                    label.textContent = 'N' + (idx + 1);
-                }
-            });
-        }
-
-        function createInputRow(index) {
-            const row = document.createElement('div');
-            row.className = 'input-row';
-            row.dataset.index = index;
-
-            const label = document.createElement('div');
-            label.className = 'input-label';
-            label.textContent = 'N' + (index + 1);
-
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.inputMode = 'numeric';
-            input.placeholder = 'Enter integer...';
-            input.autocomplete = 'off';
-            input.spellcheck = false;
-
-            input.addEventListener('input', handleInputChange);
-
-            row.appendChild(label);
-            row.appendChild(input);
-
-            if (index >= 2) {
-                const btnRemove = document.createElement('button');
-                btnRemove.type = 'button';
-                btnRemove.className = 'btn-clear-row';
-                btnRemove.textContent = 'remove';
-                btnRemove.addEventListener('click', () => {
-                    if (isCalculating) return;
-                    row.remove();
-                    reindexInputs();
-                    updateURLFromInputs();
-                });
-                row.appendChild(btnRemove);
-            }
-
+        function createInputRow(value = '') {
+            const row = inputsContainer.firstElementChild.cloneNode(true);
+            row.querySelector('input').value = value;
             return row;
         }
 
-        function handleInputChange(e) {
-            const rows = inputsContainer.querySelectorAll('.input-row');
-            const lastRow = rows[rows.length - 1];
-            const lastInput = lastRow.querySelector('input');
-
+        inputsContainer.addEventListener('input', (e) => {
+            const lastInput = inputsContainer.lastElementChild.querySelector('input');
             if (e.target === lastInput && sanitizeInput(lastInput.value).length > 0) {
-                const newRow = createInputRow(rows.length);
-                inputsContainer.appendChild(newRow);
+                inputsContainer.appendChild(createInputRow());
             }
             updateURLFromInputs();
-        }
+        });
 
-        const initialInputs = inputsContainer.querySelectorAll('input');
-        initialInputs.forEach(inp => inp.addEventListener('input', handleInputChange));
+        inputsContainer.addEventListener('click', (e) => {
+            if (!isCalculating && e.target.matches('.btn-clear-row')) {
+                e.target.closest('.input-row').remove();
+                updateURLFromInputs();
+            }
+        });
 
         async function factorizeBigInt(n, logCallback) {
             const factors = {};
@@ -674,6 +661,7 @@
             if (primes.length === 0) {
                 notationEl.innerHTML = '1';
             } else {
+                notationEl.classList.add('typing');
                 for (let i = 0; i < primes.length; i++) {
                     const p = primes[i];
                     const exp = factorMap[p.toString()];
@@ -683,33 +671,21 @@
 
                     const termStr = exp > 1 ? `${p}<sup>${exp}</sup>` : `${p}`;
                     parts.push(termStr);
-                    notationEl.innerHTML = parts.join(' &times; ') + '<span class="cursor"></span>';
+                    notationEl.innerHTML = parts.join(' &times; ');
                     autoScroll();
                     await sleep(550);
                 }
-                notationEl.innerHTML = parts.join(' &times; ');
+                notationEl.classList.remove('typing');
             }
 
             evalEl.innerHTML = `= <span class="final-val">${val.toString()}</span>`;
-            evalEl.style.display = 'block';
             autoScroll();
             return val;
-        }
-
-        function createSummaryRow(nameHtml, valHtml, isHighlight = false) {
-            const div = document.createElement('div');
-            div.className = isHighlight ? 'summary-item highlight' : 'summary-item';
-            div.innerHTML = `
-                <div class="summary-name">${nameHtml}</div>
-                <div class="summary-val">${valHtml}</div>
-            `;
-            return div;
         }
 
         btnCalc.addEventListener('click', async () => {
             if (isCalculating) return;
 
-            errorMsg.style.display = 'none';
             errorMsg.textContent = '';
 
             const inputs = Array.from(inputsContainer.querySelectorAll('input'));
@@ -717,7 +693,6 @@
 
             if (rawValues.length < 2) {
                 errorMsg.textContent = 'Please enter at least two numbers.';
-                errorMsg.style.display = 'block';
                 return;
             }
 
@@ -725,14 +700,12 @@
             for (let v of rawValues) {
                 if (!isValidBigIntString(v)) {
                     errorMsg.textContent = `Invalid entry: "${v}". Please enter positive integers greater than 0.`;
-                    errorMsg.style.display = 'block';
                     return;
                 }
                 try {
                     numbers.push(BigInt(v));
                 } catch {
                     errorMsg.textContent = `Could not parse "${v}".`;
-                    errorMsg.style.display = 'block';
                     return;
                 }
             }
@@ -745,11 +718,9 @@
             // Clear previous outputs
             factorsContainer.innerHTML = '';
             compGrid.querySelectorAll('.comp-row').forEach(row => row.remove());
-            hcfNotation.innerHTML = '<span class="cursor"></span>';
-            hcfEval.style.display = 'none';
+            hcfNotation.innerHTML = '';
             hcfEval.innerHTML = '';
-            lcmNotation.innerHTML = '<span class="cursor"></span>';
-            lcmEval.style.display = 'none';
+            lcmNotation.innerHTML = '';
             lcmEval.innerHTML = '';
             summaryContainer.innerHTML = '';
 
@@ -768,9 +739,7 @@
                 block.className = 'step-block';
 
                 const heading = document.createElement('div');
-                heading.style.color = '#e4e7eb';
-                heading.style.fontFamily = 'ui-monospace, monospace';
-                heading.style.fontSize = '12px';
+                heading.className = 'step-heading';
                 heading.textContent = `N${i + 1} = ${num.toString()}`;
                 block.appendChild(heading);
 
@@ -782,8 +751,6 @@
                     row.className = 'log-row';
                     row.innerHTML = `<span class="active-num">&divide; ${prime.toString()}</span> <span style="color:#4a4e57">&rarr;</span> <span class="final-factor">${remainder.toString()}</span>`;
                     block.appendChild(row);
-
-                    requestAnimationFrame(() => row.classList.add('visible'));
                     autoScroll();
                     await sleep(15);
                 });
@@ -791,9 +758,7 @@
                 allFactorizations.push({ number: num, factors });
 
                 const formRow = document.createElement('div');
-                formRow.className = 'log-row visible';
-                formRow.style.color = '#9aa1ad';
-                formRow.style.marginTop = '2px';
+                formRow.className = 'log-row index-form';
                 formRow.innerHTML = `Index Form: ${num.toString()} = ${formatIndexNotation(factors)}`;
                 block.appendChild(formRow);
                 autoScroll();
@@ -838,9 +803,6 @@
                     <div class="comp-val">max(${powers.join(', ')}) = ${maxPow}</div>
                 `;
                 compGrid.appendChild(compRow);
-
-                await sleep(40);
-                compRow.classList.add('visible');
                 autoScroll();
                 await sleep(450);
             }
@@ -859,23 +821,17 @@
             cardSummary.style.display = 'block';
 
             allFactorizations.forEach((item, idx) => {
-                summaryContainer.appendChild(createSummaryRow(
-                    `N${idx + 1} (${item.number.toString()})`,
-                    formatIndexNotation(item.factors)
-                ));
+                const div = document.createElement('div');
+                div.className = 'summary-item';
+                div.innerHTML = `
+                    <div class="summary-name">N${idx + 1} (${item.number.toString()})</div>
+                    <div class="summary-val">${formatIndexNotation(item.factors)}</div>
+                `;
+                summaryContainer.appendChild(div);
             });
 
-            summaryContainer.appendChild(createSummaryRow(
-                `<abbr data-tooltip="hcf" tabindex="0">HCF</abbr>`,
-                `${formatIndexNotation(hcfFactors)} &nbsp;= ${hcfVal.toString()}`,
-                true
-            ));
-
-            summaryContainer.appendChild(createSummaryRow(
-                `<abbr data-tooltip="lcm" tabindex="0">LCM</abbr>`,
-                `${formatIndexNotation(lcmFactors)} &nbsp;= ${lcmVal.toString()}`,
-                true
-            ));
+            hcfSummaryVal.innerHTML = `${formatIndexNotation(hcfFactors)} &nbsp;= ${hcfVal.toString()}`;
+            lcmSummaryVal.innerHTML = `${formatIndexNotation(lcmFactors)} &nbsp;= ${lcmVal.toString()}`;
 
             autoScroll();
 
@@ -887,28 +843,10 @@
         btnReset.addEventListener('click', () => {
             if (isCalculating) return;
 
-            errorMsg.style.display = 'none';
+            errorMsg.textContent = '';
             outputArea.style.display = 'none';
-            factorsContainer.innerHTML = '';
-            summaryContainer.innerHTML = '';
-            hcfNotation.innerHTML = '';
-            lcmNotation.innerHTML = '';
-            hcfEval.innerHTML = '';
-            lcmEval.innerHTML = '';
-
-            inputsContainer.innerHTML = `
-                <div class="input-row" data-index="0">
-                    <div class="input-label">N1</div>
-                    <input type="text" inputmode="numeric" placeholder="Enter integer..." autocomplete="off" spellcheck="false">
-                </div>
-                <div class="input-row" data-index="1">
-                    <div class="input-label">N2</div>
-                    <input type="text" inputmode="numeric" placeholder="Enter integer..." autocomplete="off" spellcheck="false">
-                </div>
-            `;
-
-            const resetInputs = inputsContainer.querySelectorAll('input');
-            resetInputs.forEach(inp => inp.addEventListener('input', handleInputChange));
+            inputsContainer.querySelectorAll('.input-row:nth-child(n+3)').forEach(row => row.remove());
+            inputsContainer.querySelectorAll('input').forEach(inp => inp.value = '');
 
             updateURLFromInputs();
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -922,16 +860,14 @@
             const values = nParam.split(',').map(v => sanitizeInput(v)).filter(v => v.length > 0);
             if (values.length === 0) return;
 
-            inputsContainer.innerHTML = '';
             const totalRows = Math.max(2, values.length + 1);
-            for (let i = 0; i < totalRows; i++) {
-                const row = createInputRow(i);
-                if (i < values.length) {
-                    const input = row.querySelector('input');
-                    input.value = values[i];
-                }
-                inputsContainer.appendChild(row);
+            while (inputsContainer.children.length < totalRows) {
+                inputsContainer.appendChild(createInputRow());
             }
+            const inputs = inputsContainer.querySelectorAll('input');
+            values.forEach((val, idx) => {
+                inputs[idx].value = val;
+            });
         }
 
         initFromURL();
