@@ -357,41 +357,41 @@ jobs:
                       encoded_b64 = base64.b64encode(raw_bytes).decode("utf-8")
                       
                       b64_wrapper = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Directory</title>
-    <style>
-        html, body {{
-            background: #121212;
-            color: #777777;
-            margin: 0;
-            padding: 0;
-        }}
-    </style>
-</head>
-<body>
-    <div id="encoded-node" style="display:none;" data-b64="{encoded_b64}"></div>
-    <script id="b64-payload" type="text/plain">{encoded_b64}</script>
-    <script>
-    (() => {{
-        try {{
-            const raw = document.getElementById("b64-payload").textContent.trim();
-            const binary = atob(raw);
-            const bytes = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-            const content = new TextDecoder("utf-8").decode(bytes);
-            document.open();
-            document.write(content);
-            document.close();
-        }} catch (e) {{
-            console.error(e);
-        }}
-    }})();
-    </script>
-</body>
-</html>"""
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Directory</title>
+              <style>
+                  html, body {{
+                      background: #121212;
+                      color: #777777;
+                      margin: 0;
+                      padding: 0;
+                  }}
+              </style>
+          </head>
+          <body>
+              <div id="encoded-node" style="display:none;" data-b64="{encoded_b64}"></div>
+              <script id="b64-payload" type="text/plain">{encoded_b64}</script>
+              <script>
+              (() => {{
+                  try {{
+                      const raw = document.getElementById("b64-payload").textContent.trim();
+                      const binary = atob(raw);
+                      const bytes = new Uint8Array(binary.length);
+                      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+                      const content = new TextDecoder("utf-8").decode(bytes);
+                      document.open();
+                      document.write(content);
+                      document.close();
+                  }} catch (e) {{
+                      console.error(e);
+                  }}
+              }})();
+              </script>
+          </body>
+          </html>"""
                       with open(target_file, "w", encoding="utf-8") as fh:
                           fh.write(b64_wrapper)
           EOF
