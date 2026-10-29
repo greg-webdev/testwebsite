@@ -452,6 +452,24 @@
             return /^[1-9]\d*$/.test(str);
         }
 
+        function updateURLFromInputs() {
+            const inputs = Array.from(inputsContainer.querySelectorAll('input'));
+            const values = inputs.map(i => sanitizeInput(i.value)).filter(v => v.length > 0);
+            const url = new URL(window.location.href);
+            const params = new URLSearchParams(url.search);
+            params.delete('n');
+            const otherParams = params.toString();
+            let newSearch = '';
+            if (values.length > 0) {
+                const encodedValues = values.map(v => encodeURIComponent(v)).join(',');
+                newSearch = '?' + (otherParams ? otherParams + '&' : '') + 'n=' + encodedValues;
+            } else if (otherParams) {
+                newSearch = '?' + otherParams;
+            }
+            const newRelativeUrl = url.pathname + newSearch + url.hash;
+            window.history.replaceState(null, '', newRelativeUrl);
+        }
+
         function reindexInputs() {
             const rows = inputsContainer.querySelectorAll('.input-row');
             rows.forEach((row, idx) => {
@@ -493,6 +511,7 @@
                     if (isCalculating) return;
                     row.remove();
                     reindexInputs();
+                    updateURLFromInputs();
                 });
                 row.appendChild(btnRemove);
             }
@@ -509,6 +528,7 @@
                 const newRow = createInputRow(rows.length);
                 inputsContainer.appendChild(newRow);
             }
+            updateURLFromInputs();
         }
 
         const initialInputs = inputsContainer.querySelectorAll('input');
@@ -850,8 +870,31 @@
             const resetInputs = inputsContainer.querySelectorAll('input');
             resetInputs.forEach(inp => inp.addEventListener('input', handleInputChange));
 
+            updateURLFromInputs();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
+
+        function initFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            const nParam = params.get('n');
+            if (!nParam) return;
+
+            const values = nParam.split(',').map(v => sanitizeInput(v)).filter(v => v.length > 0);
+            if (values.length === 0) return;
+
+            inputsContainer.innerHTML = '';
+            const totalRows = Math.max(2, values.length + 1);
+            for (let i = 0; i < totalRows; i++) {
+                const row = createInputRow(i);
+                if (i < values.length) {
+                    const input = row.querySelector('input');
+                    input.value = values[i];
+                }
+                inputsContainer.appendChild(row);
+            }
+        }
+
+        initFromURL();
     </script>
 </body>
 </html>
