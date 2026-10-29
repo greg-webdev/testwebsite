@@ -114,32 +114,28 @@ jobs:
               .commit-entry:hover .desc {
                   color: #dddddd;
               }
-              details {
+              .folder-block {
                   margin: 4px 0;
               }
-              details > summary {
-                  list-style: none;
+              .folder-trigger {
                   cursor: pointer;
                   color: #666666;
                   display: inline-block;
                   user-select: none;
                   transition: color 0.25s ease;
               }
-              details > summary::-webkit-details-marker {
-                  display: none;
-              }
-              details > summary:hover {
+              .folder-trigger:hover {
                   color: #ffffff;
               }
-              details[open] > summary {
+              .folder-block.is-open > .folder-trigger {
                   color: #aaaaaa;
               }
-              .slide-wrapper {
+              .slide-drawer {
                   display: grid;
                   grid-template-rows: 0fr;
-                  transition: grid-template-rows 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                  transition: grid-template-rows 0.3s cubic-bezier(0.25, 1, 0.5, 1);
               }
-              details[open] > .slide-wrapper {
+              .folder-block.is-open > .slide-drawer {
                   grid-template-rows: 1fr;
               }
               .slide-content {
@@ -289,14 +285,14 @@ jobs:
               for dirname in sorted(node["_dirs"].keys()):
                   sub_content = render_tree(node["_dirs"][dirname])
                   esc_dir = html.escape(dirname)
-                  html_out += f"""<details>
-                      <summary>{esc_dir}/</summary>
-                      <div class="slide-wrapper">
+                  html_out += f"""<div class="folder-block">
+                      <div class="folder-trigger">{esc_dir}/</div>
+                      <div class="slide-drawer">
                           <div class="slide-content">
                               {sub_content}
                           </div>
                       </div>
-                  </details>\n"""
+                  </div>\n"""
               
               if node["_files"]:
                   html_out += '<ul>\n'
@@ -318,6 +314,15 @@ jobs:
           <body>
               <h2>HTML Sitemap</h2>
               {tree_markup}
+              <script>
+              document.addEventListener("click", (e) => {{
+                  const trigger = e.target.closest(".folder-trigger");
+                  if (trigger) {{
+                      const parent = trigger.parentElement;
+                      parent.classList.toggle("is-open");
+                  }}
+              }});
+              </script>
           </body>
           </html>
           """
