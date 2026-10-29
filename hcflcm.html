@@ -74,20 +74,27 @@
             flex-direction: column;
             gap: 8px;
             margin-bottom: 16px;
+            counter-reset: n;
         }
 
         .input-row {
             display: flex;
             align-items: center;
             gap: 10px;
+            counter-increment: n;
         }
 
-        .input-label {
+        .input-row::before {
+            content: "N" counter(n);
             color: #5c616c;
             font-size: 11px;
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             width: 34px;
             flex-shrink: 0;
+        }
+
+        .input-row:nth-child(-n+2) .btn-clear-row {
+            display: none;
         }
 
         input[type="text"] {
@@ -155,6 +162,10 @@
             color: #d25f5f;
             font-size: 11px;
             margin-top: 8px;
+        }
+
+        .error-message:empty,
+        .formula-eval:empty {
             display: none;
         }
 
@@ -176,17 +187,23 @@
             font-size: 12px;
         }
 
+        .step-heading {
+            color: #e4e7eb;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 12px;
+        }
+
         .log-row {
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             color: #818793;
             padding: 3px 0;
-            opacity: 0;
-            transition: opacity 0.15s ease;
+            animation: fadeIn 0.15s ease forwards;
             word-break: break-all;
         }
 
-        .log-row.visible {
-            opacity: 1;
+        .log-row.index-form {
+            color: #9aa1ad;
+            margin-top: 2px;
         }
 
         .log-row .active-num {
@@ -221,12 +238,12 @@
             grid-template-columns: 80px 1fr 1fr;
             color: #818793;
             padding: 4px 0;
-            opacity: 0;
-            transition: opacity 0.25s ease;
+            animation: fadeIn 0.25s ease forwards;
         }
 
-        .comp-row.visible {
-            opacity: 1;
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .comp-row .prime-num {
@@ -274,7 +291,8 @@
             font-weight: 500;
         }
 
-        .cursor {
+        .formula-content.typing::after {
+            content: "";
             display: inline-block;
             width: 6px;
             height: 12px;
@@ -320,11 +338,68 @@
             text-align: right;
         }
 
+        .summary-item.highlight {
+            border-color: #2c3038;
+        }
+
+        .summary-item.highlight .summary-name {
+            color: #a4abb8;
+        }
+
+        .summary-item.highlight .summary-val {
+            color: #ffffff;
+        }
+
         sup {
             font-size: 9px;
             color: #9aa1ad;
             margin-left: 1px;
             line-height: 0;
+        }
+
+        abbr[data-tooltip] {
+            position: relative;
+            text-decoration: underline dotted #5c616c;
+            text-underline-offset: 3px;
+            cursor: help;
+        }
+
+        abbr[data-tooltip]::after {
+            position: absolute;
+            bottom: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #23252b;
+            color: #e4e7eb;
+            border: 1px solid #353840;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: normal;
+            text-transform: none;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.1s ease;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        abbr[data-tooltip="hcf"]::after {
+            content: "Highest Common Factor";
+        }
+
+        abbr[data-tooltip="lcm"]::after {
+            content: "Lowest Common Multiple";
+        }
+
+        abbr[data-tooltip]:hover::after,
+        abbr[data-tooltip]:focus::after {
+            opacity: 1;
+            visibility: visible;
         }
 
         #output-area {
@@ -340,17 +415,17 @@
         <!-- Input Control Panel -->
         <div class="card">
             <div class="card-header">
-                <div class="title">HCF and LCM Calculator</div>
+                <div class="title"><abbr data-tooltip="hcf" tabindex="0">HCF</abbr> and <abbr data-tooltip="lcm" tabindex="0">LCM</abbr> Calculator</div>
             </div>
 
             <div class="inputs-container" id="inputs-container">
-                <div class="input-row" data-index="0">
-                    <div class="input-label">N1</div>
+                <div class="input-row">
                     <input type="text" inputmode="numeric" placeholder="Enter integer..." autocomplete="off" spellcheck="false">
+                    <button type="button" class="btn-clear-row">remove</button>
                 </div>
-                <div class="input-row" data-index="1">
-                    <div class="input-label">N2</div>
+                <div class="input-row">
                     <input type="text" inputmode="numeric" placeholder="Enter integer..." autocomplete="off" spellcheck="false">
+                    <button type="button" class="btn-clear-row">remove</button>
                 </div>
             </div>
 
@@ -376,8 +451,8 @@
                 <div class="comparison-grid" id="comp-grid">
                     <div class="comp-header">
                         <div>Base</div>
-                        <div>Min Power (HCF)</div>
-                        <div>Max Power (LCM)</div>
+                        <div>Min Power (<abbr data-tooltip="hcf" tabindex="0">HCF</abbr>)</div>
+                        <div>Max Power (<abbr data-tooltip="lcm" tabindex="0">LCM</abbr>)</div>
                     </div>
                 </div>
             </div>
@@ -387,22 +462,32 @@
                 <div class="section-title">Step 3: Deduction (Index Notation)</div>
 
                 <div class="formula-card">
-                    <div class="formula-label">Highest Common Factor (HCF)</div>
-                    <div class="formula-content" id="hcf-notation"><span class="cursor"></span></div>
-                    <div class="formula-eval" id="hcf-eval" style="display: none;"></div>
+                    <div class="formula-label">Highest Common Factor (<abbr data-tooltip="hcf" tabindex="0">HCF</abbr>)</div>
+                    <div class="formula-content" id="hcf-notation"></div>
+                    <div class="formula-eval" id="hcf-eval"></div>
                 </div>
 
                 <div class="formula-card">
-                    <div class="formula-label">Lowest Common Multiple (LCM)</div>
-                    <div class="formula-content" id="lcm-notation"><span class="cursor"></span></div>
-                    <div class="formula-eval" id="lcm-eval" style="display: none;"></div>
+                    <div class="formula-label">Lowest Common Multiple (<abbr data-tooltip="lcm" tabindex="0">LCM</abbr>)</div>
+                    <div class="formula-content" id="lcm-notation"></div>
+                    <div class="formula-eval" id="lcm-eval"></div>
                 </div>
             </div>
 
             <!-- Step 4: Summary -->
             <div class="card" id="card-summary" style="display: none;">
                 <div class="section-title">Summary</div>
-                <div class="summary-box" id="summary-container"></div>
+                <div class="summary-box">
+                    <div class="summary-box" id="summary-container" style="margin-top: 0;"></div>
+                    <div class="summary-item highlight">
+                        <div class="summary-name"><abbr data-tooltip="hcf" tabindex="0">HCF</abbr></div>
+                        <div class="summary-val" id="hcf-summary-val"></div>
+                    </div>
+                    <div class="summary-item highlight">
+                        <div class="summary-name"><abbr data-tooltip="lcm" tabindex="0">LCM</abbr></div>
+                        <div class="summary-val" id="lcm-summary-val"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -425,6 +510,8 @@
         const lcmNotation = document.getElementById('lcm-notation');
         const lcmEval = document.getElementById('lcm-eval');
         const summaryContainer = document.getElementById('summary-container');
+        const hcfSummaryVal = document.getElementById('hcf-summary-val');
+        const lcmSummaryVal = document.getElementById('lcm-summary-val');
 
         let isCalculating = false;
         let autoScrollEnabled = true;
@@ -488,84 +575,26 @@
             window.history.replaceState(null, '', newRelativeUrl);
         }
 
-        function reindexInputs() {
-            const rows = inputsContainer.querySelectorAll('.input-row');
-            rows.forEach((row, idx) => {
-                row.dataset.index = idx;
-                const label = row.querySelector('.input-label');
-                if (label) {
-                    label.textContent = 'N' + (idx + 1);
-                }
-            });
-        }
-
-        function createInputRow(index) {
-            const row = document.createElement('div');
-            row.className = 'input-row';
-            row.dataset.index = index;
-
-            const label = document.createElement('div');
-            label.className = 'input-label';
-            label.textContent = 'N' + (index + 1);
-
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.inputMode = 'numeric';
-            input.placeholder = 'Enter integer...';
-            input.autocomplete = 'off';
-            input.spellcheck = false;
-
-            input.addEventListener('input', handleInputChange);
-
-            row.appendChild(label);
-            row.appendChild(input);
-
-            if (index >= 2) {
-                const btnRemove = document.createElement('button');
-                btnRemove.type = 'button';
-                btnRemove.className = 'btn-clear-row';
-                btnRemove.textContent = 'remove';
-                btnRemove.addEventListener('click', () => {
-                    if (isCalculating) return;
-                    row.remove();
-                    reindexInputs();
-                    updateURLFromInputs();
-                });
-                row.appendChild(btnRemove);
-            }
-
+        function createInputRow(value = '') {
+            const row = inputsContainer.firstElementChild.cloneNode(true);
+            row.querySelector('input').value = value;
             return row;
         }
 
-        function handleInputChange(e) {
-            const rows = inputsContainer.querySelectorAll('.input-row');
-            const lastRow = rows[rows.length - 1];
-            const lastInput = lastRow.querySelector('input');
-
+        inputsContainer.addEventListener('input', (e) => {
+            const lastInput = inputsContainer.lastElementChild.querySelector('input');
             if (e.target === lastInput && sanitizeInput(lastInput.value).length > 0) {
-                const newRow = createInputRow(rows.length);
-                inputsContainer.appendChild(newRow);
+                inputsContainer.appendChild(createInputRow());
             }
             updateURLFromInputs();
-        }
+        });
 
-        const initialInputs = inputsContainer.querySelectorAll('input');
-        initialInputs.forEach(inp => inp.addEventListener('input', handleInputChange));
-
-        function bigIntSqrt(val) {
-            if (val < 0n) return 0n;
-            if (val === 0n) return 0n;
-            let x0 = val / 2n;
-            if (x0 !== 0n) {
-                let x1 = (x0 + val / x0) / 2n;
-                while (x1 < x0) {
-                    x0 = x1;
-                    x1 = (x0 + val / x0) / 2n;
-                }
-                return x0;
+        inputsContainer.addEventListener('click', (e) => {
+            if (!isCalculating && e.target.matches('.btn-clear-row')) {
+                e.target.closest('.input-row').remove();
+                updateURLFromInputs();
             }
-            return 1n;
-        }
+        });
 
         async function factorizeBigInt(n, logCallback) {
             const factors = {};
@@ -590,6 +619,7 @@
 
             let d = 5n;
             let step = 2n;
+            let iterations = 0;
 
             while (d * d <= current) {
                 if (current % d === 0n) {
@@ -597,6 +627,9 @@
                 } else {
                     d += step;
                     step = 6n - step;
+                    if (++iterations % 100000 === 0) {
+                        await sleep(0);
+                    }
                 }
             }
 
@@ -620,10 +653,39 @@
             }).join(' &times; ');
         }
 
+        async function animateDeduction(factorMap, notationEl, evalEl) {
+            const primes = Object.keys(factorMap).map(p => BigInt(p)).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+            let val = 1n;
+            const parts = [];
+
+            if (primes.length === 0) {
+                notationEl.innerHTML = '1';
+            } else {
+                notationEl.classList.add('typing');
+                for (let i = 0; i < primes.length; i++) {
+                    const p = primes[i];
+                    const exp = factorMap[p.toString()];
+                    let termVal = 1n;
+                    for (let e = 0; e < exp; e++) termVal *= p;
+                    val *= termVal;
+
+                    const termStr = exp > 1 ? `${p}<sup>${exp}</sup>` : `${p}`;
+                    parts.push(termStr);
+                    notationEl.innerHTML = parts.join(' &times; ');
+                    autoScroll();
+                    await sleep(550);
+                }
+                notationEl.classList.remove('typing');
+            }
+
+            evalEl.innerHTML = `= <span class="final-val">${val.toString()}</span>`;
+            autoScroll();
+            return val;
+        }
+
         btnCalc.addEventListener('click', async () => {
             if (isCalculating) return;
 
-            errorMsg.style.display = 'none';
             errorMsg.textContent = '';
 
             const inputs = Array.from(inputsContainer.querySelectorAll('input'));
@@ -631,7 +693,6 @@
 
             if (rawValues.length < 2) {
                 errorMsg.textContent = 'Please enter at least two numbers.';
-                errorMsg.style.display = 'block';
                 return;
             }
 
@@ -639,14 +700,12 @@
             for (let v of rawValues) {
                 if (!isValidBigIntString(v)) {
                     errorMsg.textContent = `Invalid entry: "${v}". Please enter positive integers greater than 0.`;
-                    errorMsg.style.display = 'block';
                     return;
                 }
                 try {
                     numbers.push(BigInt(v));
                 } catch {
                     errorMsg.textContent = `Could not parse "${v}".`;
-                    errorMsg.style.display = 'block';
                     return;
                 }
             }
@@ -658,18 +717,10 @@
 
             // Clear previous outputs
             factorsContainer.innerHTML = '';
-            compGrid.innerHTML = `
-                <div class="comp-header">
-                    <div>Base</div>
-                    <div>Min Power (HCF)</div>
-                    <div>Max Power (LCM)</div>
-                </div>
-            `;
-            hcfNotation.innerHTML = '<span class="cursor"></span>';
-            hcfEval.style.display = 'none';
+            compGrid.querySelectorAll('.comp-row').forEach(row => row.remove());
+            hcfNotation.innerHTML = '';
             hcfEval.innerHTML = '';
-            lcmNotation.innerHTML = '<span class="cursor"></span>';
-            lcmEval.style.display = 'none';
+            lcmNotation.innerHTML = '';
             lcmEval.innerHTML = '';
             summaryContainer.innerHTML = '';
 
@@ -688,9 +739,7 @@
                 block.className = 'step-block';
 
                 const heading = document.createElement('div');
-                heading.style.color = '#e4e7eb';
-                heading.style.fontFamily = 'ui-monospace, monospace';
-                heading.style.fontSize = '12px';
+                heading.className = 'step-heading';
                 heading.textContent = `N${i + 1} = ${num.toString()}`;
                 block.appendChild(heading);
 
@@ -702,8 +751,6 @@
                     row.className = 'log-row';
                     row.innerHTML = `<span class="active-num">&divide; ${prime.toString()}</span> <span style="color:#4a4e57">&rarr;</span> <span class="final-factor">${remainder.toString()}</span>`;
                     block.appendChild(row);
-
-                    requestAnimationFrame(() => row.classList.add('visible'));
                     autoScroll();
                     await sleep(15);
                 });
@@ -711,9 +758,7 @@
                 allFactorizations.push({ number: num, factors });
 
                 const formRow = document.createElement('div');
-                formRow.className = 'log-row visible';
-                formRow.style.color = '#9aa1ad';
-                formRow.style.marginTop = '2px';
+                formRow.className = 'log-row index-form';
                 formRow.innerHTML = `Index Form: ${num.toString()} = ${formatIndexNotation(factors)}`;
                 block.appendChild(formRow);
                 autoScroll();
@@ -758,9 +803,6 @@
                     <div class="comp-val">max(${powers.join(', ')}) = ${maxPow}</div>
                 `;
                 compGrid.appendChild(compRow);
-
-                await sleep(40);
-                compRow.classList.add('visible');
                 autoScroll();
                 await sleep(450);
             }
@@ -770,59 +812,9 @@
             autoScroll();
             await sleep(350);
 
-            // Animate HCF
-            const hcfPrimes = Object.keys(hcfFactors).map(p => BigInt(p)).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
-            let hcfVal = 1n;
-            const hcfParts = [];
-
-            if (hcfPrimes.length === 0) {
-                hcfNotation.innerHTML = '1';
-                hcfVal = 1n;
-            } else {
-                for (let i = 0; i < hcfPrimes.length; i++) {
-                    const p = hcfPrimes[i];
-                    const exp = hcfFactors[p.toString()];
-                    let termVal = 1n;
-                    for (let e = 0; e < exp; e++) termVal *= p;
-                    hcfVal *= termVal;
-
-                    const termStr = exp > 1 ? `${p}<sup>${exp}</sup>` : `${p}`;
-                    hcfParts.push(termStr);
-                    hcfNotation.innerHTML = hcfParts.join(' &times; ') + '<span class="cursor"></span>';
-                    autoScroll();
-                    await sleep(550);
-                }
-                hcfNotation.innerHTML = hcfParts.join(' &times; ');
-            }
-
-            hcfEval.innerHTML = `= <span class="final-val">${hcfVal.toString()}</span>`;
-            hcfEval.style.display = 'block';
-            autoScroll();
+            const hcfVal = await animateDeduction(hcfFactors, hcfNotation, hcfEval);
             await sleep(500);
-
-            // Animate LCM
-            const lcmPrimes = Object.keys(lcmFactors).map(p => BigInt(p)).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
-            let lcmVal = 1n;
-            const lcmParts = [];
-
-            for (let i = 0; i < lcmPrimes.length; i++) {
-                const p = lcmPrimes[i];
-                const exp = lcmFactors[p.toString()];
-                let termVal = 1n;
-                for (let e = 0; e < exp; e++) termVal *= p;
-                lcmVal *= termVal;
-
-                const termStr = exp > 1 ? `${p}<sup>${exp}</sup>` : `${p}`;
-                lcmParts.push(termStr);
-                lcmNotation.innerHTML = lcmParts.join(' &times; ') + '<span class="cursor"></span>';
-                autoScroll();
-                await sleep(550);
-            }
-            lcmNotation.innerHTML = lcmParts.join(' &times; ');
-
-            lcmEval.innerHTML = `= <span class="final-val">${lcmVal.toString()}</span>`;
-            lcmEval.style.display = 'block';
-            autoScroll();
+            const lcmVal = await animateDeduction(lcmFactors, lcmNotation, lcmEval);
             await sleep(400);
 
             // Step 4: Summary Section
@@ -838,23 +830,8 @@
                 summaryContainer.appendChild(div);
             });
 
-            const hcfSummary = document.createElement('div');
-            hcfSummary.className = 'summary-item';
-            hcfSummary.style.borderColor = '#2c3038';
-            hcfSummary.innerHTML = `
-                <div class="summary-name" style="color: #a4abb8;">HCF</div>
-                <div class="summary-val" style="color: #ffffff;">${formatIndexNotation(hcfFactors)} &nbsp;= ${hcfVal.toString()}</div>
-            `;
-            summaryContainer.appendChild(hcfSummary);
-
-            const lcmSummary = document.createElement('div');
-            lcmSummary.className = 'summary-item';
-            lcmSummary.style.borderColor = '#2c3038';
-            lcmSummary.innerHTML = `
-                <div class="summary-name" style="color: #a4abb8;">LCM</div>
-                <div class="summary-val" style="color: #ffffff;">${formatIndexNotation(lcmFactors)} &nbsp;= ${lcmVal.toString()}</div>
-            `;
-            summaryContainer.appendChild(lcmSummary);
+            hcfSummaryVal.innerHTML = `${formatIndexNotation(hcfFactors)} &nbsp;= ${hcfVal.toString()}`;
+            lcmSummaryVal.innerHTML = `${formatIndexNotation(lcmFactors)} &nbsp;= ${lcmVal.toString()}`;
 
             autoScroll();
 
@@ -866,28 +843,10 @@
         btnReset.addEventListener('click', () => {
             if (isCalculating) return;
 
-            errorMsg.style.display = 'none';
+            errorMsg.textContent = '';
             outputArea.style.display = 'none';
-            factorsContainer.innerHTML = '';
-            summaryContainer.innerHTML = '';
-            hcfNotation.innerHTML = '';
-            lcmNotation.innerHTML = '';
-            hcfEval.innerHTML = '';
-            lcmEval.innerHTML = '';
-
-            inputsContainer.innerHTML = `
-                <div class="input-row" data-index="0">
-                    <div class="input-label">N1</div>
-                    <input type="text" inputmode="numeric" placeholder="Enter integer..." autocomplete="off" spellcheck="false">
-                </div>
-                <div class="input-row" data-index="1">
-                    <div class="input-label">N2</div>
-                    <input type="text" inputmode="numeric" placeholder="Enter integer..." autocomplete="off" spellcheck="false">
-                </div>
-            `;
-
-            const resetInputs = inputsContainer.querySelectorAll('input');
-            resetInputs.forEach(inp => inp.addEventListener('input', handleInputChange));
+            inputsContainer.querySelectorAll('.input-row:nth-child(n+3)').forEach(row => row.remove());
+            inputsContainer.querySelectorAll('input').forEach(inp => inp.value = '');
 
             updateURLFromInputs();
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -901,16 +860,14 @@
             const values = nParam.split(',').map(v => sanitizeInput(v)).filter(v => v.length > 0);
             if (values.length === 0) return;
 
-            inputsContainer.innerHTML = '';
             const totalRows = Math.max(2, values.length + 1);
-            for (let i = 0; i < totalRows; i++) {
-                const row = createInputRow(i);
-                if (i < values.length) {
-                    const input = row.querySelector('input');
-                    input.value = values[i];
-                }
-                inputsContainer.appendChild(row);
+            while (inputsContainer.children.length < totalRows) {
+                inputsContainer.appendChild(createInputRow());
             }
+            const inputs = inputsContainer.querySelectorAll('input');
+            values.forEach((val, idx) => {
+                inputs[idx].value = val;
+            });
         }
 
         initFromURL();
