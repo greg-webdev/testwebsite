@@ -97,6 +97,20 @@
             display: none;
         }
 
+        .input-preview {
+            color: #696f7c;
+            font-size: 12px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .input-preview:empty,
+        .error-message:empty,
+        .formula-eval:empty {
+            display: none;
+        }
+
         input[type="text"] {
             background-color: #121316;
             border: 1px solid #23252b;
@@ -162,11 +176,6 @@
             color: #d25f5f;
             font-size: 11px;
             margin-top: 8px;
-        }
-
-        .error-message:empty,
-        .formula-eval:empty {
-            display: none;
         }
 
         .section-title {
@@ -420,11 +429,13 @@
 
             <div class="inputs-container" id="inputs-container">
                 <div class="input-row">
-                    <input type="text" inputmode="numeric" placeholder="Enter integer..." autocomplete="off" spellcheck="false">
+                    <input type="text" placeholder="Enter integer or expression..." autocomplete="off" spellcheck="false">
+                    <span class="input-preview"></span>
                     <button type="button" class="btn-clear-row">remove</button>
                 </div>
                 <div class="input-row">
-                    <input type="text" inputmode="numeric" placeholder="Enter integer..." autocomplete="off" spellcheck="false">
+                    <input type="text" placeholder="Enter integer or expression..." autocomplete="off" spellcheck="false">
+                    <span class="input-preview"></span>
                     <button type="button" class="btn-clear-row">remove</button>
                 </div>
             </div>
@@ -557,32 +568,23 @@
             return BigInt(val).toLocaleString();
         }
 
-        function formatInputElement(input) {
-            const raw = sanitizeInput(input.value);
-            if (!isValidBigIntString(raw)) return;
-
-            const oldVal = input.value;
-            const cursor = input.selectionStart ?? oldVal.length;
-            let digitsBeforeCursor = 0;
-            for (let i = 0; i < cursor; i++) {
-                if (/\d/.test(oldVal[i])) digitsBeforeCursor++;
+        function evaluateExpression(str) {
+            const s = sanitizeInput(str).replace(/×/g, '*').replace(/−/g, '-');
+            if (!/^[\d+\-*^()]+$/.test(s)) return null;
+            try {
+                const expr = s.replace(/\^/g, '**').replace(/\b0*(\d+)\b/g, '$1n');
+                const res = Function(`"use strict"; return (${expr});`)();
+                return typeof res === 'bigint' && res > 0n ? res : null;
+            } catch {
+                return null;
             }
-
-            const formatted = formatNum(raw);
-            if (formatted === oldVal) return;
-
-            input.value = formatted;
-            let newCursor = 0;
-            let digitsSeen = 0;
-            while (newCursor < formatted.length && digitsSeen < digitsBeforeCursor) {
-                if (/\d/.test(formatted[newCursor])) digitsSeen++;
-                newCursor++;
-            }
-            input.setSelectionRange(newCursor, newCursor);
         }
 
-        function isValidBigIntString(str) {
-            return /^[1-9]\d*$/.test(str);
+        function updateInputPreview(input) {
+            const preview = input.parentElement?.querySelector('.input-preview');
+            if (!preview) return;
+            const evaluated = evaluateExpression(input.value);
+            preview.textContent = evaluated !== null ? `= ${formatNum(evaluated)}` : '';
         }
 
         function updateURLFromInputs() {
@@ -606,12 +608,13 @@
         function createInputRow(value = '') {
             const row = inputsContainer.firstElementChild.cloneNode(true);
             row.querySelector('input').value = value;
+            row.querySelector('.input-preview').textContent = '';
             return row;
         }
 
         inputsContainer.addEventListener('input', (e) => {
             if (e.target.matches('input')) {
-                formatInputElement(e.target);
+                updateInputPreview(e.target);
             }
             const lastInput = inputsContainer.lastElementChild.querySelector('input');
             if (e.target === lastInput && sanitizeInput(lastInput.value).length > 0) {
@@ -725,16 +728,12 @@
 
             const numbers = [];
             for (let v of rawValues) {
-                if (!isValidBigIntString(v)) {
-                    errorMsg.textContent = `Invalid entry: "${v}". Please enter positive integers greater than 0.`;
+                const evaluated = evaluateExpression(v);
+                if (evaluated === null) {
+                    errorMsg.textContent = `Invalid entry: "${v}". Please enter positive integers or valid expressions greater than 0.`;
                     return;
                 }
-                try {
-                    numbers.push(BigInt(v));
-                } catch {
-                    errorMsg.textContent = `Could not parse "${v}".`;
-                    return;
-                }
+                numbers.push(evaluated);
             }
 
             isCalculating = true;
@@ -874,6 +873,7 @@
             outputArea.style.display = 'none';
             inputsContainer.querySelectorAll('.input-row:nth-child(n+3)').forEach(row => row.remove());
             inputsContainer.querySelectorAll('input').forEach(inp => inp.value = '');
+            inputsContainer.querySelectorAll('.input-preview').forEach(p => p.textContent = '');
 
             updateURLFromInputs();
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -893,7 +893,8 @@
             }
             const inputs = inputsContainer.querySelectorAll('input');
             values.forEach((val, idx) => {
-                inputs[idx].value = isValidBigIntString(val) ? formatNum(val) : val;
+                inputs[idx].value = val;
+                updateInputPreview(inputs[idx]);
             });
         }
 
