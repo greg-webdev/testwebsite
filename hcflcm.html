@@ -28,17 +28,6 @@
             padding: 32px 16px 80px 16px;
         }
 
-        a {
-            color: #4a4e57;
-            text-decoration: none;
-            transition: color 0.15s ease;
-            cursor: pointer;
-        }
-
-        a:hover {
-            color: #ffffff;
-        }
-
         .container {
             width: 100%;
             max-width: 640px;
@@ -54,19 +43,24 @@
             padding: 20px 22px;
         }
 
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 16px;
-        }
-
         .title {
             color: #e4e7eb;
             font-size: 13px;
             font-weight: 600;
             letter-spacing: 0.5px;
             text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .input-row::before,
+        .input-preview,
+        input[type="text"],
+        .step-heading,
+        .log-row,
+        .comparison-grid,
+        .formula-card,
+        .summary-item {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         }
 
         .inputs-container {
@@ -89,12 +83,15 @@
             content: "N" counter(n);
             color: #5c616c;
             font-size: 11px;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             width: 34px;
             flex-shrink: 0;
         }
 
-        .input-row:nth-child(-n+2) .btn-clear-row {
+        .input-row:nth-child(-n+2) .btn-clear-row,
+        .input-preview:empty,
+        .error-message:empty,
+        .formula-eval:empty,
+        .card:has(.step-body:empty) {
             display: none;
         }
 
@@ -104,14 +101,7 @@
             padding-left: 44px;
             color: #696f7c;
             font-size: 12px;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             word-break: break-all;
-        }
-
-        .input-preview:empty,
-        .error-message:empty,
-        .formula-eval:empty {
-            display: none;
         }
 
         input[type="text"] {
@@ -125,23 +115,26 @@
             min-width: 0;
             outline: none;
             transition: border-color 0.15s ease;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         }
 
         input[type="text"]:focus {
             border-color: #3b3f49;
         }
 
-        .btn-clear-row {
+        .btn-clear-row,
+        .btn {
             background: none;
             border: none;
-            color: #4a4e57;
-            font-size: 11px;
-            padding: 4px 6px;
             cursor: pointer;
             border-radius: 4px;
             transition: color 0.15s ease;
             font-family: inherit;
+        }
+
+        .btn-clear-row {
+            color: #4a4e57;
+            font-size: 11px;
+            padding: 4px 6px;
             flex-shrink: 0;
         }
 
@@ -156,15 +149,9 @@
         }
 
         .btn {
-            background: none;
-            border: none;
             padding: 6px 10px;
             font-size: 12px;
             color: #727783;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: color 0.15s ease;
-            font-family: inherit;
         }
 
         .btn:hover:not(:disabled) {
@@ -202,12 +189,10 @@
 
         .step-heading {
             color: #e4e7eb;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             font-size: 12px;
         }
 
         .log-row {
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             color: #818793;
             padding: 3px 0;
             animation: fadeIn 0.15s ease forwards;
@@ -233,13 +218,16 @@
             gap: 6px;
             margin-top: 8px;
             margin-bottom: 16px;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             font-size: 12px;
         }
 
-        .comp-header {
+        .comp-header,
+        .comp-row {
             display: grid;
             grid-template-columns: 80px 1fr 1fr;
+        }
+
+        .comp-header {
             color: #4f5460;
             font-size: 11px;
             padding-bottom: 4px;
@@ -247,8 +235,6 @@
         }
 
         .comp-row {
-            display: grid;
-            grid-template-columns: 80px 1fr 1fr;
             color: #818793;
             padding: 4px 0;
             animation: fadeIn 0.25s ease forwards;
@@ -273,7 +259,6 @@
             border-radius: 4px;
             padding: 12px 14px;
             margin-bottom: 12px;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             display: flex;
             flex-direction: column;
             gap: 6px;
@@ -291,33 +276,19 @@
             color: #e4e7eb;
             font-size: 13px;
             min-height: 20px;
+            animation: fadeIn 0.25s ease forwards;
         }
 
         .formula-eval {
             color: #818793;
             font-size: 12px;
             margin-top: 4px;
+            animation: fadeIn 0.25s ease forwards;
         }
 
         .formula-eval .final-val {
             color: #ffffff;
             font-weight: 500;
-        }
-
-        .formula-content.typing::after {
-            content: "";
-            display: inline-block;
-            width: 6px;
-            height: 12px;
-            background-color: #5c616c;
-            animation: blink 0.9s infinite;
-            vertical-align: middle;
-            margin-left: 2px;
-        }
-
-        @keyframes blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0; }
         }
 
         .thinking::after {
@@ -354,7 +325,6 @@
             background-color: #121316;
             border: 1px solid #1f2127;
             border-radius: 4px;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             font-size: 12px;
             word-break: break-all;
         }
@@ -388,53 +358,14 @@
             line-height: 0;
         }
 
-        abbr[data-tooltip] {
-            position: relative;
+        abbr[title] {
             text-decoration: underline dotted #5c616c;
             text-underline-offset: 3px;
             cursor: help;
         }
 
-        abbr[data-tooltip]::after {
-            position: absolute;
-            bottom: calc(100% + 6px);
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #23252b;
-            color: #e4e7eb;
-            border: 1px solid #353840;
-            border-radius: 4px;
-            padding: 4px 8px;
-            font-size: 11px;
-            font-weight: 400;
-            letter-spacing: normal;
-            text-transform: none;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            white-space: nowrap;
-            pointer-events: none;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.1s ease;
-            z-index: 100;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-        }
-
-        abbr[data-tooltip="hcf"]::after {
-            content: "Highest Common Factor";
-        }
-
-        abbr[data-tooltip="lcm"]::after {
-            content: "Lowest Common Multiple";
-        }
-
-        abbr[data-tooltip]:hover::after,
-        abbr[data-tooltip]:focus::after {
-            opacity: 1;
-            visibility: visible;
-        }
-
         #output-area {
-            display: none;
+            display: flex;
             flex-direction: column;
             gap: 16px;
         }
@@ -445,9 +376,7 @@
     <div class="container">
         <!-- Input Control Panel -->
         <div class="card">
-            <div class="card-header">
-                <div class="title"><abbr data-tooltip="hcf" tabindex="0">HCF</abbr> and <abbr data-tooltip="lcm" tabindex="0">LCM</abbr> Calculator</div>
-            </div>
+            <div class="title"><abbr title="Highest Common Factor">HCF</abbr> and <abbr title="Lowest Common Multiple">LCM</abbr> Calculator</div>
 
             <div class="inputs-container" id="inputs-container">
                 <div class="input-row">
@@ -473,51 +402,52 @@
         <!-- Dynamic Output Stream -->
         <div id="output-area">
             <!-- Step 1: Prime Factorization -->
-            <div class="card" id="card-factors">
+            <div class="card">
                 <div class="section-title">Step 1: Prime Factorization</div>
-                <div id="factors-container"></div>
+                <div class="step-body" id="factors-container"></div>
             </div>
 
             <!-- Step 2: Base & Power Analysis -->
-            <div class="card" id="card-comparison" style="display: none;">
+            <div class="card">
                 <div class="section-title">Step 2: Base and Power Analysis</div>
-                <div class="comparison-grid" id="comp-grid">
+                <div class="comparison-grid">
                     <div class="comp-header">
                         <div>Base</div>
-                        <div>Min Power (<abbr data-tooltip="hcf" tabindex="0">HCF</abbr>)</div>
-                        <div>Max Power (<abbr data-tooltip="lcm" tabindex="0">LCM</abbr>)</div>
+                        <div>Min Power (<abbr title="Highest Common Factor">HCF</abbr>)</div>
+                        <div>Max Power (<abbr title="Lowest Common Multiple">LCM</abbr>)</div>
                     </div>
+                    <div class="step-body comparison-grid" id="comp-rows" style="margin: 0;"></div>
                 </div>
             </div>
 
             <!-- Step 3: Deduction & Construction -->
-            <div class="card" id="card-deduction" style="display: none;">
+            <div class="card">
                 <div class="section-title">Step 3: Deduction (Index Notation)</div>
 
                 <div class="formula-card">
-                    <div class="formula-label">Highest Common Factor (<abbr data-tooltip="hcf" tabindex="0">HCF</abbr>)</div>
-                    <div class="formula-content" id="hcf-notation"></div>
+                    <div class="formula-label">Highest Common Factor (<abbr title="Highest Common Factor">HCF</abbr>)</div>
+                    <div class="formula-content step-body" id="hcf-notation"></div>
                     <div class="formula-eval" id="hcf-eval"></div>
                 </div>
 
                 <div class="formula-card">
-                    <div class="formula-label">Lowest Common Multiple (<abbr data-tooltip="lcm" tabindex="0">LCM</abbr>)</div>
+                    <div class="formula-label">Lowest Common Multiple (<abbr title="Lowest Common Multiple">LCM</abbr>)</div>
                     <div class="formula-content" id="lcm-notation"></div>
                     <div class="formula-eval" id="lcm-eval"></div>
                 </div>
             </div>
 
             <!-- Step 4: Summary -->
-            <div class="card" id="card-summary" style="display: none;">
+            <div class="card">
                 <div class="section-title">Summary</div>
                 <div class="summary-box">
-                    <div class="summary-box" id="summary-container" style="margin-top: 0;"></div>
+                    <div class="summary-box step-body" id="summary-container" style="margin-top: 0;"></div>
                     <div class="summary-item highlight">
-                        <div class="summary-name"><abbr data-tooltip="hcf" tabindex="0">HCF</abbr></div>
+                        <div class="summary-name"><abbr title="Highest Common Factor">HCF</abbr></div>
                         <div class="summary-val" id="hcf-summary-val"></div>
                     </div>
                     <div class="summary-item highlight">
-                        <div class="summary-name"><abbr data-tooltip="lcm" tabindex="0">LCM</abbr></div>
+                        <div class="summary-name"><abbr title="Lowest Common Multiple">LCM</abbr></div>
                         <div class="summary-val" id="lcm-summary-val"></div>
                     </div>
                 </div>
@@ -530,14 +460,9 @@
         const btnCalc = document.getElementById('btn-calc');
         const btnReset = document.getElementById('btn-reset');
         const errorMsg = document.getElementById('error-msg');
-        const outputArea = document.getElementById('output-area');
-
-        const cardComparison = document.getElementById('card-comparison');
-        const cardDeduction = document.getElementById('card-deduction');
-        const cardSummary = document.getElementById('card-summary');
 
         const factorsContainer = document.getElementById('factors-container');
-        const compGrid = document.getElementById('comp-grid');
+        const compRows = document.getElementById('comp-rows');
         const hcfNotation = document.getElementById('hcf-notation');
         const hcfEval = document.getElementById('hcf-eval');
         const lcmNotation = document.getElementById('lcm-notation');
@@ -546,51 +471,27 @@
         const hcfSummaryVal = document.getElementById('hcf-summary-val');
         const lcmSummaryVal = document.getElementById('lcm-summary-val');
 
-        let isCalculating = false;
         let calcRunId = 0;
         let lastInputsKey = '';
         let autoScrollEnabled = true;
-        let lastScrollY = window.scrollY;
-
-        function isNearBottom(threshold = 40) {
-            return window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - threshold;
-        }
 
         window.addEventListener('wheel', (e) => {
-            if (e.deltaY < 0) {
-                autoScrollEnabled = false;
-            } else if (e.deltaY > 0 && isNearBottom()) {
-                autoScrollEnabled = true;
-            }
-        }, { passive: true });
-
-        window.addEventListener('scroll', () => {
-            const currentY = window.scrollY;
-            if (currentY < lastScrollY - 2) {
-                autoScrollEnabled = false;
-            } else if (isNearBottom()) {
-                autoScrollEnabled = true;
-            }
-            lastScrollY = currentY;
+            if (e.deltaY < 0) autoScrollEnabled = false;
+            else if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 60) autoScrollEnabled = true;
         }, { passive: true });
 
         function autoScroll() {
-            if (!autoScrollEnabled) return;
-            window.scrollTo({
-                top: document.documentElement.scrollHeight,
-                behavior: 'smooth'
-            });
+            if (autoScrollEnabled) {
+                window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+            }
         }
 
-        const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+        const sleep = (ms, checkAbort) => new Promise((resolve, reject) =>
+            setTimeout(() => checkAbort?.() ? reject() : resolve(), ms)
+        );
 
-        function sanitizeInput(val) {
-            return val.trim().replace(/[\s\u00A0\u202F,'_]/g, '');
-        }
-
-        function formatNum(val) {
-            return BigInt(val).toLocaleString();
-        }
+        const sanitizeInput = (val) => val.trim().replace(/[\s\u00A0\u202F,'_]/g, '');
+        const formatNum = (val) => BigInt(val).toLocaleString();
 
         function evaluateExpression(str) {
             const s = sanitizeInput(str).replace(/×/g, '*').replace(/−/g, '-');
@@ -604,203 +505,131 @@
             }
         }
 
-        async function updateInputPreview(input) {
-            const preview = input.parentElement?.querySelector('.input-preview');
-            if (!preview) return;
-            const runId = (input._runId = (input._runId || 0) + 1);
-            const evaluated = evaluateExpression(input.value);
-            if (evaluated === null) {
-                preview.classList.remove('thinking');
-                preview.innerHTML = '';
-                return;
-            }
-            preview.innerHTML = `= ${formatNum(evaluated)}`;
-            if (evaluated === 1n) {
-                preview.classList.remove('thinking');
-                return;
-            }
-            preview.classList.add('thinking');
-            const factors = await factorizeBigInt(evaluated, null, () => input._runId !== runId);
-            if (input._runId === runId) {
-                preview.classList.remove('thinking');
-                if (factors) {
-                    preview.innerHTML = `= ${formatNum(evaluated)} = ${formatIndexNotation(factors)}`;
-                }
-            }
-        }
-
-        function getInputsKey() {
-            return Array.from(inputsContainer.querySelectorAll('input'))
-                .map(i => sanitizeInput(i.value))
-                .filter(v => v.length > 0)
-                .join(',');
-        }
-
-        function invalidateCalculationIfChanged() {
-            const currentKey = getInputsKey();
-            if (currentKey === lastInputsKey) return;
-            lastInputsKey = currentKey;
-            calcRunId++;
-            errorMsg.textContent = '';
-            outputArea.style.display = 'none';
-            if (isCalculating) {
-                isCalculating = false;
-                btnCalc.disabled = false;
-                btnCalc.classList.remove('thinking');
-                btnReset.disabled = false;
-            }
-        }
-
-        function updateURLFromInputs() {
-            const inputs = Array.from(inputsContainer.querySelectorAll('input'));
-            const values = inputs.map(i => sanitizeInput(i.value)).filter(v => v.length > 0);
-            const url = new URL(window.location.href);
-            const params = new URLSearchParams(url.search);
-            params.delete('n');
-            const otherParams = params.toString();
-            let newSearch = '';
-            if (values.length > 0) {
-                const encodedValues = values.map(v => encodeURIComponent(v)).join(',');
-                newSearch = '?' + (otherParams ? otherParams + '&' : '') + 'n=' + encodedValues;
-            } else if (otherParams) {
-                newSearch = '?' + otherParams;
-            }
-            const newRelativeUrl = url.pathname + newSearch + url.hash;
-            window.history.replaceState(null, '', newRelativeUrl);
-        }
-
-        function createInputRow(value = '') {
-            const row = inputsContainer.firstElementChild.cloneNode(true);
-            row.querySelector('input').value = value;
+        function setInputRowState(row, value = '') {
+            const input = row.querySelector('input');
             const preview = row.querySelector('.input-preview');
+            input.value = value;
+            input._runId = (input._runId || 0) + 1;
             preview.textContent = '';
             preview.classList.remove('thinking');
             return row;
         }
 
-        inputsContainer.addEventListener('input', (e) => {
-            if (e.target.matches('input')) {
-                updateInputPreview(e.target);
+        const createInputRow = (value = '') => setInputRowState(inputsContainer.firstElementChild.cloneNode(true), value);
+
+        async function updateInputPreview(input) {
+            const preview = input.parentElement.querySelector('.input-preview');
+            const runId = (input._runId = (input._runId || 0) + 1);
+            const evaluated = evaluateExpression(input.value);
+            preview.classList.remove('thinking');
+            if (evaluated === null) {
+                preview.textContent = '';
+                return;
             }
+            preview.textContent = `= ${formatNum(evaluated)}`;
+            if (evaluated === 1n) return;
+            preview.classList.add('thinking');
+            try {
+                const factors = await factorizeBigInt(evaluated, null, () => input._runId !== runId);
+                preview.innerHTML = `= ${formatNum(evaluated)} = ${formatIndexNotation(factors)}`;
+            } catch {
+                return;
+            }
+            preview.classList.remove('thinking');
+        }
+
+        function getSanitizedValues() {
+            return Array.from(inputsContainer.querySelectorAll('input'))
+                .map(i => sanitizeInput(i.value))
+                .filter(Boolean);
+        }
+
+        function setCalculating(active) {
+            if (active) autoScrollEnabled = true;
+            btnCalc.disabled = active;
+            btnReset.disabled = active;
+            btnCalc.classList.toggle('thinking', active);
+        }
+
+        function clearOutputs() {
+            factorsContainer.innerHTML = compRows.innerHTML = hcfNotation.innerHTML = hcfEval.innerHTML = lcmNotation.innerHTML = lcmEval.innerHTML = summaryContainer.innerHTML = '';
+        }
+
+        function syncInputsState() {
+            const values = getSanitizedValues();
+            const key = values.join(',');
+            if (key !== lastInputsKey) {
+                lastInputsKey = key;
+                calcRunId++;
+                errorMsg.textContent = '';
+                clearOutputs();
+                setCalculating(false);
+            }
+            const search = values.length ? '?n=' + values.map(encodeURIComponent).join(',') : '';
+            window.history.replaceState(null, '', window.location.pathname + search + window.location.hash);
+        }
+
+        inputsContainer.addEventListener('input', (e) => {
+            if (e.target.matches('input')) updateInputPreview(e.target);
             const lastInput = inputsContainer.lastElementChild.querySelector('input');
-            if (e.target === lastInput && sanitizeInput(lastInput.value).length > 0) {
+            if (e.target === lastInput && sanitizeInput(lastInput.value)) {
                 inputsContainer.appendChild(createInputRow());
             }
-            invalidateCalculationIfChanged();
-            updateURLFromInputs();
+            syncInputsState();
         });
 
         inputsContainer.addEventListener('click', (e) => {
             if (e.target.matches('.btn-clear-row')) {
                 e.target.closest('.input-row').remove();
-                invalidateCalculationIfChanged();
-                updateURLFromInputs();
+                syncInputsState();
             }
         });
 
-        async function factorizeBigInt(n, logCallback, shouldAbort) {
+        async function factorizeBigInt(n, logCallback, checkAbort) {
             const factors = {};
             let current = n;
-
-            const countFactor = async (d) => {
-                let power = 0;
-                while (current % d === 0n) {
-                    if (shouldAbort?.()) return;
-                    power++;
-                    current = current / d;
-                    if (logCallback) {
-                        await logCallback(d, current);
-                    }
-                }
-                if (power > 0) {
-                    factors[d.toString()] = power;
-                }
-            };
-
-            await countFactor(2n);
-            await countFactor(3n);
-
-            let d = 5n;
-            let step = 2n;
             let iterations = 0;
 
-            while (d * d <= current) {
-                if (shouldAbort?.()) return null;
-                if (current % d === 0n) {
-                    await countFactor(d);
-                } else {
-                    d += step;
-                    step = 6n - step;
-                    if (++iterations % 100000 === 0) {
-                        await sleep(0);
-                    }
+            for (let d = 2n; d * d <= current; d += d === 2n ? 1n : 2n) {
+                while (current % d === 0n) {
+                    if (checkAbort?.()) throw new Error('aborted');
+                    factors[d] = (factors[d] || 0) + 1;
+                    current /= d;
+                    if (logCallback) await logCallback(d, current);
                 }
+                if (++iterations % 100000 === 0) await sleep(0, checkAbort);
             }
-            if (shouldAbort?.()) return null;
 
             if (current > 1n) {
-                const primeKey = current.toString();
-                factors[primeKey] = (factors[primeKey] || 0) + 1;
-                if (logCallback) {
-                    await logCallback(current, 1n);
-                }
+                if (checkAbort?.()) throw new Error('aborted');
+                factors[current] = (factors[current] || 0) + 1;
+                if (logCallback) await logCallback(current, 1n);
             }
 
             return factors;
         }
 
         function formatIndexNotation(factorMap) {
-            const primes = Object.keys(factorMap).map(p => BigInt(p)).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
-            if (primes.length === 0) return '1';
-            return primes.map(p => `${formatNum(p)}<sup>${factorMap[p.toString()]}</sup>`).join(' &times; ');
+            const primes = Object.keys(factorMap).map(BigInt).sort((a, b) => (a < b ? -1 : 1));
+            if (!primes.length) return '1';
+            return primes.map(p => `${formatNum(p)}<sup>${factorMap[p]}</sup>`).join(' &times; ');
         }
 
-        async function animateDeduction(factorMap, notationEl, evalEl, runId) {
-            const primes = Object.keys(factorMap).map(p => BigInt(p)).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
-            let val = 1n;
-            const parts = [];
-
-            if (primes.length === 0) {
-                notationEl.innerHTML = '1';
-            } else {
-                notationEl.classList.add('typing');
-                for (let i = 0; i < primes.length; i++) {
-                    if (runId !== calcRunId) return null;
-                    const p = primes[i];
-                    const exp = factorMap[p.toString()];
-                    let termVal = 1n;
-                    for (let e = 0; e < exp; e++) termVal *= p;
-                    val *= termVal;
-
-                    parts.push(`${formatNum(p)}<sup>${exp}</sup>`);
-                    notationEl.innerHTML = parts.join(' &times; ');
-                    autoScroll();
-                    await sleep(550);
-                }
-                if (runId !== calcRunId) return null;
-                notationEl.classList.remove('typing');
-            }
-
-            evalEl.innerHTML = `= <span class="final-val">${formatNum(val)}</span>`;
-            autoScroll();
-            return val;
-        }
+        const evalFactorMap = (factorMap) =>
+            Object.entries(factorMap).reduce((acc, [p, exp]) => acc * BigInt(p) ** BigInt(exp), 1n);
 
         btnCalc.addEventListener('click', async () => {
-            if (isCalculating) return;
-
+            if (btnCalc.disabled) return;
             errorMsg.textContent = '';
 
-            const inputs = Array.from(inputsContainer.querySelectorAll('input'));
-            const rawValues = inputs.map(i => sanitizeInput(i.value)).filter(v => v.length > 0);
-
+            const rawValues = getSanitizedValues();
             if (rawValues.length < 2) {
                 errorMsg.textContent = 'Please enter at least two numbers.';
                 return;
             }
 
             const numbers = [];
-            for (let v of rawValues) {
+            for (const v of rawValues) {
                 const evaluated = evaluateExpression(v);
                 if (evaluated === null) {
                     errorMsg.textContent = `Invalid entry: "${v}". Please enter positive integers or valid expressions greater than 0.`;
@@ -810,180 +639,107 @@
             }
 
             const runId = ++calcRunId;
-            lastInputsKey = getInputsKey();
-            isCalculating = true;
-            autoScrollEnabled = true;
-            btnCalc.disabled = true;
-            btnCalc.classList.add('thinking');
-            btnReset.disabled = true;
+            const checkAbort = () => runId !== calcRunId;
+            lastInputsKey = rawValues.join(',');
+            setCalculating(true);
+            clearOutputs();
 
-            // Clear previous outputs
-            factorsContainer.innerHTML = '';
-            compGrid.querySelectorAll('.comp-row').forEach(row => row.remove());
-            hcfNotation.innerHTML = '';
-            hcfEval.innerHTML = '';
-            lcmNotation.innerHTML = '';
-            lcmEval.innerHTML = '';
-            summaryContainer.innerHTML = '';
+            try {
+                const allFactorizations = [];
 
-            cardComparison.style.display = 'none';
-            cardDeduction.style.display = 'none';
-            cardSummary.style.display = 'none';
-            outputArea.style.display = 'flex';
-            autoScroll();
-
-            const allFactorizations = [];
-
-            // Step 1: Prime Factorization (Fast pace: 15ms delays)
-            for (let i = 0; i < numbers.length; i++) {
-                const num = numbers[i];
-                const block = document.createElement('div');
-                block.className = 'step-block';
-
-                const heading = document.createElement('div');
-                heading.className = 'step-heading thinking';
-                heading.textContent = `N${i + 1} = ${formatNum(num)}`;
-                block.appendChild(heading);
-
-                factorsContainer.appendChild(block);
-                autoScroll();
-
-                const factors = await factorizeBigInt(num, async (prime, remainder) => {
-                    if (runId !== calcRunId) return;
-                    const row = document.createElement('div');
-                    row.className = 'log-row';
-                    row.innerHTML = `<span class="active-num">&divide; ${formatNum(prime)}</span> <span style="color:#4a4e57">&rarr;</span> <span class="final-factor">${formatNum(remainder)}</span>`;
-                    block.appendChild(row);
+                // Step 1: Prime Factorization
+                for (let i = 0; i < numbers.length; i++) {
+                    const num = numbers[i];
+                    factorsContainer.insertAdjacentHTML('beforeend', `<div class="step-block"><div class="step-heading thinking">N${i + 1} = ${formatNum(num)}</div></div>`);
+                    const block = factorsContainer.lastElementChild;
                     autoScroll();
-                    await sleep(15);
-                }, () => runId !== calcRunId);
-                if (runId !== calcRunId) return;
-                heading.classList.remove('thinking');
 
-                allFactorizations.push({ number: num, factors });
+                    const factors = await factorizeBigInt(num, async (prime, remainder) => {
+                        block.insertAdjacentHTML('beforeend', `<div class="log-row"><span class="active-num">&divide; ${formatNum(prime)}</span> <span style="color:#4a4e57">&rarr;</span> <span class="final-factor">${formatNum(remainder)}</span></div>`);
+                        autoScroll();
+                        await sleep(15, checkAbort);
+                    }, checkAbort);
+                    block.firstElementChild.classList.remove('thinking');
 
-                const formRow = document.createElement('div');
-                formRow.className = 'log-row index-form';
-                formRow.innerHTML = `Index Form: ${formatNum(num)} = ${formatIndexNotation(factors)}`;
-                block.appendChild(formRow);
-                autoScroll();
-
-                await sleep(35);
-                if (runId !== calcRunId) return;
-            }
-
-            // Step 2: Base & Power Analysis (Slow pace: 450ms delays)
-            await sleep(250);
-            if (runId !== calcRunId) return;
-            cardComparison.style.display = 'block';
-            autoScroll();
-
-            const allPrimesSet = new Set();
-            allFactorizations.forEach(item => {
-                Object.keys(item.factors).forEach(p => allPrimesSet.add(BigInt(p)));
-            });
-
-            const uniquePrimes = Array.from(allPrimesSet).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
-
-            const hcfFactors = {};
-            const lcmFactors = {};
-
-            for (let p of uniquePrimes) {
-                const pStr = p.toString();
-                const powers = allFactorizations.map(item => item.factors[pStr] || 0);
-
-                const minPow = Math.min(...powers);
-                const maxPow = Math.max(...powers);
-
-                if (minPow > 0) {
-                    hcfFactors[pStr] = minPow;
-                }
-                if (maxPow > 0) {
-                    lcmFactors[pStr] = maxPow;
+                    allFactorizations.push({ number: num, factors });
+                    block.insertAdjacentHTML('beforeend', `<div class="log-row index-form">Index Form: ${formatNum(num)} = ${formatIndexNotation(factors)}</div>`);
+                    autoScroll();
+                    await sleep(35, checkAbort);
                 }
 
-                const compRow = document.createElement('div');
-                compRow.className = 'comp-row';
-                compRow.innerHTML = `
-                    <div class="prime-num">${formatNum(p)}</div>
-                    <div class="comp-val">min(${powers.join(', ')}) = ${minPow}</div>
-                    <div class="comp-val">max(${powers.join(', ')}) = ${maxPow}</div>
-                `;
-                compGrid.appendChild(compRow);
+                // Step 2: Base & Power Analysis
+                await sleep(250, checkAbort);
+                const uniquePrimes = Array.from(
+                    new Set(allFactorizations.flatMap(item => Object.keys(item.factors)))
+                ).map(BigInt).sort((a, b) => (a < b ? -1 : 1));
+
+                const hcfFactors = {};
+                const lcmFactors = {};
+
+                for (const p of uniquePrimes) {
+                    const powers = allFactorizations.map(item => item.factors[p] || 0);
+                    const minPow = Math.min(...powers);
+                    const maxPow = Math.max(...powers);
+                    if (minPow > 0) hcfFactors[p] = minPow;
+                    if (maxPow > 0) lcmFactors[p] = maxPow;
+
+                    compRows.insertAdjacentHTML('beforeend', `
+                        <div class="comp-row">
+                            <div class="prime-num">${formatNum(p)}</div>
+                            <div class="comp-val">min(${powers.join(', ')}) = ${minPow}</div>
+                            <div class="comp-val">max(${powers.join(', ')}) = ${maxPow}</div>
+                        </div>
+                    `);
+                    autoScroll();
+                    await sleep(450, checkAbort);
+                }
+
+                // Step 3: Deduction
+                await sleep(350, checkAbort);
+                const hcfVal = evalFactorMap(hcfFactors);
+                const lcmVal = evalFactorMap(lcmFactors);
+
+                hcfNotation.innerHTML = formatIndexNotation(hcfFactors);
+                hcfEval.innerHTML = `= <span class="final-val">${formatNum(hcfVal)}</span>`;
                 autoScroll();
-                await sleep(450);
-                if (runId !== calcRunId) return;
+                await sleep(500, checkAbort);
+
+                lcmNotation.innerHTML = formatIndexNotation(lcmFactors);
+                lcmEval.innerHTML = `= <span class="final-val">${formatNum(lcmVal)}</span>`;
+                autoScroll();
+                await sleep(400, checkAbort);
+
+                // Step 4: Summary
+                summaryContainer.innerHTML = allFactorizations.map((item, idx) => `
+                    <div class="summary-item">
+                        <div class="summary-name">N${idx + 1} (${formatNum(item.number)})</div>
+                        <div class="summary-val">${formatIndexNotation(item.factors)}</div>
+                    </div>
+                `).join('');
+                hcfSummaryVal.innerHTML = `${formatIndexNotation(hcfFactors)} &nbsp;= ${formatNum(hcfVal)}`;
+                lcmSummaryVal.innerHTML = `${formatIndexNotation(lcmFactors)} &nbsp;= ${formatNum(lcmVal)}`;
+                autoScroll();
+                setCalculating(false);
+            } catch {
+                // Aborted due to input change
             }
-
-            // Step 3: Deduction & Construction (Slow paced typing: 550ms delays)
-            cardDeduction.style.display = 'block';
-            autoScroll();
-            await sleep(350);
-            if (runId !== calcRunId) return;
-
-            const hcfVal = await animateDeduction(hcfFactors, hcfNotation, hcfEval, runId);
-            if (runId !== calcRunId) return;
-            await sleep(500);
-            if (runId !== calcRunId) return;
-            const lcmVal = await animateDeduction(lcmFactors, lcmNotation, lcmEval, runId);
-            if (runId !== calcRunId) return;
-            await sleep(400);
-            if (runId !== calcRunId) return;
-
-            // Step 4: Summary Section
-            cardSummary.style.display = 'block';
-
-            allFactorizations.forEach((item, idx) => {
-                const div = document.createElement('div');
-                div.className = 'summary-item';
-                div.innerHTML = `
-                    <div class="summary-name">N${idx + 1} (${formatNum(item.number)})</div>
-                    <div class="summary-val">${formatIndexNotation(item.factors)}</div>
-                `;
-                summaryContainer.appendChild(div);
-            });
-
-            hcfSummaryVal.innerHTML = `${formatIndexNotation(hcfFactors)} &nbsp;= ${formatNum(hcfVal)}`;
-            lcmSummaryVal.innerHTML = `${formatIndexNotation(lcmFactors)} &nbsp;= ${formatNum(lcmVal)}`;
-
-            autoScroll();
-
-            isCalculating = false;
-            btnCalc.disabled = false;
-            btnCalc.classList.remove('thinking');
-            btnReset.disabled = false;
         });
 
         btnReset.addEventListener('click', () => {
-            if (isCalculating) return;
-
-            errorMsg.textContent = '';
-            outputArea.style.display = 'none';
+            if (btnReset.disabled) return;
             inputsContainer.querySelectorAll('.input-row:nth-child(n+3)').forEach(row => row.remove());
-            inputsContainer.querySelectorAll('input').forEach(inp => {
-                inp.value = '';
-                inp._runId = (inp._runId || 0) + 1;
-            });
-            inputsContainer.querySelectorAll('.input-preview').forEach(p => {
-                p.textContent = '';
-                p.classList.remove('thinking');
-            });
-            lastInputsKey = '';
-
-            updateURLFromInputs();
+            inputsContainer.querySelectorAll('.input-row').forEach(row => setInputRowState(row));
+            syncInputsState();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
         function initFromURL() {
-            const params = new URLSearchParams(window.location.search);
-            const nParam = params.get('n');
+            const nParam = new URLSearchParams(window.location.search).get('n');
             if (!nParam) return;
+            const values = nParam.split(',').map(sanitizeInput).filter(Boolean);
+            if (!values.length) return;
 
-            const values = nParam.split(',').map(v => sanitizeInput(v)).filter(v => v.length > 0);
-            if (values.length === 0) return;
-
-            const totalRows = Math.max(2, values.length + 1);
-            while (inputsContainer.children.length < totalRows) {
+            while (inputsContainer.children.length < Math.max(2, values.length + 1)) {
                 inputsContainer.appendChild(createInputRow());
             }
             const inputs = inputsContainer.querySelectorAll('input');
@@ -991,7 +747,7 @@
                 inputs[idx].value = val;
                 updateInputPreview(inputs[idx]);
             });
-            lastInputsKey = getInputsKey();
+            lastInputsKey = values.join(',');
         }
 
         initFromURL();
