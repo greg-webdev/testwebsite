@@ -434,8 +434,33 @@
         const summaryContainer = document.getElementById('summary-container');
 
         let isCalculating = false;
+        let autoScrollEnabled = true;
+        let lastScrollY = window.scrollY;
+
+        function isNearBottom(threshold = 40) {
+            return window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - threshold;
+        }
+
+        window.addEventListener('wheel', (e) => {
+            if (e.deltaY < 0) {
+                autoScrollEnabled = false;
+            } else if (e.deltaY > 0 && isNearBottom()) {
+                autoScrollEnabled = true;
+            }
+        }, { passive: true });
+
+        window.addEventListener('scroll', () => {
+            const currentY = window.scrollY;
+            if (currentY < lastScrollY - 2) {
+                autoScrollEnabled = false;
+            } else if (isNearBottom()) {
+                autoScrollEnabled = true;
+            }
+            lastScrollY = currentY;
+        }, { passive: true });
 
         function autoScroll() {
+            if (!autoScrollEnabled) return;
             window.scrollTo({
                 top: document.documentElement.scrollHeight,
                 behavior: 'smooth'
@@ -634,6 +659,7 @@
             }
 
             isCalculating = true;
+            autoScrollEnabled = true;
             btnCalc.disabled = true;
             btnReset.disabled = true;
 
