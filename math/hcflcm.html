@@ -87,7 +87,7 @@
             flex-shrink: 0;
         }
 
-        .input-row:nth-child(-n+2) .btn-clear-row,
+        .input-row:last-child .btn-clear-row,
         .input-preview:empty,
         .error-message:empty,
         .formula-eval:empty,
@@ -556,6 +556,21 @@
         }
 
         function syncInputsState() {
+            const isRowEmpty = (row) => !sanitizeInput(row.querySelector('input').value);
+            if (!isRowEmpty(inputsContainer.lastElementChild)) {
+                inputsContainer.appendChild(createInputRow());
+            }
+            while (
+                inputsContainer.children.length > 2 &&
+                isRowEmpty(inputsContainer.lastElementChild) &&
+                isRowEmpty(inputsContainer.lastElementChild.previousElementSibling)
+            ) {
+                inputsContainer.lastElementChild.remove();
+            }
+            while (inputsContainer.children.length < 2) {
+                inputsContainer.appendChild(createInputRow());
+            }
+
             const values = getSanitizedValues();
             const key = values.join(',');
             if (key !== lastInputsKey) {
@@ -571,10 +586,6 @@
 
         inputsContainer.addEventListener('input', (e) => {
             if (e.target.matches('input')) updateInputPreview(e.target);
-            const lastInput = inputsContainer.lastElementChild.querySelector('input');
-            if (e.target === lastInput && sanitizeInput(lastInput.value)) {
-                inputsContainer.appendChild(createInputRow());
-            }
             syncInputsState();
         });
 
