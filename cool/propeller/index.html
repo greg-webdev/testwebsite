@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>q5play Propeller</title>
+    <script src="https://q5js.org/q5.js"></script>
+    <script src="https://p5play.org/v3/planck.min.js"></script>
+    <script src="https://p5play.org/v3/p5play.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #18181b;
+            color: #a1a1aa;
+            font-family: monospace;
+            font-size: 13px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #ui {
+            display: flex;
+            gap: 18px;
+            margin-bottom: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: #27272a;
+            height: 4px;
+            border-radius: 2px;
+            outline: none;
+            width: 100px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            background: #71717a;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #e4e4e7;
+        }
+
+        .btn {
+            background: transparent;
+            border: none;
+            color: #71717a;
+            font-family: inherit;
+            font-size: inherit;
+            cursor: pointer;
+            padding: 2px 4px;
+            transition: color 0.15s;
+        }
+
+        .btn:hover {
+            color: #e4e4e7;
+        }
+
+        .btn.active {
+            color: #e4e4e7;
+        }
+
+        canvas {
+            border-radius: 3px;
+            outline: 1px solid #27272a;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="ui">
+        <div class="control">
+            <span>speed</span>
+            <input type="range" id="speedSlider" min="0" max="1600" step="10" value="200">
+        </div>
+        <div class="control">
+            <span>blades</span>
+            <input type="range" id="bladesSlider" min="1" max="8" step="1" value="4">
+        </div>
+        <div class="control">
+            <span>length</span>
+            <input type="range" id="lengthSlider" min="80" max="360" step="10" value="220">
+        </div>
+        <div class="control">
+            <span>spawn rate</span>
+            <input type="range" id="rateSlider" min="1" max="20" step="1" value="8">
+        </div>
+        <button class="btn" id="autoBtn">[A] auto: off</button>
+        <button class="btn" id="clearBtn">[clear]</button>
+    </div>
+
+    <script>
+        let bladesGroup;
+        let balls;
+        let hub;
+        let autoclick = false;
+        let autoCounter = 0;
+        let currentLength = 220;
+        let currentBlades = 4;
+        let globalAngle = 0;
+
+        const speedSlider = document.getElementById('speedSlider');
+        const bladesSlider = document.getElementById('bladesSlider');
+        const lengthSlider = document.getElementById('lengthSlider');
+        const rateSlider = document.getElementById('rateSlider');
+        const autoBtn = document.getElementById('autoBtn');
+        const clearBtn = document.getElementById('clearBtn');
+
+        function rebuildPropeller(len, bladeCount) {
+            if (bladesGroup) bladesGroup.removeAll();
+            if (hub) hub.remove();
+
+            bladesGroup = new Group();
+            bladesGroup.collider = 'k';
+            bladesGroup.color = '#71717a';
+
+            let step = 180 / bladeCount;
+            for (let i = 0; i < bladeCount; i++) {
+                let b = new bladesGroup.Sprite(300, 300, len, 14);
+                b.baseOffset = i * step;
+                b.rotation = globalAngle + b.baseOffset;
+            }
+
+            hub = new Sprite(300, 300, 32, 'k');
+            hub.color = '#52525b';
+            hub.stroke = '#27272a';
+
+            currentLength = len;
+            currentBlades = bladeCount;
+        }
+
+        function renderLiquidGlassBall() {
+            push();
+            let r = this.d / 2;
+
+            let grad = drawingContext.createRadialGradient(-r * 0.35, -r * 0.35, r * 0.1, 0, 0, r);
+            grad.addColorStop(0, 'rgba(255, 255, 255, 0.45)');
+            grad.addColorStop(0.4, 'rgba(161, 161, 170, 0.12)');
+            grad.addColorStop(0.85, 'rgba(82, 82, 91, 0.28)');
+            grad.addColorStop(1, 'rgba(228, 228, 231, 0.55)');
+
+            drawingContext.fillStyle = grad;
+            drawingContext.strokeStyle = 'rgba(244, 244, 245, 0.4)';
+            drawingContext.lineWidth = 1.2;
+
+            drawingContext.beginPath();
+            drawingContext.arc(0, 0, r, 0, Math.PI * 2);
+            drawingContext.fill();
+            drawingContext.stroke();
+
+            drawingContext.beginPath();
+            drawingContext.ellipse(-r * 0.35, -r * 0.35, r * 0.4, r * 0.22, -0.6, 0, Math.PI * 2);
+            drawingContext.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            drawingContext.fill();
+
+            drawingContext.beginPath();
+            drawingContext.arc(0, 0, r - 1.5, 0.8, 2.2);
+            drawingContext.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+            drawingContext.lineWidth = 1;
+            drawingContext.stroke();
+
+            pop();
+        }
+
+        function spawnBall(x, y) {
+            let b = new balls.Sprite(x + random(-4, 4), y + random(-4, 4), random(22, 34));
+            b.draw = renderLiquidGlassBall;
+            b.vel.x = random(-0.5, 0.5);
+            b.vel.y = random(-0.5, 0.5);
+        }
+
+        function toggleAuto() {
+            autoclick = !autoclick;
+            autoBtn.textContent = `[A] auto: ${autoclick ? 'on' : 'off'}`;
+            autoBtn.classList.toggle('active', autoclick);
+        }
+
+        autoBtn.addEventListener('click', toggleAuto);
+        clearBtn.addEventListener('click', () => balls.removeAll());
+
+        function setup() {
+            new Canvas(600, 600);
+            world.gravity.y = 0;
+
+            balls = new Group();
+            balls.bounciness = 0.85;
+            balls.friction = 0.01;
+
+            rebuildPropeller(currentLength, currentBlades);
+        }
+
+        function draw() {
+            background('#18181b');
+
+            let targetSpeed = parseFloat(speedSlider.value);
+            let targetLen = parseInt(lengthSlider.value, 10);
+            let targetBlades = parseInt(bladesSlider.value, 10);
+
+            if (targetLen !== currentLength || targetBlades !== currentBlades) {
+                rebuildPropeller(targetLen, targetBlades);
+            }
+
+            globalAngle = (globalAngle + targetSpeed / 60) % 360;
+            for (let b of bladesGroup) {
+                b.rotationSpeed = targetSpeed;
+            }
+
+            if (kb.presses('a')) {
+                toggleAuto();
+            }
+
+            if (mouse.pressing()) {
+                spawnBall(mouse.x, mouse.y);
+            }
+
+            if (autoclick) {
+                let interval = Math.max(1, Math.round(22 - rateSlider.value));
+                autoCounter++;
+                if (autoCounter >= interval) {
+                    autoCounter = 0;
+                    let spawnX = (mouse.x >= 0 && mouse.x <= width && mouse.y >= 0 && mouse.y <= height) ? mouse.x : 300;
+                    let spawnY = (mouse.x >= 0 && mouse.x <= width && mouse.y >= 0 && mouse.y <= height) ? mouse.y : 80;
+                    spawnBall(spawnX, spawnY);
+                }
+            }
+
+            for (let i = balls.length - 1; i >= 0; i--) {
+                if (balls[i].y > height + 80 || balls[i].y < -80 || balls[i].x < -80 || balls[i].x > width + 80) {
+                    balls[i].remove();
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
