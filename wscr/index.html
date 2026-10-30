@@ -4,21 +4,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Studio Builder</title>
+    <title>Web Studio Designer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #0e0e11;
-            --bg-secondary: #141418;
-            --bg-tertiary: #18181f;
-            --bg-surface: #22222b;
-            --border-color: #27272a;
-            --border-highlight: #3f3f46;
-            --text-muted: #888894;
-            --text-subtle: #a0a0aa;
+            --bg-canvas: #0e0e11;
+            --bg-panel: #141418;
+            --bg-toolbar: #1a1a20;
+            --bg-element-hover: #22222a;
+            --bg-input: #121216;
+            --border-color: #27272f;
+            --border-highlight: #3f3f4e;
+            --accent-color: #e4e4e7;
             --text-bright: #ffffff;
-            --danger: #cf4b4b;
-            --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --text-muted: #888894;
+            --text-dim: #555562;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --font-stack: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
         * {
@@ -29,87 +34,75 @@
         }
 
         body {
-            background-color: var(--bg-primary);
-            color: var(--text-subtle);
-            font-family: var(--font-sans);
-            font-size: 11px;
-            line-height: 1.4;
-            letter-spacing: -0.01em;
+            background-color: var(--bg-canvas);
+            color: var(--text-bright);
+            font-family: var(--font-stack);
             height: 100vh;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
             user-select: none;
         }
 
-        a {
-            text-decoration: none;
-            color: var(--text-muted);
-            transition: color 0.15s ease;
-        }
-
-        a:hover {
-            color: var(--text-bright);
-            text-decoration: none;
-        }
-
+        /* Common Button Styles: No border, transition to white on hover */
         button,
-        .btn {
+        .btn-link {
             background: transparent;
             border: none;
             color: var(--text-muted);
-            font-family: var(--font-sans);
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            padding: 5px 9px;
             cursor: pointer;
+            font-family: var(--font-stack);
+            font-size: 12px;
+            font-weight: 500;
+            padding: 6px 12px;
             border-radius: 2px;
-            transition: color 0.15s ease, background 0.15s ease;
+            transition: color 0.15s ease, background-color 0.15s ease;
             display: inline-flex;
             align-items: center;
-            justify-content: center;
+            gap: 6px;
+            text-decoration: none;
             white-space: nowrap;
         }
 
         button:hover,
-        .btn:hover {
+        .btn-link:hover {
             color: var(--text-bright);
-            background-color: rgba(255, 255, 255, 0.03);
+            background-color: var(--bg-element-hover);
         }
 
-        button.active {
+        button.btn-primary {
+            background-color: #27272f;
             color: var(--text-bright);
-            background-color: var(--bg-surface);
+            border: 1px solid var(--border-highlight);
+        }
+
+        button.btn-primary:hover {
+            background-color: #33333d;
+            border-color: #555565;
         }
 
         button.btn-danger {
-            color: var(--danger);
+            color: #f87171;
         }
 
         button.btn-danger:hover {
-            color: #ff6464;
+            background-color: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
         }
 
+        /* Input Elements */
         input,
         select,
         textarea {
-            background-color: var(--bg-primary);
+            background-color: var(--bg-input);
             border: 1px solid var(--border-color);
             color: var(--text-bright);
-            font-family: var(--font-sans);
-            font-size: 11px;
-            padding: 5px 8px;
+            font-family: var(--font-stack);
+            font-size: 12px;
+            padding: 6px 8px;
             border-radius: 2px;
             width: 100%;
             transition: border-color 0.15s ease;
-        }
-
-        input[type="color"] {
-            padding: 1px 2px;
-            height: 26px;
-            cursor: pointer;
-            border: 1px solid var(--border-color);
         }
 
         input:focus,
@@ -118,300 +111,220 @@
             border-color: var(--border-highlight);
         }
 
+        label {
+            display: block;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        /* Header & Navigation Bar */
         header {
-            height: 42px;
-            background-color: var(--bg-secondary);
+            height: 48px;
+            background-color: var(--bg-toolbar);
             border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 16px;
-            z-index: 20;
+            flex-shrink: 0;
+            z-index: 100;
         }
 
-        .brand-section {
+        .logo-area {
             display: flex;
             align-items: center;
-            gap: 14px;
-        }
-
-        .brand-title {
-            font-size: 11px;
+            gap: 12px;
+            font-size: 13px;
             font-weight: 600;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.05em;
             text-transform: uppercase;
             color: var(--text-bright);
         }
 
-        .status-indicator {
+        .status-badge {
             font-size: 10px;
+            background: var(--bg-canvas);
+            padding: 2px 6px;
+            border-radius: 2px;
+            border: 1px solid var(--border-color);
             color: var(--text-muted);
-            font-family: var(--font-mono);
-            text-transform: uppercase;
         }
 
-        .app-workspace {
+        .header-actions {
             display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Main Studio Container */
+        .studio-layout {
             flex: 1;
-            height: calc(100vh - 42px);
+            display: flex;
+            height: calc(100vh - 48px);
             position: relative;
             overflow: hidden;
         }
 
-        .sidebar-left {
-            width: 220px;
-            background-color: var(--bg-secondary);
+        /* Left Palette: Add Elements */
+        .palette-sidebar {
+            width: 200px;
+            background-color: var(--bg-panel);
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            z-index: 10;
             flex-shrink: 0;
         }
 
-        .panel-header {
-            padding: 10px 14px;
-            border-bottom: 1px solid var(--border-color);
+        .sidebar-section-title {
             font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
             font-weight: 600;
-            color: var(--text-muted);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            padding: 14px 16px 8px;
         }
 
-        .elements-catalog {
-            padding: 10px 12px;
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 4px;
+        .palette-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 0 8px;
             overflow-y: auto;
         }
 
-        .catalog-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 7px 10px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
+        .palette-item {
+            padding: 8px 10px;
+            font-size: 12px;
+            text-align: left;
             border-radius: 2px;
-            color: var(--text-subtle);
-            cursor: pointer;
-            font-size: 11px;
-            transition: all 0.15s ease;
-        }
-
-        .catalog-item:hover {
-            color: var(--text-bright);
-            border-color: var(--border-highlight);
-            background-color: var(--bg-surface);
-        }
-
-        .catalog-item span.cat-label {
-            font-size: 9px;
             color: var(--text-muted);
-            text-transform: uppercase;
-            font-family: var(--font-mono);
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
+        .palette-item:hover {
+            background-color: var(--bg-element-hover);
+            color: var(--text-bright);
+        }
+
+        /* Center Canvas Area */
         .canvas-viewport {
             flex: 1;
-            background-color: var(--bg-primary);
+            background-color: var(--bg-canvas);
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
             overflow-y: auto;
             padding: 24px;
             position: relative;
         }
 
-        .viewport-toolbar {
+        .viewport-controls {
             display: flex;
             gap: 4px;
-            margin-bottom: 16px;
-            background: var(--bg-secondary);
-            padding: 2px 4px;
-            border: 1px solid var(--border-color);
+            background-color: var(--bg-panel);
+            padding: 3px;
             border-radius: 2px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .viewport-btn {
+            padding: 4px 10px;
+            font-size: 11px;
+        }
+
+        .viewport-btn.active {
+            background-color: #25252e;
+            color: var(--text-bright);
         }
 
         #page-canvas {
             width: 100%;
-            max-width: 960px;
-            min-height: 85vh;
-            background: var(--bg-secondary);
+            min-height: 800px;
+            background-color: #0b0b0e;
             border: 1px solid var(--border-color);
             border-radius: 2px;
-            position: relative;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
-            padding: 36px;
             display: flex;
             flex-direction: column;
             gap: 16px;
-            transition: max-width 0.2s ease;
-        }
-
-        #page-canvas.preview-active {
-            background: #111114;
-            border-color: #1a1a20;
-        }
-
-        .sidebar-right {
-            width: 320px;
-            background-color: var(--bg-secondary);
-            border-left: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            z-index: 10;
-            flex-shrink: 0;
-            overflow-y: auto;
-        }
-
-        .inspector-body {
-            padding: 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .inspector-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .inspector-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-
-        .inspector-grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px;
-        }
-
-        .inspector-grid-3 {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 4px;
-        }
-
-        .segmented-control {
-            display: flex;
-            background: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 2px;
-            padding: 1px;
-        }
-
-        .segmented-control button {
-            flex: 1;
-            font-size: 10px;
-            padding: 4px 0;
-            border-radius: 2px;
-        }
-
-        .file-input-wrapper {
+            padding: 32px;
             position: relative;
-            overflow: hidden;
-            display: inline-block;
-            width: 100%;
+            transition: width 0.2s ease;
         }
 
-        .file-input-wrapper input[type="file"] {
-            position: absolute;
-            left: 0;
-            top: 0;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
+        #page-canvas.mode-tablet {
+            width: 768px !important;
         }
 
-        .file-input-btn {
-            display: block;
-            text-align: center;
-            padding: 6px;
-            background: var(--bg-tertiary);
-            border: 1px dashed var(--border-color);
-            border-radius: 2px;
-            color: var(--text-subtle);
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            transition: all 0.15s ease;
+        #page-canvas.mode-mobile {
+            width: 380px !important;
         }
 
-        .file-input-wrapper:hover .file-input-btn {
-            color: var(--text-bright);
-            border-color: var(--border-highlight);
-        }
-
-        .base64-badge {
-            font-size: 9px;
-            font-family: var(--font-mono);
-            background: #171c18;
-            color: #78a380;
-            padding: 3px 6px;
-            border-radius: 2px;
-            border: 1px solid #233526;
-            display: inline-block;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 100%;
-        }
-
-        .canvas-node {
+        /* Canvas Nodes */
+        .node-wrap {
             position: relative;
             border: 1px dashed transparent;
-            transition: border-color 0.1s ease;
-            cursor: pointer;
-            min-height: 16px;
-        }
-
-        .canvas-node:hover {
-            border-color: rgba(255, 255, 255, 0.15);
-        }
-
-        .canvas-node.is-selected {
-            border-color: #555562 !important;
-            outline: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .canvas-node .element-tag {
-            display: none;
-            position: absolute;
-            top: -18px;
-            left: 0;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            color: var(--text-muted);
-            font-size: 9px;
-            text-transform: uppercase;
-            padding: 1px 4px;
+            padding: 6px;
             border-radius: 2px;
-            pointer-events: none;
-            letter-spacing: 0.05em;
-            font-family: var(--font-mono);
-            z-index: 5;
+            transition: border-color 0.15s ease;
+            width: 100%;
         }
 
-        .canvas-node.is-selected .element-tag {
-            display: block;
-            color: var(--text-bright);
-            border-color: var(--border-highlight);
+        .node-wrap:hover {
+            border-color: var(--border-color);
         }
 
+        .node-wrap.selected {
+            border: 1px solid #4a4a5a !important;
+            background-color: rgba(255, 255, 255, 0.015);
+        }
+
+        .node-actions-bar {
+            position: absolute;
+            top: -12px;
+            right: 6px;
+            display: none;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            padding: 2px 4px;
+            border-radius: 2px;
+            gap: 2px;
+            z-index: 20;
+        }
+
+        .node-wrap.selected .node-actions-bar {
+            display: flex;
+        }
+
+        .node-actions-bar button {
+            padding: 2px 6px;
+            font-size: 10px;
+            line-height: 1;
+        }
+
+        /* Component Internal Elements */
         .node-text-wrap {
             width: 100%;
+            cursor: text;
         }
 
         .node-button-wrap {
@@ -431,28 +344,9 @@
             box-sizing: border-box;
         }
 
-        .node-link {
-            display: inline-block;
-            text-decoration: none;
-            color: #888894;
-            font-size: 13px;
-            transition: color 0.15s ease;
-        }
-
-        .node-link:hover {
-            color: #ffffff;
-            text-decoration: none;
-        }
-
-        .node-container {
-            border: 1px solid var(--border-color);
-            padding: 18px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            min-height: 60px;
-            background: rgba(255, 255, 255, 0.01);
-            border-radius: 2px;
+        .node-custom-btn:hover {
+            color: var(--hover-color, #ffffff) !important;
+            background-color: var(--hover-bg, rgba(255, 255, 255, 0.04)) !important;
         }
 
         .node-spacer {
@@ -468,6 +362,15 @@
             background-color: var(--border-color);
         }
 
+        .node-container {
+            border: 1px solid var(--border-color);
+            padding: 18px;
+            border-radius: 2px;
+            min-height: 60px;
+            background: rgba(255, 255, 255, 0.01);
+            width: 100%;
+        }
+
         .node-media-frame {
             width: 100%;
             border: none;
@@ -479,8 +382,8 @@
         .node-image {
             max-width: 100%;
             height: auto;
-            display: block;
             border-radius: 2px;
+            display: block;
             border: 1px solid var(--border-color);
         }
 
@@ -490,412 +393,427 @@
             filter: invert(0.9) hue-rotate(180deg);
         }
 
-        .modal-drawer {
-            display: none;
-            position: absolute;
+        /* Right Sidebar: Properties Panel */
+        .inspector-sidebar {
+            width: 290px;
+            background-color: var(--bg-panel);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .inspector-header {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-dim);
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .prop-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .prop-row>div {
+            flex: 1;
+        }
+
+        /* Modals & Drawers */
+        .modal-overlay {
+            position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(14, 14, 17, 0.98);
-            z-index: 100;
-            flex-direction: column;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            z-index: 500;
+            display: none;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 16px;
         }
 
         .modal-box {
-            width: 100%;
-            max-width: 500px;
-            background: var(--bg-secondary);
+            background: var(--bg-panel);
             border: 1px solid var(--border-color);
+            width: 100%;
+            max-width: 520px;
             border-radius: 2px;
-            padding: 20px;
+            padding: 24px;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
             display: flex;
             flex-direction: column;
-            gap: 14px;
-        }
-
-        .modal-box-wide {
-            max-width: 680px;
-            max-height: 80vh;
-        }
-
-        .modal-title-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
+            gap: 16px;
         }
 
         .modal-title {
+            font-size: 13px;
             font-weight: 600;
             text-transform: uppercase;
-            font-size: 10px;
-            color: var(--text-bright);
             letter-spacing: 0.05em;
-        }
-
-        .site-card {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            padding: 10px 12px;
-            border-radius: 2px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: -420px;
+            width: 420px;
+            height: 100vh;
+            background: var(--bg-panel);
+            border-left: 1px solid var(--border-color);
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.6);
+            z-index: 600;
+            transition: right 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .drawer.open {
+            right: 0;
+        }
+
+        .site-card {
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            padding: 12px;
+            border-radius: 2px;
+            margin-bottom: 10px;
             transition: border-color 0.15s ease;
         }
 
         .site-card:hover {
             border-color: var(--border-highlight);
         }
+
+        /* Fixed Disclaimer Footer: ONLY for published websites */
+        .published-footer-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(14, 14, 17, 0.95);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 7px 16px;
+            font-size: 10px;
+            color: var(--text-muted);
+            z-index: 300;
+            letter-spacing: 0.02em;
+        }
+
+        .published-footer-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 10px;
+            letter-spacing: 0.03em;
+            transition: color 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .published-footer-link:hover {
+            color: var(--text-bright);
+        }
     </style>
 </head>
 
 <body>
 
-    <!-- Top Bar Navigation -->
-    <header>
-        <div class="brand-section">
-            <span class="brand-title">Studio Builder</span>
-            <span class="status-indicator" id="canvas-status">Edit Mode</span>
+    <!-- Top Studio Header -->
+    <header id="studio-header">
+        <div class="logo-area">
+            <span>Studio Designer</span>
+            <span class="status-badge" id="canvas-status">Editing</span>
         </div>
 
-        <div style="display: flex; gap: 6px; align-items: center;">
-            <!-- Auth & Account Status Controls -->
-            <div id="auth-controls"
-                style="display: flex; align-items: center; gap: 8px; margin-right: 12px; border-right: 1px solid var(--border-color); padding-right: 12px;">
-                <span id="user-email-display"
-                    style="font-size: 10px; font-family: var(--font-mono); color: var(--text-bright); display: none;"></span>
-                <button id="btn-username-profile"
-                    style="display: none; font-family: var(--font-mono); color: #a1a1aa;">@username</button>
-                <button id="btn-auth-open">Sign In / Register</button>
-                <button id="btn-my-sites" style="display: none;">My Sites</button>
-                <button id="btn-auth-signout" style="display: none;">Sign Out</button>
-            </div>
+        <div class="header-actions">
+            <!-- Auth info & profile triggers -->
+            <button id="btn-auth-trigger">Sign In / Register</button>
+            <button id="btn-username-trigger" style="display: none; color: #a1a1aa;">@username</button>
+            <button id="btn-my-sites" style="display: none;">My Sites</button>
 
-            <button id="btn-cloud-publish" style="color: #6ee7b7;">Publish Site</button>
-            <button id="btn-firestore-rules">Security Rules</button>
-            <button id="btn-toggle-preview">Preview</button>
-            <button id="btn-view-code">View HTML</button>
-            <button id="btn-export-download">Download</button>
-            <button id="btn-clear-canvas" class="btn-danger">Clear</button>
+            <div style="width: 1px; height: 18px; background: var(--border-color); margin: 0 4px;"></div>
+
+            <button id="btn-export-code">Export HTML</button>
+            <button id="btn-publish-site" class="btn-primary">Publish Site</button>
+            <button id="btn-auth-signout" class="btn-danger" style="display: none;">Sign Out</button>
         </div>
     </header>
 
-    <div class="app-workspace">
-
-        <!-- Left Sidebar: Components Dock -->
-        <aside class="sidebar-left">
-            <div class="panel-header">
-                <span>Components</span>
+    <!-- Studio Main Content -->
+    <div class="studio-layout" id="studio-main-layout">
+        <!-- Left Palette: Add Elements -->
+        <aside class="palette-sidebar">
+            <div class="sidebar-section-title">Elements</div>
+            <div class="palette-list">
+                <button class="palette-item" data-type="heading">+ Heading</button>
+                <button class="palette-item" data-type="paragraph">+ Paragraph</button>
+                <button class="palette-item" data-type="button">+ Button</button>
+                <button class="palette-item" data-type="link">+ Link</button>
+                <button class="palette-item" data-type="spacer">+ Spacer</button>
+                <button class="palette-item" data-type="container">+ Container</button>
             </div>
-            <div class="elements-catalog">
-                <div class="catalog-item" data-type="heading">
-                    <span>Heading</span>
-                    <span class="cat-label">H1</span>
-                </div>
-                <div class="catalog-item" data-type="paragraph">
-                    <span>Paragraph</span>
-                    <span class="cat-label">Text</span>
-                </div>
-                <div class="catalog-item" data-type="button">
-                    <span>Custom Button</span>
-                    <span class="cat-label">Btn</span>
-                </div>
-                <div class="catalog-item" data-type="spacer">
-                    <span>Spacer</span>
-                    <span class="cat-label">Gap</span>
-                </div>
-                <div class="catalog-item" data-type="link">
-                    <span>Text Link</span>
-                    <span class="cat-label">URL</span>
-                </div>
-                <div class="catalog-item" data-type="container">
-                    <span>Div Container</span>
-                    <span class="cat-label">Box</span>
-                </div>
-                <div class="catalog-item" data-type="image">
-                    <span>Image</span>
-                    <span class="cat-label">Media</span>
-                </div>
-                <div class="catalog-item" data-type="video">
-                    <span>Video</span>
-                    <span class="cat-label">Media</span>
-                </div>
-                <div class="catalog-item" data-type="audio">
-                    <span>Audio</span>
-                    <span class="cat-label">Media</span>
-                </div>
-                <div class="catalog-item" data-type="iframe">
-                    <span>iFrame</span>
-                    <span class="cat-label">Embed</span>
-                </div>
-                <div class="catalog-item" data-type="custom-html">
-                    <span>Custom HTML</span>
-                    <span class="cat-label">Code</span>
-                </div>
+
+            <div class="sidebar-section-title" style="margin-top: 10px;">Media (Base64)</div>
+            <div class="palette-list">
+                <button class="palette-item" data-type="image">+ Image Upload</button>
+                <button class="palette-item" data-type="video">+ Video Upload</button>
+                <button class="palette-item" data-type="audio">+ Audio Upload</button>
+                <button class="palette-item" data-type="iframe">+ iFrame Embed</button>
             </div>
         </aside>
 
-        <!-- Canvas Workspace Viewport -->
+        <!-- Center Canvas Area -->
         <main class="canvas-viewport">
-            <div class="viewport-toolbar">
-                <button id="vp-desktop" class="active">Desktop (960px)</button>
-                <button id="vp-tablet">Tablet (720px)</button>
-                <button id="vp-mobile">Mobile (380px)</button>
+            <div class="viewport-controls">
+                <button class="viewport-btn active" id="btn-vp-desktop">Desktop</button>
+                <button class="viewport-btn" id="btn-vp-tablet">Tablet</button>
+                <button class="viewport-btn" id="btn-vp-mobile">Mobile</button>
             </div>
 
-            <div id="page-canvas" aria-label="Visual canvas">
-                <div class="canvas-node" data-node-type="heading">
-                    <div class="element-tag">heading</div>
-                    <div class="node-text-wrap" style="text-align: left;">
-                        <h1 style="font-size: 26px; font-weight: 500; color: #ffffff; letter-spacing: -0.02em;">Digital
-                            Architecture</h1>
+            <div id="page-canvas">
+                <!-- Default Starter Elements -->
+                <div class="node-wrap" data-node="heading" style="width: 100%;">
+                    <div class="node-actions-bar">
+                        <button class="btn-node-up">↑</button>
+                        <button class="btn-node-down">↓</button>
+                        <button class="btn-node-del btn-danger">×</button>
+                    </div>
+                    <div class="node-text-wrap" style="text-align: center;">
+                        <h1 style="font-size: 32px; font-weight: 700; color: #ffffff; line-height: 1.2;">Welcome to Your
+                            New Website</h1>
                     </div>
                 </div>
 
-                <div class="canvas-node" data-node-type="paragraph">
-                    <div class="element-tag">paragraph</div>
-                    <div class="node-text-wrap" style="text-align: left;">
-                        <p style="color: #a0a0aa; font-size: 13px; line-height: 1.6;">A modern minimalist website
-                            builder. Adjust typography, alignments, button presets, spacers, and local uploads with
-                            automatic Base64 encoding.</p>
+                <div class="node-wrap" data-node="paragraph" style="width: 100%;">
+                    <div class="node-actions-bar">
+                        <button class="btn-node-up">↑</button>
+                        <button class="btn-node-down">↓</button>
+                        <button class="btn-node-del btn-danger">×</button>
+                    </div>
+                    <div class="node-text-wrap" style="text-align: center;">
+                        <p
+                            style="font-size: 14px; font-weight: 400; color: #888894; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+                            Click on any element to customize its appearance, alignment, text styles, or colors in the
+                            inspector panel on the right.
+                        </p>
                     </div>
                 </div>
 
-                <div class="canvas-node" data-node-type="spacer">
-                    <div class="element-tag">spacer</div>
-                    <div class="node-spacer" style="height: 24px;"></div>
+                <div class="node-wrap" data-node="spacer" style="width: 100%;">
+                    <div class="node-actions-bar">
+                        <button class="btn-node-up">↑</button>
+                        <button class="btn-node-down">↓</button>
+                        <button class="btn-node-del btn-danger">×</button>
+                    </div>
+                    <div class="node-spacer" style="height: 24px;" data-line="false"></div>
                 </div>
 
-                <div class="canvas-node" data-node-type="button">
-                    <div class="element-tag">button</div>
-                    <div class="node-button-wrap" style="justify-content: flex-start;">
-                        <button class="node-custom-btn" data-target-url="#" data-color="#80808a"
-                            data-hover-color="#ffffff" data-bg="transparent" data-hover-bg="rgba(255, 255, 255, 0.04)"
-                            style="color: #80808a; background: transparent; font-size: 11px; font-weight: 400; letter-spacing: 0.04em; padding: 7px 14px; border: 1px solid transparent; border-radius: 2px;">
-                            EXPLORE ARCHITECTURE
-                        </button>
+                <div class="node-wrap" data-node="button" style="width: 100%;">
+                    <div class="node-actions-bar">
+                        <button class="btn-node-up">↑</button>
+                        <button class="btn-node-down">↓</button>
+                        <button class="btn-node-del btn-danger">×</button>
+                    </div>
+                    <div class="node-button-wrap" style="justify-content: center;">
+                        <a href="#" class="node-custom-btn"
+                            style="font-size: 13px; font-weight: 500; color: #ffffff; background-color: #27272f; border: 1px solid #3f3f4e; border-radius: 2px; padding: 10px 24px; text-decoration: none; --hover-color: #ffffff; --hover-bg: #373742;">
+                            Get Started Now
+                        </a>
                     </div>
                 </div>
             </div>
         </main>
 
-        <!-- Right Sidebar: Properties & Settings Inspector -->
-        <aside class="sidebar-right">
-            <div class="panel-header">
-                <span>Inspector</span>
-                <button id="btn-delete-node" class="btn-danger" style="display:none; padding: 2px 4px;">Delete</button>
+        <!-- Right Sidebar: Inspector -->
+        <aside class="inspector-sidebar" id="inspector-sidebar">
+            <div class="inspector-header">
+                <span id="inspector-title">Inspector</span>
+                <button id="btn-deselect" style="padding: 2px 4px; font-size: 10px;">Deselect</button>
             </div>
-
-            <div class="inspector-body" id="inspector-content">
-                <div style="color: var(--text-muted); font-size: 11px; padding-top: 10px;">Select an element on canvas
-                    to modify properties.</div>
+            <div id="inspector-content">
+                <p style="font-size: 12px; color: var(--text-dim); text-align: center; margin-top: 40px;">
+                    Select an element on canvas to modify its properties.
+                </p>
             </div>
         </aside>
-
-        <!-- Authentication Drawer -->
-        <div id="auth-drawer" class="modal-drawer">
-            <div class="modal-box">
-                <div class="modal-title-row">
-                    <span class="modal-title" id="auth-modal-title">Sign In / Register</span>
-                    <button id="btn-close-auth">Close</button>
-                </div>
-                <div
-                    style="display: flex; gap: 4px; background: var(--bg-primary); padding: 2px; border: 1px solid var(--border-color); border-radius: 2px;">
-                    <button id="tab-auth-signin" class="active" style="flex: 1;">Sign In</button>
-                    <button id="tab-auth-register" style="flex: 1;">Register</button>
-                </div>
-                <div class="inspector-group">
-                    <label class="inspector-label">Email Address</label>
-                    <input type="email" id="auth-email-input" placeholder="you@domain.com">
-                </div>
-                <div class="inspector-group">
-                    <label class="inspector-label">Password</label>
-                    <input type="password" id="auth-password-input" placeholder="••••••••">
-                </div>
-                <div id="auth-status-msg" style="font-size: 10px; font-family: var(--font-mono); min-height: 14px;">
-                </div>
-                <button id="btn-submit-auth"
-                    style="background: var(--bg-surface); border: 1px solid var(--border-highlight); padding: 8px; color: #ffffff;">Sign
-                    In</button>
-            </div>
-        </div>
-
-        <!-- Username / Profile Settings Drawer -->
-        <div id="username-drawer" class="modal-drawer">
-            <div class="modal-box">
-                <div class="modal-title-row">
-                    <span class="modal-title">Profile & Username Settings</span>
-                    <button id="btn-close-username">Close</button>
-                </div>
-                <p style="color: var(--text-subtle); font-size: 11px;">Your username forms the first part of your site
-                    links: <span style="font-family: var(--font-mono); color: #fff;">#user=username&site=sitename</span>
-                </p>
-                <div class="inspector-group">
-                    <label class="inspector-label">Custom Username</label>
-                    <input type="text" id="username-input" placeholder="alphanumeric only (e.g. alex)"
-                        style="font-family: var(--font-mono); text-transform: lowercase;">
-                </div>
-                <div id="username-status-msg" style="font-size: 10px; font-family: var(--font-mono); min-height: 14px;">
-                </div>
-                <button id="btn-save-username"
-                    style="background: var(--bg-surface); border: 1px solid var(--border-highlight); padding: 8px; color: #ffffff;">Save
-                    Username</button>
-            </div>
-        </div>
-
-        <!-- My Sites Ownership Drawer -->
-        <div id="mysites-drawer" class="modal-drawer">
-            <div class="modal-box modal-box-wide">
-                <div class="modal-title-row">
-                    <span class="modal-title">My Owned Websites</span>
-                    <button id="btn-close-mysites">Close</button>
-                </div>
-                <div id="mysites-list"
-                    style="display: flex; flex-direction: column; gap: 8px; max-height: 60vh; overflow-y: auto;">
-                    <div style="color: var(--text-muted); font-size: 11px;">Loading your sites...</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Publish Cloud Drawer -->
-        <div id="publish-drawer" class="modal-drawer">
-            <div class="modal-box">
-                <div class="modal-title-row">
-                    <span class="modal-title">Publish Site to Cloud</span>
-                    <button id="btn-close-publish">Close</button>
-                </div>
-                <div id="publish-auth-gate-warning"
-                    style="display: none; padding: 10px; background: #231818; border: 1px solid #4a2424; color: #fca5a5; font-size: 11px; border-radius: 2px;">
-                    You must be signed in with an email account to publish or update websites.
-                    <button id="btn-gate-signin"
-                        style="display: block; margin-top: 8px; border: 1px solid #6b3030; color: #ffffff; padding: 4px 8px;">Sign
-                        In or Register</button>
-                </div>
-                <div id="publish-username-gate-warning"
-                    style="display: none; padding: 10px; background: #231818; border: 1px solid #4a2424; color: #fca5a5; font-size: 11px; border-radius: 2px;">
-                    Please select a username first before publishing websites.
-                    <button id="btn-gate-set-username"
-                        style="display: block; margin-top: 8px; border: 1px solid #6b3030; color: #ffffff; padding: 4px 8px;">Set
-                        Username</button>
-                </div>
-                <div id="publish-form-fields">
-                    <div class="inspector-group">
-                        <label class="inspector-label">Creator Username</label>
-                        <input type="text" id="site-user-display" readonly
-                            style="font-family: var(--font-mono); color: var(--text-muted); background: var(--bg-primary);">
-                    </div>
-                    <div class="inspector-group">
-                        <label class="inspector-label">Site Name (Slug)</label>
-                        <input type="text" id="site-slug-input" placeholder="e.g. portfolio, landing, store"
-                            style="font-family: var(--font-mono); text-transform: lowercase;">
-                    </div>
-                    <div id="publish-status-box"
-                        style="font-size: 10px; font-family: var(--font-mono); color: var(--text-muted); margin-top: 8px; min-height: 18px;">
-                    </div>
-                    <div id="publish-link-container"
-                        style="display: none; flex-direction: column; gap: 6px; padding: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 2px; margin-top: 8px;">
-                        <span style="font-size: 9px; text-transform: uppercase; color: var(--text-muted);">Shareable
-                            Live URL:</span>
-                        <input type="text" id="publish-live-url" readonly
-                            style="font-family: var(--font-mono); font-size: 10px;">
-                        <div style="display: flex; gap: 6px; margin-top: 4px;">
-                            <button id="btn-copy-live-url"
-                                style="flex: 1; border: 1px solid var(--border-color); background: var(--bg-primary);">Copy
-                                Link</button>
-                            <button id="btn-open-live-url"
-                                style="flex: 1; border: 1px solid var(--border-color); background: var(--bg-primary);">Open
-                                Live</button>
-                        </div>
-                    </div>
-                    <button id="btn-confirm-publish"
-                        style="margin-top: 10px; width: 100%; background: var(--bg-surface); border: 1px solid var(--border-highlight); padding: 8px; font-weight: 600; color: #ffffff;">Publish
-                        Site</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Security Rules Drawer -->
-        <div id="rules-drawer" class="modal-drawer">
-            <div class="modal-box modal-box-wide">
-                <div class="modal-title-row">
-                    <span class="modal-title">Firestore Security Rules</span>
-                    <button id="btn-close-rules">Close</button>
-                </div>
-                <p style="color: var(--text-subtle); font-size: 11px;">Paste these exact rules into your Firebase
-                    Console to support unique usernames and user-scoped sites:</p>
-                <textarea readonly
-                    style="height: 220px; font-family: var(--font-mono); font-size: 11px; background: #08080a; color: #93c5fd; padding: 12px; line-height: 1.4; border: 1px solid var(--border-color);"
-                    id="rules-code-block">rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /users/{userId} {
-      allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == userId;
-    }
-    match /usernames/{username} {
-      allow read: if true;
-      allow create, update, delete: if request.auth != null;
-    }
-    match /sites/{docId} {
-      allow read: if true;
-      allow create: if request.auth != null && request.resource.data.ownerUid == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.ownerUid == request.auth.uid;
-    }
-  }
-}</textarea>
-                <button id="btn-copy-rules"
-                    style="border: 1px solid var(--border-color); background: var(--bg-surface); padding: 8px; color: #ffffff;">Copy
-                    Security Rules</button>
-            </div>
-        </div>
-
-        <!-- Exported Code Drawer Overlay -->
-        <div id="code-drawer" class="modal-drawer" style="align-items: stretch; justify-content: stretch; padding: 0;">
-            <div
-                style="height: 42px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: var(--bg-secondary);">
-                <span
-                    style="font-weight: 600; text-transform: uppercase; font-size: 10px; color: var(--text-bright);">Standalone
-                    Generated HTML</span>
-                <div style="display: flex; gap: 6px;">
-                    <button id="btn-copy-code">Copy HTML</button>
-                    <button id="btn-close-code">Close</button>
-                </div>
-            </div>
-            <textarea id="code-viewer" readonly spellcheck="false"
-                style="flex: 1; width: 100%; background: #08080a; color: #d4d4d8; font-family: var(--font-mono); font-size: 11px; padding: 20px; border: none; resize: none; line-height: 1.5;"></textarea>
-        </div>
-
-        <!-- Fullscreen Public Site Viewer -->
-        <div id="public-site-viewer"
-            style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #0e0e11; z-index: 200; overflow-y: auto;">
-            <div
-                style="position: fixed; top: 8px; right: 12px; z-index: 210; display: flex; gap: 6px; background: rgba(20,20,24,0.95); border: 1px solid var(--border-color); padding: 4px 6px; border-radius: 2px;">
-                <button id="btn-viewer-edit-owner" style="display: none; color: #6ee7b7;">Edit This Site</button>
-                <button id="btn-viewer-delete-owner" class="btn-danger" style="display: none;">Delete This Site</button>
-                <a id="btn-viewer-exit" href="#"
-                    style="padding: 5px 9px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted);">Back
-                    to Studio</a>
-            </div>
-            <div id="public-site-content" style="width: 100%; min-height: 100vh;"></div>
-        </div>
-
     </div>
 
+    <!-- Fullscreen Public Site Viewer -->
+    <div id="public-site-viewer"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #0e0e11; z-index: 200; overflow-y: auto;">
+        <div
+            style="position: fixed; top: 8px; right: 12px; z-index: 210; display: flex; gap: 6px; background: rgba(20,20,24,0.95); border: 1px solid var(--border-color); padding: 4px 6px; border-radius: 2px;">
+            <button id="btn-viewer-edit-owner" style="display: none; color: #6ee7b7;">Edit This Site</button>
+            <button id="btn-viewer-delete-owner" class="btn-danger" style="display: none;">Delete This Site</button>
+            <a id="btn-viewer-exit" href="#"
+                style="padding: 5px 9px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted);">Back
+                to Studio</a>
+        </div>
+        <div id="public-site-content" style="width: 100%; min-height: 100vh; padding-bottom: 50px;"></div>
+        <!-- Persistent Disclaimer & Attribution (Only on Published Viewer) -->
+        <footer class="published-footer-bar">
+            <span>Disclaimer: The platform host/creator is not responsible for any content published or hosted on this
+                website.</span>
+            <a href="https://test.notgreg.space/wscr" target="_blank" rel="noopener noreferrer"
+                class="published-footer-link">made with https://test.notgreg.space/wscr</a>
+        </footer>
+    </div>
+
+    <!-- Modal: Authentication (Sign In / Register) -->
+    <div class="modal-overlay" id="modal-auth">
+        <div class="modal-box">
+            <div class="modal-title">
+                <span id="auth-modal-heading">Account Authentication</span>
+                <button id="btn-close-auth-modal">×</button>
+            </div>
+            <div style="display: flex; gap: 4px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                <button id="tab-auth-login" class="btn-primary" style="flex: 1;">Sign In</button>
+                <button id="tab-auth-register" style="flex: 1;">Register</button>
+            </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="auth-email-input" placeholder="user@example.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="auth-password-input" placeholder="••••••••">
+            </div>
+            <p id="auth-error-msg" style="color: var(--danger); font-size: 11px; display: none;"></p>
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
+                <button id="btn-auth-cancel">Cancel</button>
+                <button id="btn-auth-submit" class="btn-primary">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Profile & Username Settings -->
+    <div class="modal-overlay" id="modal-username">
+        <div class="modal-box">
+            <div class="modal-title">
+                <span>Username Settings</span>
+                <button id="btn-close-username-modal">×</button>
+            </div>
+            <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">
+                Your username serves as the prefix in all published links:<br>
+                <code>site.html#user=<b>username</b>&site=sitename</code>
+            </p>
+            <div class="form-group">
+                <label>Handle / Username (lowercase letters & numbers only)</label>
+                <input type="text" id="username-input" placeholder="myusername" maxlength="24">
+            </div>
+            <p id="username-status-msg" style="font-size: 11px; display: none;"></p>
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button id="btn-cancel-username">Close</button>
+                <button id="btn-save-username" class="btn-primary">Save Username</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Publish Site -->
+    <div class="modal-overlay" id="modal-publish">
+        <div class="modal-box">
+            <div class="modal-title">
+                <span>Publish Website</span>
+                <button id="btn-close-publish-modal">×</button>
+            </div>
+
+            <div id="publish-gate-auth" style="display: none;">
+                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5;">
+                    You must be signed in with an email account and have a configured username to publish, edit, and
+                    manage your websites.
+                </p>
+                <button id="btn-prompt-auth" class="btn-primary" style="width: 100%;">Sign In / Register</button>
+            </div>
+
+            <div id="publish-form-body">
+                <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">
+                    Author: <span id="publish-author-display"
+                        style="color: var(--text-bright); font-weight: 600;">@user</span>
+                </p>
+                <div class="form-group" style="margin-top: 10px;">
+                    <label>Website Name / Path Slug</label>
+                    <input type="text" id="publish-sitename-input" placeholder="portfolio" maxlength="32">
+                </div>
+                <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4; word-break: break-all;">
+                    Live URL preview: <br>
+                    <code id="publish-url-preview" style="color: #a1a1aa;">site.html#user=...&site=...</code>
+                </div>
+                <p id="publish-status-msg" style="font-size: 11px; margin-top: 6px; display: none;"></p>
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px;">
+                    <button id="btn-cancel-publish">Cancel</button>
+                    <button id="btn-confirm-publish" class="btn-primary">Publish to Cloud</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Export Code -->
+    <div class="modal-overlay" id="modal-export">
+        <div class="modal-box" style="max-width: 680px;">
+            <div class="modal-title">
+                <span>Export Static HTML</span>
+                <button id="btn-close-export-modal">×</button>
+            </div>
+            <p style="font-size: 12px; color: var(--text-muted);">
+                Fully self-contained clean HTML document including all Base64 media assets.
+            </p>
+            <textarea id="export-code-view" rows="12" style="font-family: monospace; font-size: 11px; resize: vertical;"
+                readonly></textarea>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span id="export-copy-status" style="font-size: 11px; color: var(--success); display: none;">Copied to
+                    clipboard!</span>
+                <div style="display: flex; gap: 8px; margin-left: auto;">
+                    <button id="btn-copy-code">Copy HTML</button>
+                    <button id="btn-download-html" class="btn-primary">Download .html</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Drawer: My Sites -->
+    <div class="drawer" id="drawer-my-sites">
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">
+            <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">My
+                Published Sites</span>
+            <button id="btn-close-sites-drawer">×</button>
+        </div>
+        <div id="my-sites-list" style="flex: 1; overflow-y: auto;">
+            <p style="font-size: 12px; color: var(--text-dim); text-align: center; margin-top: 20px;">Loading your
+                sites...</p>
+        </div>
+    </div>
+
+    <!-- Firebase Scripts -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
         import {
             getAuth,
+            onAuthStateChanged,
             signInWithEmailAndPassword,
             createUserWithEmailAndPassword,
-            signOut,
-            onAuthStateChanged
-        } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+            signOut
+        } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
         import {
             getFirestore,
             doc,
@@ -903,10 +821,13 @@ service cloud.firestore {
             getDoc,
             deleteDoc,
             collection,
+            query,
+            where,
             getDocs,
             serverTimestamp
-        } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+        } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js";
 
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAU2z6vsj6EiamgHjiw32Q3V0z9r74o3_A",
             authDomain: "test-notgreg-space-wscr-index.firebaseapp.com",
@@ -916,1547 +837,676 @@ service cloud.firestore {
             appId: "1:455194867322:web:0d4cfd8d05b2f88aef6dc3"
         };
 
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        window.__studioFirebase = {
-            auth,
-            db,
-            signInWithEmailAndPassword,
-            createUserWithEmailAndPassword,
-            signOut,
-            onAuthStateChanged,
-            doc,
-            setDoc,
-            getDoc,
-            deleteDoc,
-            collection,
-            getDocs,
-            serverTimestamp,
-            currentUser: null,
-            currentUsername: null
-        };
-
-        onAuthStateChanged(auth, async (user) => {
-            window.__studioFirebase.currentUser = user;
-            let username = null;
-            if (user && !user.isAnonymous && user.email) {
-                try {
-                    const userDoc = await getDoc(doc(db, 'users', user.uid));
-                    if (userDoc.exists() && userDoc.data().username) {
-                        username = userDoc.data().username;
-                    } else {
-                        const defaultName = user.email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '');
-                        const checkName = await getDoc(doc(db, 'usernames', defaultName));
-                        if (!checkName.exists() || checkName.data().uid === user.uid) {
-                            await setDoc(doc(db, 'users', user.uid), { username: defaultName, email: user.email }, { merge: true });
-                            await setDoc(doc(db, 'usernames', defaultName), { uid: user.uid });
-                            username = defaultName;
-                        }
-                    }
-                } catch (err) {
-                    console.warn('Username lookup notice:', err);
-                }
-            }
-            window.__studioFirebase.currentUsername = username;
-            window.dispatchEvent(new CustomEvent('studio-auth-changed', { detail: { user, username } }));
-        });
-
-        window.dispatchEvent(new CustomEvent('studio-firebase-ready'));
-    </script>
-
-    <script>
+        // Studio & Hash Application Controller
         (function () {
-            let selectedElement = null;
-            let isPreviewMode = false;
-            let authMode = 'signin';
-            let activeLoadedSiteSlug = null;
+            let activeNode = null;
+            let currentUser = null;
+            let currentUsername = null;
+            let currentLoadedSiteDocId = null;
 
-            const canvas = document.getElementById('page-canvas');
+            const pageCanvas = document.getElementById('page-canvas');
             const inspectorContent = document.getElementById('inspector-content');
-            const deleteBtn = document.getElementById('btn-delete-node');
-            const canvasStatus = document.getElementById('canvas-status');
-            const codeDrawer = document.getElementById('code-drawer');
-            const codeViewer = document.getElementById('code-viewer');
-            const publishDrawer = document.getElementById('publish-drawer');
-            const rulesDrawer = document.getElementById('rules-drawer');
-            const authDrawer = document.getElementById('auth-drawer');
-            const usernameDrawer = document.getElementById('username-drawer');
-            const mysitesDrawer = document.getElementById('mysites-drawer');
-            const publicViewer = document.getElementById('public-site-viewer');
-            const publicContent = document.getElementById('public-site-content');
+            const inspectorTitle = document.getElementById('inspector-title');
 
-            const userEmailDisplay = document.getElementById('user-email-display');
-            const btnUsernameProfile = document.getElementById('btn-username-profile');
-            const btnAuthOpen = document.getElementById('btn-auth-open');
-            const btnAuthSignout = document.getElementById('btn-auth-signout');
-            const btnMySites = document.getElementById('btn-my-sites');
+            // Check current hash route on boot & hash change
+            window.addEventListener('load', handleRouting);
+            window.addEventListener('hashchange', handleRouting);
 
-            setupCanvasListeners();
-            setupCatalogActions();
-            setupHeaderActions();
-            setupViewportActions();
-            setupAuthActions();
-            setupUsernameActions();
-            setupPublishAndSitesActions();
-            checkHashRoute();
-
-            window.addEventListener('hashchange', checkHashRoute);
-            window.addEventListener('studio-auth-changed', (e) => {
-                updateAuthUI(e.detail.user, e.detail.username);
-                checkHashRoute();
-            });
-
-            function updateAuthUI(user, username) {
-                if (user && !user.isAnonymous && user.email) {
-                    userEmailDisplay.textContent = user.email;
-                    userEmailDisplay.style.display = 'inline-block';
-                    btnUsernameProfile.textContent = username ? `@${username}` : '@set-username';
-                    btnUsernameProfile.style.display = 'inline-block';
-                    btnAuthOpen.style.display = 'none';
-                    btnAuthSignout.style.display = 'inline-block';
-                    btnMySites.style.display = 'inline-block';
-
-                    document.getElementById('publish-auth-gate-warning').style.display = 'none';
-                    if (!username) {
-                        document.getElementById('publish-username-gate-warning').style.display = 'block';
-                        document.getElementById('publish-form-fields').style.display = 'none';
-                    } else {
-                        document.getElementById('publish-username-gate-warning').style.display = 'none';
-                        document.getElementById('publish-form-fields').style.display = 'block';
-                        document.getElementById('site-user-display').value = username;
-                    }
-                } else {
-                    userEmailDisplay.textContent = '';
-                    userEmailDisplay.style.display = 'none';
-                    btnUsernameProfile.style.display = 'none';
-                    btnAuthOpen.style.display = 'inline-block';
-                    btnAuthSignout.style.display = 'none';
-                    btnMySites.style.display = 'none';
-
-                    document.getElementById('publish-auth-gate-warning').style.display = 'block';
-                    document.getElementById('publish-username-gate-warning').style.display = 'none';
-                    document.getElementById('publish-form-fields').style.display = 'none';
-                }
-            }
-
-            function setupAuthActions() {
-                const btnAuthOpen = document.getElementById('btn-auth-open');
-                const btnCloseAuth = document.getElementById('btn-close-auth');
-                const btnAuthSignout = document.getElementById('btn-auth-signout');
-                const tabSignIn = document.getElementById('tab-auth-signin');
-                const tabRegister = document.getElementById('tab-auth-register');
-                const emailInput = document.getElementById('auth-email-input');
-                const passwordInput = document.getElementById('auth-password-input');
-                const authStatusMsg = document.getElementById('auth-status-msg');
-                const btnSubmitAuth = document.getElementById('btn-submit-auth');
-                const btnGateSignIn = document.getElementById('btn-gate-signin');
-
-                const setTab = (mode) => {
-                    authMode = mode;
-                    authStatusMsg.textContent = '';
-                    if (mode === 'signin') {
-                        tabSignIn.classList.add('active');
-                        tabRegister.classList.remove('active');
-                        btnSubmitAuth.textContent = 'Sign In';
-                        document.getElementById('auth-modal-title').textContent = 'Sign In';
-                    } else {
-                        tabRegister.classList.add('active');
-                        tabSignIn.classList.remove('active');
-                        btnSubmitAuth.textContent = 'Create Account';
-                        document.getElementById('auth-modal-title').textContent = 'Register Account';
-                    }
-                };
-
-                tabSignIn.addEventListener('click', () => setTab('signin'));
-                tabRegister.addEventListener('click', () => setTab('register'));
-
-                btnAuthOpen.addEventListener('click', () => {
-                    authDrawer.style.display = 'flex';
-                    authStatusMsg.textContent = '';
-                });
-
-                if (btnGateSignIn) {
-                    btnGateSignIn.addEventListener('click', () => {
-                        publishDrawer.style.display = 'none';
-                        authDrawer.style.display = 'flex';
-                        authStatusMsg.textContent = '';
-                    });
-                }
-
-                btnCloseAuth.addEventListener('click', () => {
-                    authDrawer.style.display = 'none';
-                });
-
-                btnAuthSignout.addEventListener('click', async () => {
-                    try {
-                        if (window.__studioFirebase?.signOut && window.__studioFirebase?.auth) {
-                            await window.__studioFirebase.signOut(window.__studioFirebase.auth);
-                        }
-                    } catch (err) {
-                        console.error('Sign out error:', err);
-                    }
-                });
-
-                btnSubmitAuth.addEventListener('click', async () => {
-                    const email = emailInput.value.trim();
-                    const password = passwordInput.value;
-
-                    if (!email || !password) {
-                        authStatusMsg.style.color = '#cf4b4b';
-                        authStatusMsg.textContent = 'Email and password are required.';
-                        return;
-                    }
-
-                    authStatusMsg.style.color = '#a0a0aa';
-                    authStatusMsg.textContent = 'Authenticating...';
-
-                    try {
-                        const { auth, signInWithEmailAndPassword, createUserWithEmailAndPassword } = window.__studioFirebase;
-                        if (authMode === 'signin') {
-                            await signInWithEmailAndPassword(auth, email, password);
-                        } else {
-                            await createUserWithEmailAndPassword(auth, email, password);
-                        }
-                        authStatusMsg.style.color = '#6ee7b7';
-                        authStatusMsg.textContent = 'Success!';
-                        setTimeout(() => {
-                            authDrawer.style.display = 'none';
-                            emailInput.value = '';
-                            passwordInput.value = '';
-                        }, 600);
-                    } catch (err) {
-                        authStatusMsg.style.color = '#cf4b4b';
-                        authStatusMsg.textContent = err.message;
-                    }
-                });
-            }
-
-            function setupUsernameActions() {
-                const btnCloseUsername = document.getElementById('btn-close-username');
-                const usernameInput = document.getElementById('username-input');
-                const statusMsg = document.getElementById('username-status-msg');
-                const btnSave = document.getElementById('btn-save-username');
-
-                btnUsernameProfile.addEventListener('click', () => {
-                    usernameInput.value = window.__studioFirebase?.currentUsername || '';
-                    statusMsg.textContent = '';
-                    usernameDrawer.style.display = 'flex';
-                });
-
-                document.getElementById('btn-gate-set-username').addEventListener('click', () => {
-                    publishDrawer.style.display = 'none';
-                    usernameInput.value = window.__studioFirebase?.currentUsername || '';
-                    statusMsg.textContent = '';
-                    usernameDrawer.style.display = 'flex';
-                });
-
-                btnCloseUsername.addEventListener('click', () => {
-                    usernameDrawer.style.display = 'none';
-                });
-
-                btnSave.addEventListener('click', async () => {
-                    const user = window.__studioFirebase?.currentUser;
-                    if (!user) return;
-                    const cleanUser = usernameInput.value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
-                    if (cleanUser.length < 2) {
-                        statusMsg.style.color = '#cf4b4b';
-                        statusMsg.textContent = 'Username must be at least 2 alphanumeric characters.';
-                        return;
-                    }
-
-                    statusMsg.style.color = '#a0a0aa';
-                    statusMsg.textContent = 'Checking availability...';
-
-                    try {
-                        const { db, doc, getDoc, setDoc, deleteDoc } = window.__studioFirebase;
-                        const existingNameDoc = await getDoc(doc(db, 'usernames', cleanUser));
-                        if (existingNameDoc.exists() && existingNameDoc.data().uid !== user.uid) {
-                            statusMsg.style.color = '#cf4b4b';
-                            statusMsg.textContent = 'Username is already taken.';
-                            return;
-                        }
-
-                        const oldUsername = window.__studioFirebase.currentUsername;
-                        if (oldUsername && oldUsername !== cleanUser) {
-                            await deleteDoc(doc(db, 'usernames', oldUsername));
-                        }
-
-                        await setDoc(doc(db, 'usernames', cleanUser), { uid: user.uid });
-                        await setDoc(doc(db, 'users', user.uid), { username: cleanUser, email: user.email }, { merge: true });
-
-                        window.__studioFirebase.currentUsername = cleanUser;
-                        updateAuthUI(user, cleanUser);
-                        statusMsg.style.color = '#6ee7b7';
-                        statusMsg.textContent = 'Username updated!';
-                        setTimeout(() => { usernameDrawer.style.display = 'none'; }, 800);
-                    } catch (err) {
-                        statusMsg.style.color = '#cf4b4b';
-                        statusMsg.textContent = err.message;
-                    }
-                });
-            }
-
-            function setupPublishAndSitesActions() {
-                const btnPublish = document.getElementById('btn-cloud-publish');
-                const btnClosePublish = document.getElementById('btn-close-publish');
-                const btnConfirmPublish = document.getElementById('btn-confirm-publish');
-                const siteSlugInput = document.getElementById('site-slug-input');
-                const statusBox = document.getElementById('publish-status-box');
-                const linkContainer = document.getElementById('publish-link-container');
-                const liveUrlInput = document.getElementById('publish-live-url');
-                const btnCopyLiveUrl = document.getElementById('btn-copy-live-url');
-                const btnOpenLiveUrl = document.getElementById('btn-open-live-url');
-
-                btnPublish.addEventListener('click', () => {
-                    publishDrawer.style.display = 'flex';
-                    linkContainer.style.display = 'none';
-                    statusBox.textContent = '';
-                    const user = window.__studioFirebase?.currentUser;
-                    const username = window.__studioFirebase?.currentUsername;
-
-                    if (!user || user.isAnonymous || !user.email) {
-                        document.getElementById('publish-auth-gate-warning').style.display = 'block';
-                        document.getElementById('publish-username-gate-warning').style.display = 'none';
-                        document.getElementById('publish-form-fields').style.display = 'none';
-                    } else if (!username) {
-                        document.getElementById('publish-auth-gate-warning').style.display = 'none';
-                        document.getElementById('publish-username-gate-warning').style.display = 'block';
-                        document.getElementById('publish-form-fields').style.display = 'none';
-                    } else {
-                        document.getElementById('publish-auth-gate-warning').style.display = 'none';
-                        document.getElementById('publish-username-gate-warning').style.display = 'none';
-                        document.getElementById('publish-form-fields').style.display = 'block';
-                        document.getElementById('site-user-display').value = username;
-                        if (activeLoadedSiteSlug) siteSlugInput.value = activeLoadedSiteSlug;
-                    }
-                });
-
-                btnClosePublish.addEventListener('click', () => {
-                    publishDrawer.style.display = 'none';
-                });
-
-                btnConfirmPublish.addEventListener('click', async () => {
-                    const user = window.__studioFirebase?.currentUser;
-                    const username = window.__studioFirebase?.currentUsername;
-                    if (!user || !username) {
-                        statusBox.style.color = '#cf4b4b';
-                        statusBox.textContent = 'Account with verified username required to publish.';
-                        return;
-                    }
-
-                    const rawSlug = siteSlugInput.value.trim().toLowerCase();
-                    const slug = rawSlug.replace(/[^a-z0-9_\-]/g, '-');
-                    if (!slug) {
-                        statusBox.style.color = '#cf4b4b';
-                        statusBox.textContent = 'Please enter a valid site name.';
-                        return;
-                    }
-
-                    const docId = `${username}_${slug}`;
-                    statusBox.style.color = '#a0a0aa';
-                    statusBox.textContent = 'Saving site to Firestore...';
-
-                    try {
-                        const { db, setDoc, getDoc, doc, serverTimestamp } = window.__studioFirebase;
-                        const docRef = doc(db, 'sites', docId);
-                        const existingSnap = await getDoc(docRef);
-
-                        if (existingSnap.exists()) {
-                            const existingData = existingSnap.data();
-                            if (existingData.ownerUid && existingData.ownerUid !== user.uid) {
-                                statusBox.style.color = '#cf4b4b';
-                                statusBox.textContent = 'This site name is owned by another account.';
-                                return;
-                            }
-                        }
-
-                        const compiledHtml = generateCleanExport();
-
-                        await setDoc(docRef, {
-                            docId: docId,
-                            username: username,
-                            siteName: slug,
-                            ownerUid: user.uid,
-                            ownerEmail: user.email,
-                            html: compiledHtml,
-                            elementsHtml: canvas.innerHTML,
-                            updatedAt: serverTimestamp()
-                        });
-
-                        activeLoadedSiteSlug = slug;
-                        statusBox.style.color = '#6ee7b7';
-                        statusBox.textContent = 'Published successfully!';
-
-                        const path = window.location.pathname.endsWith('/') ? window.location.pathname + 'site.html' : window.location.pathname;
-                        const fullUrl = `${window.location.origin}${path}#user=${username}&site=${slug}`;
-                        liveUrlInput.value = fullUrl;
-                        linkContainer.style.display = 'flex';
-                    } catch (err) {
-                        statusBox.style.color = '#cf4b4b';
-                        statusBox.textContent = 'Publish failed: ' + err.message;
-                    }
-                });
-
-                btnCopyLiveUrl.addEventListener('click', () => {
-                    liveUrlInput.select();
-                    document.execCommand('copy');
-                    btnCopyLiveUrl.textContent = 'Copied!';
-                    setTimeout(() => { btnCopyLiveUrl.textContent = 'Copy Link'; }, 1500);
-                });
-
-                btnOpenLiveUrl.addEventListener('click', () => {
-                    const username = window.__studioFirebase?.currentUsername;
-                    const siteSlug = siteSlugInput.value.trim().toLowerCase().replace(/[^a-z0-9_\-]/g, '-');
-                    window.location.hash = `user=${username}&site=${siteSlug}`;
-                    publishDrawer.style.display = 'none';
-                });
-
-                // My Sites Drawer
-                const btnCloseMySites = document.getElementById('btn-close-mysites');
-                const mySitesList = document.getElementById('mysites-list');
-
-                btnMySites.addEventListener('click', async () => {
-                    mysitesDrawer.style.display = 'flex';
-                    await loadUserSitesList();
-                });
-
-                btnCloseMySites.addEventListener('click', () => {
-                    mysitesDrawer.style.display = 'none';
-                });
-
-                async function loadUserSitesList() {
-                    const user = window.__studioFirebase?.currentUser;
-                    if (!user) {
-                        mySitesList.innerHTML = '<div style="color: #cf4b4b;">Please sign in to view your sites.</div>';
-                        return;
-                    }
-
-                    mySitesList.innerHTML = '<div style="color: var(--text-muted); font-size: 11px;">Fetching your sites...</div>';
-                    try {
-                        const { db, collection, getDocs } = window.__studioFirebase;
-                        const querySnap = await getDocs(collection(db, 'sites'));
-                        const userSites = [];
-                        querySnap.forEach(docSnap => {
-                            const data = docSnap.data();
-                            if (data.ownerUid === user.uid) {
-                                userSites.push(data);
-                            }
-                        });
-
-                        if (userSites.length === 0) {
-                            mySitesList.innerHTML = '<div style="color: var(--text-muted); padding: 14px 0; font-size: 11px;">You haven\'t published any sites yet under this account.</div>';
-                            return;
-                        }
-
-                        mySitesList.innerHTML = '';
-                        userSites.forEach(site => {
-                            const docId = site.docId || `${site.username}_${site.siteName || site.slug}`;
-                            const uName = site.username || 'user';
-                            const sName = site.siteName || site.slug;
-                            const card = document.createElement('div');
-                            card.className = 'site-card';
-                            card.innerHTML = `
-                <div style="display: flex; flex-direction: column; gap: 2px;">
-                  <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-bright);">#user=${uName}&site=${sName}</span>
-                  <span style="font-size: 9px; color: var(--text-muted);">Creator: @${uName}</span>
-                </div>
-                <div style="display: flex; gap: 4px; align-items: center;">
-                  <button class="btn-load-site" style="border: 1px solid var(--border-color); background: var(--bg-surface);">Edit in Studio</button>
-                  <button class="btn-open-site" style="border: 1px solid var(--border-color);">Open Live</button>
-                  <button class="btn-delete-site btn-danger" style="border: 1px solid var(--border-color);">Delete</button>
-                </div>
-              `;
-
-                            card.querySelector('.btn-load-site').addEventListener('click', () => {
-                                if (site.elementsHtml) {
-                                    canvas.innerHTML = site.elementsHtml;
-                                    canvas.querySelectorAll('.canvas-node').forEach(node => attachNodeEvents(node));
-                                    activeLoadedSiteSlug = sName;
-                                    mysitesDrawer.style.display = 'none';
-                                }
-                            });
-
-                            card.querySelector('.btn-open-site').addEventListener('click', () => {
-                                mysitesDrawer.style.display = 'none';
-                                window.location.hash = `user=${uName}&site=${sName}`;
-                            });
-
-                            card.querySelector('.btn-delete-site').addEventListener('click', async () => {
-                                card.style.opacity = '0.5';
-                                try {
-                                    const { db, deleteDoc, doc } = window.__studioFirebase;
-                                    await deleteDoc(doc(db, 'sites', docId));
-                                    if (activeLoadedSiteSlug === sName) activeLoadedSiteSlug = null;
-                                    await loadUserSitesList();
-                                } catch (err) {
-                                    alert('Delete failed: ' + err.message);
-                                    card.style.opacity = '1';
-                                }
-                            });
-
-                            mySitesList.appendChild(card);
-                        });
-                    } catch (err) {
-                        mySitesList.innerHTML = `<div style="color: #cf4b4b;">Error: ${err.message}</div>`;
-                    }
-                }
-
-                // Security Rules Drawer
-                const btnRules = document.getElementById('btn-firestore-rules');
-                const btnCloseRules = document.getElementById('btn-close-rules');
-                const btnCopyRules = document.getElementById('btn-copy-rules');
-                const rulesCode = document.getElementById('rules-code-block');
-
-                btnRules.addEventListener('click', () => { rulesDrawer.style.display = 'flex'; });
-                btnCloseRules.addEventListener('click', () => { rulesDrawer.style.display = 'none'; });
-                btnCopyRules.addEventListener('click', () => {
-                    rulesCode.select();
-                    document.execCommand('copy');
-                    btnCopyRules.textContent = 'Copied Rules!';
-                    setTimeout(() => { btnCopyRules.textContent = 'Copy Security Rules'; }, 1500);
-                });
-            }
-
-            function parseSiteRoute(hash) {
+            function parseRouteHash() {
+                const hash = window.location.hash.replace(/^#/, '').trim();
                 if (!hash) return null;
-                const clean = hash.replace(/^#/, '');
-                // Match #user=username&site=sitename
-                const userMatch = clean.match(/user=([^&]+)/);
-                const siteMatch = clean.match(/site=([^&]+)/);
-                if (userMatch && siteMatch) {
-                    return { username: userMatch[1].toLowerCase(), siteName: siteMatch[1].toLowerCase() };
+
+                // Check for format: user=username&site=sitename
+                const params = new URLSearchParams(hash);
+                if (params.get('site')) {
+                    return {
+                        user: (params.get('user') || '').toLowerCase().trim(),
+                        site: (params.get('site') || '').toLowerCase().trim()
+                    };
                 }
-                // Match #username/sitename
-                const slashMatch = clean.match(/^([a-zA-Z0-9_\-]+)\/([a-zA-Z0-9_\-]+)$/);
-                if (slashMatch) {
-                    return { username: slashMatch[1].toLowerCase(), siteName: slashMatch[2].toLowerCase() };
-                }
-                // Fallback backward compatibility: #site=sitename
-                if (siteMatch) {
-                    return { username: null, siteName: siteMatch[1].toLowerCase() };
+
+                // Check for shorthand format: #username/sitename
+                if (hash.includes('/')) {
+                    const parts = hash.split('/');
+                    if (parts.length >= 2) {
+                        return {
+                            user: parts[0].toLowerCase().trim(),
+                            site: parts[1].toLowerCase().trim()
+                        };
+                    }
                 }
                 return null;
             }
 
-            async function checkHashRoute() {
-                const route = parseSiteRoute(window.location.hash);
-                if (route) {
-                    await showPublicViewer(route.username, route.siteName);
+            async function handleRouting() {
+                const route = parseRouteHash();
+                const viewerEl = document.getElementById('public-site-viewer');
+                const studioMain = document.getElementById('studio-main-layout');
+                const studioHeader = document.getElementById('studio-header');
+
+                if (route && route.site) {
+                    // Switch to Fullscreen Viewer Mode
+                    studioHeader.style.display = 'none';
+                    studioMain.style.display = 'none';
+                    viewerEl.style.display = 'block';
+
+                    const contentEl = document.getElementById('public-site-content');
+                    contentEl.innerHTML = `<div style="text-align: center; padding: 80px 20px; color: #888894; font-size: 14px;">Loading website <b>${route.site}</b>...</div>`;
+
+                    // Determine document key
+                    let docId = route.user ? `${route.user}_${route.site}` : route.site;
+                    let siteData = null;
+
+                    try {
+                        // First check user-scoped key
+                        let snap = await getDoc(doc(db, 'sites', docId));
+                        if (!snap.exists() && !route.user) {
+                            // Fallback query if no username was passed
+                            const q = query(collection(db, 'sites'), where('siteName', '==', route.site));
+                            const querySnap = await getDocs(q);
+                            if (!querySnap.empty) {
+                                snap = querySnap.docs[0];
+                                docId = snap.id;
+                            }
+                        }
+
+                        if (snap && snap.exists()) {
+                            siteData = snap.data();
+                            currentLoadedSiteDocId = snap.id;
+                            contentEl.innerHTML = siteData.html || '<p style="padding: 30px;">Empty site.</p>';
+
+                            // Check ownership to show Edit / Delete controls in viewer
+                            const btnEditOwner = document.getElementById('btn-viewer-edit-owner');
+                            const btnDeleteOwner = document.getElementById('btn-viewer-delete-owner');
+                            if (currentUser && currentUser.uid === siteData.ownerUid) {
+                                btnEditOwner.style.display = 'inline-flex';
+                                btnDeleteOwner.style.display = 'inline-flex';
+
+                                btnEditOwner.onclick = () => {
+                                    window.location.hash = '';
+                                    loadSiteIntoStudio(siteData, snap.id);
+                                };
+
+                                btnDeleteOwner.onclick = async () => {
+                                    if (confirm(`Are you sure you want to delete website "${siteData.siteName}"?`)) {
+                                        await deleteDoc(doc(db, 'sites', snap.id));
+                                        alert('Site deleted successfully.');
+                                        window.location.hash = '';
+                                    }
+                                };
+                            } else {
+                                btnEditOwner.style.display = 'none';
+                                btnDeleteOwner.style.display = 'none';
+                            }
+                        } else {
+                            contentEl.innerHTML = `
+                <div style="text-align: center; padding: 100px 20px; color: #888894;">
+                  <h2 style="color: #ffffff; margin-bottom: 12px; font-weight: 500;">Website Not Found</h2>
+                  <p style="font-size: 13px;">The website "${route.site}" was not found or has been removed.</p>
+                  <a href="#" style="display: inline-block; margin-top: 20px; color: #e4e4e7; font-size: 12px;">Create a Site in Studio &rarr;</a>
+                </div>
+              `;
+                        }
+                    } catch (err) {
+                        console.error('Error fetching site:', err);
+                        contentEl.innerHTML = `<div style="text-align: center; padding: 80px 20px; color: #ef4444;">Error loading website: ${err.message}</div>`;
+                    }
                 } else {
-                    publicViewer.style.display = 'none';
+                    // Switch back to Studio Mode
+                    viewerEl.style.display = 'none';
+                    studioHeader.style.display = 'flex';
+                    studioMain.style.display = 'flex';
                 }
             }
 
-            async function showPublicViewer(username, siteName) {
-                publicViewer.style.display = 'block';
-                const routeLabel = username ? `${username}/${siteName}` : siteName;
-                publicContent.innerHTML = `<div style="padding: 40px; text-align: center; color: #888894; font-family: monospace; font-size: 11px;">RETRIEVING SITE [${routeLabel}]...</div>`;
-
-                const btnEditOwner = document.getElementById('btn-viewer-edit-owner');
-                const btnDeleteOwner = document.getElementById('btn-viewer-delete-owner');
-                const btnExit = document.getElementById('btn-viewer-exit');
-
-                btnEditOwner.style.display = 'none';
-                btnDeleteOwner.style.display = 'none';
-                btnExit.href = window.location.pathname;
-
-                try {
-                    if (!window.__studioFirebase) return;
-                    const { db, getDoc, deleteDoc, doc } = window.__studioFirebase;
-                    const docId = username ? `${username}_${siteName}` : siteName;
-                    let snap = await getDoc(doc(db, 'sites', docId));
-
-                    // Fallback if not found with compound id
-                    if (!snap.exists() && username) {
-                        snap = await getDoc(doc(db, 'sites', siteName));
-                    }
-
-                    if (!snap.exists()) {
-                        publicContent.innerHTML = `<div style="padding: 60px 20px; text-align: center; color: #a0a0aa; font-family: monospace; font-size: 12px;">SITE "${routeLabel}" NOT FOUND IN FIRESTORE.<br><br><a href="${window.location.pathname}" style="color: #ffffff; text-decoration: none; border-bottom: 1px dotted #888;">Return to Studio</a></div>`;
-                        return;
-                    }
-
-                    const data = snap.data();
-                    publicContent.innerHTML = data.html || '';
-
-                    const currentUser = window.__studioFirebase.currentUser;
-                    const isOwner = currentUser && !currentUser.isAnonymous && currentUser.uid === data.ownerUid;
-
-                    if (isOwner) {
-                        btnEditOwner.style.display = 'inline-block';
-                        btnDeleteOwner.style.display = 'inline-block';
-
-                        btnEditOwner.onclick = () => {
-                            if (data.elementsHtml) {
-                                canvas.innerHTML = data.elementsHtml;
-                                canvas.querySelectorAll('.canvas-node').forEach(node => attachNodeEvents(node));
-                                activeLoadedSiteSlug = siteName;
-                            }
-                            window.location.hash = '';
-                        };
-
-                        btnDeleteOwner.onclick = async () => {
-                            try {
-                                await deleteDoc(doc(db, 'sites', docId));
-                                window.location.hash = '';
-                            } catch (err) {
-                                alert('Deletion error: ' + err.message);
-                            }
-                        };
-                    }
-
-                    publicContent.querySelectorAll('.node-custom-btn').forEach(btn => {
-                        btn.onmouseenter = () => {
-                            btn.style.color = btn.getAttribute('data-hover-color') || '#ffffff';
-                            btn.style.backgroundColor = btn.getAttribute('data-hover-bg') || 'rgba(255, 255, 255, 0.04)';
-                        };
-                        btn.onmouseleave = () => {
-                            btn.style.color = btn.getAttribute('data-color') || '#80808a';
-                            btn.style.backgroundColor = btn.getAttribute('data-bg') || 'transparent';
-                        };
-                        btn.onclick = () => {
-                            const url = btn.getAttribute('data-target-url');
-                            if (url && url !== '#') window.location.href = url;
-                        };
-                    });
-                } catch (err) {
-                    publicContent.innerHTML = `<div style="padding: 40px; text-align: center; color: #cf4b4b; font-family: monospace; font-size: 11px;">ERROR LOADING SITE: ${err.message}</div>`;
+            function loadSiteIntoStudio(siteData, docId) {
+                currentLoadedSiteDocId = docId;
+                if (siteData.elementsHtml) {
+                    pageCanvas.innerHTML = siteData.elementsHtml;
+                    attachNodeListeners();
+                    deselectAll();
+                    document.getElementById('canvas-status').textContent = `Editing: ${siteData.siteName}`;
                 }
             }
 
-            function setupCanvasListeners() {
-                canvas.querySelectorAll('.canvas-node').forEach(node => attachNodeEvents(node));
-                canvas.addEventListener('click', (e) => {
-                    if (isPreviewMode) return;
-                    const target = e.target.closest('.canvas-node');
-                    if (target && canvas.contains(target)) {
-                        e.stopPropagation();
-                        selectNode(target);
-                    } else if (e.target === canvas) {
-                        deselectNode();
+            // Authentication state changes
+            onAuthStateChanged(auth, async (user) => {
+                currentUser = user;
+                const btnAuth = document.getElementById('btn-auth-trigger');
+                const btnUsername = document.getElementById('btn-username-trigger');
+                const btnMySites = document.getElementById('btn-my-sites');
+                const btnSignOut = document.getElementById('btn-auth-signout');
+
+                if (user) {
+                    btnAuth.style.display = 'none';
+                    btnUsername.style.display = 'inline-flex';
+                    btnMySites.style.display = 'inline-flex';
+                    btnSignOut.style.display = 'inline-flex';
+
+                    // Load or resolve custom username
+                    try {
+                        const userSnap = await getDoc(doc(db, 'users', user.uid));
+                        if (userSnap.exists() && userSnap.data().username) {
+                            currentUsername = userSnap.data().username;
+                        } else {
+                            // Initialize default handle from email prefix
+                            const rawHandle = (user.email.split('@')[0] || 'user').toLowerCase().replace(/[^a-z0-9]/g, '');
+                            currentUsername = rawHandle || 'user' + Math.floor(Math.random() * 899 + 100);
+                            await setDoc(doc(db, 'users', user.uid), {
+                                username: currentUsername,
+                                email: user.email,
+                                updatedAt: serverTimestamp()
+                            }, { merge: true });
+                            await setDoc(doc(db, 'usernames', currentUsername), { uid: user.uid }, { merge: true });
+                        }
+                        btnUsername.textContent = `@${currentUsername}`;
+                    } catch (e) {
+                        console.warn('Could not sync user profile:', e);
+                        currentUsername = (user.email.split('@')[0] || 'user').replace(/[^a-z0-9]/g, '');
+                        btnUsername.textContent = `@${currentUsername}`;
                     }
-                });
-            }
-
-            function selectNode(node) {
-                if (selectedElement) {
-                    selectedElement.classList.remove('is-selected');
+                } else {
+                    currentUsername = null;
+                    btnAuth.style.display = 'inline-flex';
+                    btnUsername.style.display = 'none';
+                    btnMySites.style.display = 'none';
+                    btnSignOut.style.display = 'none';
                 }
-                selectedElement = node;
-                selectedElement.classList.add('is-selected');
-                deleteBtn.style.display = 'inline-block';
-                renderInspector(node);
+
+                // Re-evaluate viewer buttons in case viewer is active
+                const route = parseRouteHash();
+                if (route && route.site) handleRouting();
+            });
+
+            // Viewport Switcher
+            document.getElementById('btn-vp-desktop').onclick = (e) => {
+                setViewportMode('desktop', e.target);
+            };
+            document.getElementById('btn-vp-tablet').onclick = (e) => {
+                setViewportMode('tablet', e.target);
+            };
+            document.getElementById('btn-vp-mobile').onclick = (e) => {
+                setViewportMode('mobile', e.target);
+            };
+
+            function setViewportMode(mode, targetBtn) {
+                document.querySelectorAll('.viewport-btn').forEach(b => b.classList.remove('active'));
+                targetBtn.classList.add('active');
+                pageCanvas.className = '';
+                if (mode === 'tablet') pageCanvas.classList.add('mode-tablet');
+                if (mode === 'mobile') pageCanvas.classList.add('mode-mobile');
             }
 
-            function deselectNode() {
-                if (selectedElement) {
-                    selectedElement.classList.remove('is-selected');
-                    selectedElement = null;
-                }
-                deleteBtn.style.display = 'none';
-                inspectorContent.innerHTML = `<div style="color: var(--text-muted); font-size: 11px; padding-top: 10px;">Select an element on canvas to modify properties.</div>`;
-            }
-
-            function attachNodeEvents(node) {
-                node.addEventListener('dblclick', () => {
-                    if (isPreviewMode) return;
-                    const editableTarget = getEditableChild(node);
-                    if (editableTarget) {
-                        editableTarget.contentEditable = "true";
-                        editableTarget.focus();
-                        editableTarget.onblur = () => {
-                            editableTarget.contentEditable = "false";
-                            renderInspector(node);
-                        };
-                    }
-                });
-
-                const btn = node.querySelector('.node-custom-btn');
-                if (btn) {
-                    attachButtonHoverLogic(btn);
-                }
-            }
-
-            function attachButtonHoverLogic(btn) {
-                btn.onmouseenter = () => {
-                    btn.style.color = btn.getAttribute('data-hover-color') || '#ffffff';
-                    btn.style.backgroundColor = btn.getAttribute('data-hover-bg') || 'rgba(255, 255, 255, 0.04)';
+            // Add elements from Palette
+            document.querySelectorAll('.palette-item').forEach(btn => {
+                btn.onclick = () => {
+                    const type = btn.getAttribute('data-type');
+                    createElementNode(type);
                 };
-                btn.onmouseleave = () => {
-                    btn.style.color = btn.getAttribute('data-color') || '#80808a';
-                    btn.style.backgroundColor = btn.getAttribute('data-bg') || 'transparent';
-                };
-            }
+            });
 
-            function getEditableChild(node) {
-                return node.querySelector('h1, h2, h3, p, a, button:not(.btn-danger), .custom-html-block');
-            }
+            function createElementNode(type) {
+                const wrap = document.createElement('div');
+                wrap.className = 'node-wrap';
+                wrap.setAttribute('data-node', type);
+                wrap.style.width = '100%';
 
-            function setupCatalogActions() {
-                document.querySelectorAll('.catalog-item').forEach(item => {
-                    item.addEventListener('click', () => {
-                        const type = item.getAttribute('data-type');
-                        createElementOnCanvas(type);
-                    });
-                });
-            }
+                const actions = document.createElement('div');
+                actions.className = 'node-actions-bar';
+                actions.innerHTML = `
+          <button class="btn-node-up">↑</button>
+          <button class="btn-node-down">↓</button>
+          <button class="btn-node-del btn-danger">×</button>
+        `;
+                wrap.appendChild(actions);
 
-            function createElementOnCanvas(type) {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'canvas-node';
-                wrapper.setAttribute('data-node-type', type);
-
-                const tag = document.createElement('div');
-                tag.className = 'element-tag';
-                tag.textContent = type;
-                wrapper.appendChild(tag);
+                let innerContent = null;
 
                 switch (type) {
                     case 'heading': {
-                        const wrap = document.createElement('div');
-                        wrap.className = 'node-text-wrap';
-                        wrap.style.textAlign = 'left';
-                        const h2 = document.createElement('h2');
-                        h2.style.fontSize = '22px';
-                        h2.style.fontWeight = '500';
-                        h2.style.color = '#ffffff';
-                        h2.textContent = 'New Section Title';
-                        wrap.appendChild(h2);
-                        wrapper.appendChild(wrap);
+                        innerContent = document.createElement('div');
+                        innerContent.className = 'node-text-wrap';
+                        innerContent.style.textAlign = 'left';
+                        innerContent.innerHTML = `<h2 style="font-size: 24px; font-weight: 600; color: #ffffff; line-height: 1.3;">Editable Heading</h2>`;
                         break;
                     }
                     case 'paragraph': {
-                        const wrap = document.createElement('div');
-                        wrap.className = 'node-text-wrap';
-                        wrap.style.textAlign = 'left';
-                        const p = document.createElement('p');
-                        p.style.color = '#a0a0aa';
-                        p.style.fontSize = '13px';
-                        p.style.lineHeight = '1.6';
-                        p.textContent = 'Editorial descriptive paragraph. Customize font properties, colors, and layout alignments directly from the inspector panel.';
-                        wrap.appendChild(p);
-                        wrapper.appendChild(wrap);
+                        innerContent = document.createElement('div');
+                        innerContent.className = 'node-text-wrap';
+                        innerContent.style.textAlign = 'left';
+                        innerContent.innerHTML = `<p style="font-size: 14px; font-weight: 400; color: #888894; line-height: 1.6;">Click here to edit this paragraph text. You can align it, change colors, or modify font styles in the inspector.</p>`;
                         break;
                     }
                     case 'button': {
-                        const wrap = document.createElement('div');
-                        wrap.className = 'node-button-wrap';
-                        wrap.style.justifyContent = 'flex-start';
-                        const btn = document.createElement('button');
-                        btn.className = 'node-custom-btn';
-                        btn.textContent = 'EXPLORE';
-                        btn.setAttribute('data-target-url', '#');
-                        btn.setAttribute('data-color', '#80808a');
-                        btn.setAttribute('data-hover-color', '#ffffff');
-                        btn.setAttribute('data-bg', 'transparent');
-                        btn.setAttribute('data-hover-bg', 'rgba(255, 255, 255, 0.04)');
-                        btn.style.color = '#80808a';
-                        btn.style.backgroundColor = 'transparent';
-                        btn.style.fontSize = '11px';
-                        btn.style.fontWeight = '400';
-                        btn.style.letterSpacing = '0.04em';
-                        btn.style.padding = '7px 14px';
-                        btn.style.border = '1px solid transparent';
-                        btn.style.borderRadius = '2px';
-                        wrap.appendChild(btn);
-                        wrapper.appendChild(wrap);
-                        break;
-                    }
-                    case 'spacer': {
-                        const sp = document.createElement('div');
-                        sp.className = 'node-spacer';
-                        sp.style.height = '32px';
-                        wrapper.appendChild(sp);
+                        innerContent = document.createElement('div');
+                        innerContent.className = 'node-button-wrap';
+                        innerContent.style.justifyContent = 'flex-start';
+                        innerContent.innerHTML = `
+              <a href="#" class="node-custom-btn" 
+                 style="font-size: 13px; font-weight: 500; color: #ffffff; background-color: #27272f; border: 1px solid #3f3f4e; border-radius: 2px; padding: 8px 18px; text-decoration: none; --hover-color: #ffffff; --hover-bg: #373742;">
+                Action Button
+              </a>`;
                         break;
                     }
                     case 'link': {
-                        const wrap = document.createElement('div');
-                        wrap.className = 'node-text-wrap';
-                        wrap.style.textAlign = 'left';
-                        const link = document.createElement('a');
-                        link.className = 'node-link';
-                        link.href = '#';
-                        link.textContent = 'Muted text navigation link';
-                        link.style.fontSize = '12px';
-                        wrap.appendChild(link);
-                        wrapper.appendChild(wrap);
+                        innerContent = document.createElement('div');
+                        innerContent.className = 'node-text-wrap';
+                        innerContent.style.textAlign = 'left';
+                        innerContent.innerHTML = `<a href="https://example.com" target="_blank" style="font-size: 13px; color: #888894; text-decoration: none; transition: color 0.15s ease;">Link text &rarr;</a>`;
+                        break;
+                    }
+                    case 'spacer': {
+                        innerContent = document.createElement('div');
+                        innerContent.className = 'node-spacer';
+                        innerContent.style.height = '32px';
+                        innerContent.setAttribute('data-line', 'false');
                         break;
                     }
                     case 'container': {
-                        const container = document.createElement('div');
-                        container.className = 'node-container';
-                        const childP = document.createElement('p');
-                        childP.textContent = 'Internal box container element';
-                        childP.style.color = '#70707a';
-                        container.appendChild(childP);
-                        wrapper.appendChild(container);
+                        innerContent = document.createElement('div');
+                        innerContent.className = 'node-container';
+                        innerContent.innerHTML = `<p style="font-size: 12px; color: #888894;">Container Box</p>`;
                         break;
                     }
                     case 'image': {
-                        const img = document.createElement('img');
-                        img.className = 'node-image';
-                        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="240" viewBox="0 0 600 240"><rect fill="#18181f" width="600" height="240"/><text fill="#71717a" font-family="sans-serif" font-size="12" x="50%" y="50%" text-anchor="middle" dominant-baseline="middle">IMAGE PLACEHOLDER (BASE64 READY)</text></svg>');
-                        img.alt = 'Uploaded Asset';
-                        wrapper.appendChild(img);
+                        innerContent = document.createElement('div');
+                        innerContent.style.display = 'flex';
+                        innerContent.style.justifyContent = 'center';
+                        innerContent.innerHTML = `<img class="node-image" src="https://placehold.co/600x300/18181b/ffffff?text=Image+Component" alt="Embedded Image" style="max-height: 400px; width: auto; object-fit: contain;">`;
                         break;
                     }
                     case 'video': {
-                        const video = document.createElement('video');
-                        video.className = 'node-media-frame';
-                        video.controls = true;
-                        video.style.height = '240px';
-                        wrapper.appendChild(video);
+                        innerContent = document.createElement('div');
+                        innerContent.innerHTML = `
+              <video class="node-media-frame" controls style="max-height: 400px; background: #000;">
+                <source src="" type="video/mp4">
+                Your browser does not support video.
+              </video>
+            `;
                         break;
                     }
                     case 'audio': {
-                        const audio = document.createElement('audio');
-                        audio.className = 'node-audio';
-                        audio.controls = true;
-                        wrapper.appendChild(audio);
+                        innerContent = document.createElement('div');
+                        innerContent.innerHTML = `
+              <audio class="node-audio" controls style="width: 100%;">
+                <source src="" type="audio/mpeg">
+                Your browser does not support audio.
+              </audio>
+            `;
                         break;
                     }
                     case 'iframe': {
-                        const iframe = document.createElement('iframe');
-                        iframe.className = 'node-media-frame';
-                        iframe.src = 'https://example.com';
-                        iframe.style.height = '280px';
-                        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
-                        wrapper.appendChild(iframe);
-                        break;
-                    }
-                    case 'custom-html': {
-                        const custom = document.createElement('div');
-                        custom.className = 'custom-html-block';
-                        custom.innerHTML = '<div style="padding: 12px; background: #18181f; border: 1px solid #27272a; font-family: monospace; font-size: 11px; color: #a0a0aa;">&lt;div&gt;Custom Embed Code Block&lt;/div&gt;</div>';
-                        wrapper.appendChild(custom);
+                        innerContent = document.createElement('div');
+                        innerContent.innerHTML = `
+              <iframe class="node-media-frame" src="https://example.com" height="320" style="width: 100%; border: 1px solid #27272a;"></iframe>
+            `;
                         break;
                     }
                 }
 
-                attachNodeEvents(wrapper);
-                canvas.appendChild(wrapper);
-                selectNode(wrapper);
+                wrap.appendChild(innerContent);
+                pageCanvas.appendChild(wrap);
+                attachNodeListeners();
+                selectNode(wrap);
             }
 
-            function handleFileUploadToBase64(file, callback) {
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    callback(e.target.result, file.name, file.size);
-                };
-                reader.readAsDataURL(file);
-            }
+            function attachNodeListeners() {
+                document.querySelectorAll('.node-wrap').forEach(wrap => {
+                    wrap.onclick = (e) => {
+                        e.stopPropagation();
+                        selectNode(wrap);
+                    };
 
-            function renderInspector(node) {
-                const type = node.getAttribute('data-node-type');
-                let html = `
-          <div class="inspector-group">
-            <span class="inspector-label">Type: ${type.toUpperCase()}</span>
-          </div>
-        `;
+                    const upBtn = wrap.querySelector('.btn-node-up');
+                    const downBtn = wrap.querySelector('.btn-node-down');
+                    const delBtn = wrap.querySelector('.btn-node-del');
 
-                if (type === 'heading' || type === 'paragraph' || type === 'link') {
-                    const elem = node.querySelector('h1, h2, h3, p, a');
-                    const wrap = node.querySelector('.node-text-wrap') || elem;
-                    const currentAlign = wrap.style.textAlign || 'left';
-
-                    html += `
-            <div class="inspector-group">
-              <label class="inspector-label">Text Alignment</label>
-              <div class="segmented-control" id="ctrl-align">
-                <button type="button" data-val="left" class="${currentAlign === 'left' ? 'active' : ''}">Left</button>
-                <button type="button" data-val="center" class="${currentAlign === 'center' ? 'active' : ''}">Center</button>
-                <button type="button" data-val="right" class="${currentAlign === 'right' ? 'active' : ''}">Right</button>
-                <button type="button" data-val="justify" class="${currentAlign === 'justify' ? 'active' : ''}">Justify</button>
-              </div>
-            </div>
-            <div class="inspector-group">
-              <label class="inspector-label">Text Content</label>
-              <textarea id="insp-text" rows="3">${elem.innerText}</textarea>
-            </div>
-            ${type === 'link' ? `
-            <div class="inspector-group">
-              <label class="inspector-label">Target URL</label>
-              <input type="text" id="insp-link-url" value="${elem.getAttribute('href') || '#'}">
-            </div>` : ''}
-            <div class="inspector-grid-2">
-              <div class="inspector-group">
-                <label class="inspector-label">Font Size (px)</label>
-                <input type="number" id="insp-fontsize" value="${parseInt(window.getComputedStyle(elem).fontSize, 10)}">
-              </div>
-              <div class="inspector-group">
-                <label class="inspector-label">Text Color</label>
-                <input type="color" id="insp-color" value="${rgbToHex(window.getComputedStyle(elem).color)}">
-              </div>
-            </div>
-            <div class="inspector-grid-2">
-              <div class="inspector-group">
-                <label class="inspector-label">Weight</label>
-                <select id="insp-fontweight">
-                  <option value="300" ${elem.style.fontWeight === '300' ? 'selected' : ''}>Light (300)</option>
-                  <option value="400" ${elem.style.fontWeight === '400' || !elem.style.fontWeight ? 'selected' : ''}>Regular (400)</option>
-                  <option value="500" ${elem.style.fontWeight === '500' ? 'selected' : ''}>Medium (500)</option>
-                  <option value="600" ${elem.style.fontWeight === '600' ? 'selected' : ''}>Semibold (600)</option>
-                </select>
-              </div>
-              <div class="inspector-group">
-                <label class="inspector-label">Letter Space</label>
-                <input type="text" id="insp-letterspacing" value="${elem.style.letterSpacing || 'normal'}">
-              </div>
-            </div>
-          `;
-                } else if (type === 'button') {
-                    const wrap = node.querySelector('.node-button-wrap');
-                    const btn = node.querySelector('.node-custom-btn');
-                    const currentJustify = wrap.style.justifyContent || 'flex-start';
-                    const alignMap = { 'flex-start': 'left', 'center': 'center', 'flex-end': 'right' };
-                    const activeAlign = alignMap[currentJustify] || 'left';
-
-                    html += `
-            <div class="inspector-group">
-              <label class="inspector-label">Button Alignment</label>
-              <div class="segmented-control" id="ctrl-btn-align">
-                <button type="button" data-val="flex-start" class="${activeAlign === 'left' ? 'active' : ''}">Left</button>
-                <button type="button" data-val="center" class="${activeAlign === 'center' ? 'active' : ''}">Center</button>
-                <button type="button" data-val="flex-end" class="${activeAlign === 'right' ? 'active' : ''}">Right</button>
-              </div>
-            </div>
-            <div class="inspector-group">
-              <label class="inspector-label">Quick Style Presets</label>
-              <div class="inspector-grid-3">
-                <button type="button" id="btn-preset-ghost" class="btn" style="background:var(--bg-primary); border:1px solid var(--border-color); font-size:10px;">Ghost</button>
-                <button type="button" id="btn-preset-solid" class="btn" style="background:var(--bg-primary); border:1px solid var(--border-color); font-size:10px;">Solid</button>
-                <button type="button" id="btn-preset-outline" class="btn" style="background:var(--bg-primary); border:1px solid var(--border-color); font-size:10px;">Outline</button>
-              </div>
-            </div>
-            <div class="inspector-group">
-              <label class="inspector-label">Button Text</label>
-              <input type="text" id="insp-btn-text" value="${btn.innerText}">
-            </div>
-            <div class="inspector-group">
-              <label class="inspector-label">Destination URL</label>
-              <input type="text" id="insp-btn-url" value="${btn.getAttribute('data-target-url') || '#'}">
-            </div>
-            <div class="inspector-grid-2">
-              <div class="inspector-group">
-                <label class="inspector-label">Text Color</label>
-                <input type="color" id="insp-btn-color" value="${rgbToHex(btn.getAttribute('data-color') || '#80808a')}">
-              </div>
-              <div class="inspector-group">
-                <label class="inspector-label">Text Hover</label>
-                <input type="color" id="insp-btn-color-hover" value="${rgbToHex(btn.getAttribute('data-hover-color') || '#ffffff')}">
-              </div>
-            </div>
-            <div class="inspector-grid-2">
-              <div class="inspector-group">
-                <label class="inspector-label">Background</label>
-                <input type="text" id="insp-btn-bg" value="${btn.getAttribute('data-bg') || 'transparent'}" placeholder="transparent or #18181f">
-              </div>
-              <div class="inspector-group">
-                <label class="inspector-label">Hover Background</label>
-                <input type="text" id="insp-btn-bg-hover" value="${btn.getAttribute('data-hover-bg') || 'rgba(255, 255, 255, 0.04)'}">
-              </div>
-            </div>
-            <div class="inspector-grid-2">
-              <div class="inspector-group">
-                <label class="inspector-label">Font Size (px)</label>
-                <input type="number" id="insp-btn-fontsize" value="${parseInt(window.getComputedStyle(btn).fontSize, 10)}">
-              </div>
-              <div class="inspector-group">
-                <label class="inspector-label">Weight</label>
-                <select id="insp-btn-weight">
-                  <option value="400" ${btn.style.fontWeight === '400' ? 'selected' : ''}>Regular (400)</option>
-                  <option value="500" ${btn.style.fontWeight === '500' ? 'selected' : ''}>Medium (500)</option>
-                  <option value="600" ${btn.style.fontWeight === '600' ? 'selected' : ''}>Semibold (600)</option>
-                </select>
-              </div>
-            </div>
-            <div class="inspector-grid-2">
-              <div class="inspector-group">
-                <label class="inspector-label">Padding Y (px)</label>
-                <input type="number" id="insp-btn-pad-y" value="${parseInt(btn.style.paddingTop, 10) || 7}">
-              </div>
-              <div class="inspector-group">
-                <label class="inspector-label">Padding X (px)</label>
-                <input type="number" id="insp-btn-pad-x" value="${parseInt(btn.style.paddingLeft, 10) || 14}">
-              </div>
-            </div>
-            <div class="inspector-grid-2">
-              <div class="inspector-group">
-                <label class="inspector-label">Border Width (px)</label>
-                <input type="number" id="insp-btn-border-w" value="${parseInt(btn.style.borderWidth, 10) || 1}">
-              </div>
-              <div class="inspector-group">
-                <label class="inspector-label">Border Radius (px)</label>
-                <input type="number" id="insp-btn-radius" max="4" value="${parseInt(btn.style.borderRadius, 10) || 2}">
-              </div>
-            </div>
-            <div class="inspector-grid-2">
-              <div class="inspector-group">
-                <label class="inspector-label">Border Style</label>
-                <select id="insp-btn-border-s">
-                  <option value="solid" ${btn.style.borderStyle === 'solid' ? 'selected' : ''}>Solid</option>
-                  <option value="none" ${btn.style.borderStyle === 'none' ? 'selected' : ''}>None</option>
-                  <option value="dashed" ${btn.style.borderStyle === 'dashed' ? 'selected' : ''}>Dashed</option>
-                </select>
-              </div>
-              <div class="inspector-group">
-                <label class="inspector-label">Border Color</label>
-                <input type="color" id="insp-btn-border-c" value="${rgbToHex(btn.style.borderColor || '#27272a')}">
-              </div>
-            </div>
-            <div class="inspector-group">
-              <label class="inspector-label">Letter Spacing</label>
-              <input type="text" id="insp-btn-spacing" value="${btn.style.letterSpacing || '0.04em'}">
-            </div>
-          `;
-                } else if (type === 'spacer') {
-                    const sp = node.querySelector('.node-spacer');
-                    const hasLine = !!sp.querySelector('.node-spacer-line');
-                    html += `
-            <div class="inspector-group">
-              <label class="inspector-label">Spacer Height (px): <span id="spacer-val">${parseInt(sp.style.height, 10)}px</span></label>
-              <input type="range" id="insp-spacer-height" min="8" max="160" value="${parseInt(sp.style.height, 10) || 32}">
-            </div>
-            <div class="inspector-group">
-              <label class="inspector-label">Divider Line</label>
-              <select id="insp-spacer-type">
-                <option value="blank" ${!hasLine ? 'selected' : ''}>Blank Space</option>
-                <option value="line" ${hasLine ? 'selected' : ''}>Hairline Divider</option>
-              </select>
-            </div>
-          `;
-                } else if (type === 'iframe') {
-                    const iframe = node.querySelector('iframe');
-                    html += `
-            <div class="inspector-group">
-              <label class="inspector-label">iFrame URL</label>
-              <input type="text" id="insp-iframe-src" value="${iframe.getAttribute('src') || ''}">
-            </div>
-            <div class="inspector-group">
-              <label class="inspector-label">Height (px)</label>
-              <input type="number" id="insp-iframe-height" value="${parseInt(iframe.style.height, 10) || 280}">
-            </div>
-            <div class="inspector-group">
-              <label class="inspector-label">Border</label>
-              <select id="insp-iframe-border">
-                <option value="none" ${iframe.style.border === 'none' ? 'selected' : ''}>None</option>
-                <option value="1px solid #27272a" ${iframe.style.border !== 'none' ? 'selected' : ''}>Muted Subtle Border</option>
-              </select>
-            </div>
-            <div class="inspector-group">
-              <label class="inspector-label">Sandbox Security Flags</label>
-              <input type="text" id="insp-iframe-sandbox" value="${iframe.getAttribute('sandbox') || 'allow-scripts allow-same-origin'}">
-            </div>
-          `;
-                } else if (type === 'image') {
-                    const img = node.querySelector('img');
-                    const isBase64 = (img.src || '').startsWith('data:');
-                    html += `
-            <div class="inspector-group">
-              <label class="inspector-label">Upload Image (Auto Base64)</label>
-              <div class="file-input-wrapper">
-                <div class="file-input-btn">Select Local Image File</div>
-                <input type="file" id="insp-file-image" accept="image/*">
-              </div>
-            </div>
-            <div class="inspector-group">
-              <label class="inspector-label">Or External URL</label>
-              <input type="text" id="insp-img-src" value="${isBase64 ? '' : img.src}" placeholder="https://...">
-            </div>
-            <div class="inspector-group">
-              <label class="inspector-label">Encoding Status</label>
-              <span class="base64-badge">${isBase64 ? 'ENCODED BASE64 (' + Math.round(img.src.length / 1024) + ' KB)' : 'External Source URL'}</span>
-            </div>
-            <div class="inspector-group">
-              <label class="inspector-label">Alt Tag</label>
-              <input type="text" id="insp-img-alt" value="${img.alt || ''}">
-            </div>
-          `;
-                } else if (type === 'video') {
-                    const vid = node.querySelector('video');
-                    const isBase64 = (vid.src || '').startsWith('data:');
-                    html += `
-            <div class="inspector-group">
-              <label class="inspector-label">Upload Video (Auto Base64)</label>
-              <div class="file-input-wrapper">
-                <div class="file-input-btn">Select Local Video File</div>
-                <input type="file" id="insp-file-video" accept="video/*">
-              </div>
-            </div>
-            <div class="inspector-group">
-              <label class="inspector-label">Or Video URL</label>
-              <input type="text" id="insp-video-src" value="${isBase64 ? '' : vid.src}" placeholder="https://... or .mp4">
-            </div>
-            <div class="inspector-group">
-              <label class="inspector-label">Encoding Status</label>
-              <span class="base64-badge">${isBase64 ? 'ENCODED BASE64 (' + Math.round(vid.src.length / 1024) + ' KB)' : 'External Source'}</span>
-            </div>
-            <div class="inspector-group">
-              <label class="inspector-label">Video Height (px)</label>
-              <input type="number" id="insp-video-height" value="${parseInt(vid.style.height, 10) || 240}">
-            </div>
-          `;
-                } else if (type === 'audio') {
-                    const aud = node.querySelector('audio');
-                    const isBase64 = (aud.src || '').startsWith('data:');
-                    html += `
-            <div class="inspector-group">
-              <label class="inspector-label">Upload Audio (Auto Base64)</label>
-              <div class="file-input-wrapper">
-                <div class="file-input-btn">Select Local Audio File</div>
-                <input type="file" id="insp-file-audio" accept="audio/*">
-              </div>
-            </div>
-            <div class="inspector-group">
-              <label class="inspector-label">Or Audio URL</label>
-              <input type="text" id="insp-audio-src" value="${isBase64 ? '' : aud.src}" placeholder="https://... or .mp3">
-            </div>
-            <div class="inspector-group">
-              <label class="inspector-label">Encoding Status</label>
-              <span class="base64-badge">${isBase64 ? 'ENCODED BASE64 (' + Math.round(aud.src.length / 1024) + ' KB)' : 'External Source'}</span>
-            </div>
-          `;
-                } else if (type === 'custom-html') {
-                    const container = node.querySelector('.custom-html-block');
-                    html += `
-            <div class="inspector-group">
-              <label class="inspector-label">Raw HTML Source</label>
-              <textarea id="insp-raw-html" rows="8" style="font-family: var(--font-mono); font-size:11px;">${container.innerHTML}</textarea>
-            </div>
-          `;
-                }
-
-                html += `
-          <div class="inspector-group" style="margin-top: 6px; border-top: 1px solid var(--border-color); padding-top: 10px;">
-            <label class="inspector-label">Margin Bottom (px)</label>
-            <input type="number" id="insp-margin-bottom" value="${parseInt(window.getComputedStyle(node).marginBottom, 10) || 0}">
-          </div>
-        `;
-
-                inspectorContent.innerHTML = html;
-                bindInspectorEvents(node, type);
-            }
-
-            function bindInspectorEvents(node, type) {
-                const ctrlAlign = document.getElementById('ctrl-align');
-                if (ctrlAlign) {
-                    ctrlAlign.querySelectorAll('button').forEach(btn => {
-                        btn.addEventListener('click', () => {
-                            ctrlAlign.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-                            btn.classList.add('active');
-                            const wrap = node.querySelector('.node-text-wrap') || node.querySelector('h1, h2, h3, p, a');
-                            wrap.style.textAlign = btn.getAttribute('data-val');
-                        });
-                    });
-                }
-
-                const inspText = document.getElementById('insp-text');
-                if (inspText) {
-                    inspText.addEventListener('input', () => {
-                        const elem = node.querySelector('h1, h2, h3, p, a');
-                        if (elem) elem.innerText = inspText.value;
-                    });
-                }
-
-                const inspFontSize = document.getElementById('insp-fontsize');
-                if (inspFontSize) {
-                    inspFontSize.addEventListener('input', () => {
-                        const elem = node.querySelector('h1, h2, h3, p, a');
-                        if (elem) elem.style.fontSize = inspFontSize.value + 'px';
-                    });
-                }
-
-                const inspColor = document.getElementById('insp-color');
-                if (inspColor) {
-                    inspColor.addEventListener('input', () => {
-                        const elem = node.querySelector('h1, h2, h3, p, a');
-                        if (elem) elem.style.color = inspColor.value;
-                    });
-                }
-
-                const inspFontWeight = document.getElementById('insp-fontweight');
-                if (inspFontWeight) {
-                    inspFontWeight.addEventListener('change', () => {
-                        const elem = node.querySelector('h1, h2, h3, p, a');
-                        if (elem) elem.style.fontWeight = inspFontWeight.value;
-                    });
-                }
-
-                const inspLetterSpacing = document.getElementById('insp-letterspacing');
-                if (inspLetterSpacing) {
-                    inspLetterSpacing.addEventListener('input', () => {
-                        const elem = node.querySelector('h1, h2, h3, p, a');
-                        if (elem) elem.style.letterSpacing = inspLetterSpacing.value;
-                    });
-                }
-
-                const inspLinkUrl = document.getElementById('insp-link-url');
-                if (inspLinkUrl) {
-                    inspLinkUrl.addEventListener('input', () => {
-                        const link = node.querySelector('a');
-                        if (link) link.setAttribute('href', inspLinkUrl.value);
-                    });
-                }
-
-                if (type === 'button') {
-                    const btn = node.querySelector('.node-custom-btn');
-                    const wrap = node.querySelector('.node-button-wrap');
-
-                    const ctrlBtnAlign = document.getElementById('ctrl-btn-align');
-                    if (ctrlBtnAlign) {
-                        ctrlBtnAlign.querySelectorAll('button').forEach(b => {
-                            b.addEventListener('click', () => {
-                                ctrlBtnAlign.querySelectorAll('button').forEach(x => x.classList.remove('active'));
-                                b.classList.add('active');
-                                wrap.style.justifyContent = b.getAttribute('data-val');
-                            });
-                        });
+                    if (upBtn) {
+                        upBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            if (wrap.previousElementSibling) {
+                                wrap.parentNode.insertBefore(wrap, wrap.previousElementSibling);
+                            }
+                        };
                     }
 
-                    document.getElementById('btn-preset-ghost').addEventListener('click', () => {
-                        btn.setAttribute('data-color', '#80808a');
-                        btn.setAttribute('data-hover-color', '#ffffff');
-                        btn.setAttribute('data-bg', 'transparent');
-                        btn.setAttribute('data-hover-bg', 'rgba(255, 255, 255, 0.04)');
-                        btn.style.color = '#80808a';
-                        btn.style.backgroundColor = 'transparent';
-                        btn.style.border = '1px solid transparent';
-                        renderInspector(node);
-                    });
+                    if (downBtn) {
+                        downBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            if (wrap.nextElementSibling) {
+                                wrap.parentNode.insertBefore(wrap.nextElementSibling, wrap);
+                            }
+                        };
+                    }
 
-                    document.getElementById('btn-preset-solid').addEventListener('click', () => {
-                        btn.setAttribute('data-color', '#ffffff');
-                        btn.setAttribute('data-hover-color', '#ffffff');
-                        btn.setAttribute('data-bg', '#18181f');
-                        btn.setAttribute('data-hover-bg', '#22222b');
-                        btn.style.color = '#ffffff';
-                        btn.style.backgroundColor = '#18181f';
-                        btn.style.border = '1px solid #27272a';
-                        renderInspector(node);
-                    });
+                    if (delBtn) {
+                        delBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            wrap.remove();
+                            deselectAll();
+                        };
+                    }
+                });
+            }
 
-                    document.getElementById('btn-preset-outline').addEventListener('click', () => {
-                        btn.setAttribute('data-color', '#a0a0aa');
-                        btn.setAttribute('data-hover-color', '#ffffff');
-                        btn.setAttribute('data-bg', 'transparent');
-                        btn.setAttribute('data-hover-bg', '#141418');
-                        btn.style.color = '#a0a0aa';
-                        btn.style.backgroundColor = 'transparent';
-                        btn.style.border = '1px solid #3f3f46';
-                        renderInspector(node);
-                    });
+            pageCanvas.onclick = () => {
+                deselectAll();
+            };
 
-                    document.getElementById('insp-btn-text').addEventListener('input', (e) => {
-                        btn.innerText = e.target.value;
-                    });
+            document.getElementById('btn-deselect').onclick = () => {
+                deselectAll();
+            };
 
-                    document.getElementById('insp-btn-url').addEventListener('input', (e) => {
-                        btn.setAttribute('data-target-url', e.target.value);
-                    });
+            function deselectAll() {
+                document.querySelectorAll('.node-wrap').forEach(w => w.classList.remove('selected'));
+                activeNode = null;
+                inspectorTitle.textContent = 'Inspector';
+                inspectorContent.innerHTML = `<p style="font-size: 12px; color: var(--text-dim); text-align: center; margin-top: 40px;">Select an element on canvas to modify its properties.</p>`;
+            }
 
-                    document.getElementById('insp-btn-color').addEventListener('input', (e) => {
-                        btn.setAttribute('data-color', e.target.value);
-                        btn.style.color = e.target.value;
-                    });
+            function selectNode(wrap) {
+                document.querySelectorAll('.node-wrap').forEach(w => w.classList.remove('selected'));
+                wrap.classList.add('selected');
+                activeNode = wrap;
+                buildInspector(wrap);
+            }
 
-                    document.getElementById('insp-btn-color-hover').addEventListener('input', (e) => {
-                        btn.setAttribute('data-hover-color', e.target.value);
-                    });
+            // Dynamic Inspector Generator
+            function buildInspector(wrap) {
+                const type = wrap.getAttribute('data-node');
+                inspectorTitle.textContent = `${type.toUpperCase()} Properties`;
+                inspectorContent.innerHTML = '';
 
-                    document.getElementById('insp-btn-bg').addEventListener('input', (e) => {
-                        btn.setAttribute('data-bg', e.target.value);
-                        btn.style.backgroundColor = e.target.value;
-                    });
+                if (type === 'heading' || type === 'paragraph') {
+                    const textEl = wrap.querySelector('h1, h2, h3, h4, p');
+                    const wrapEl = wrap.querySelector('.node-text-wrap');
 
-                    document.getElementById('insp-btn-bg-hover').addEventListener('input', (e) => {
-                        btn.setAttribute('data-hover-bg', e.target.value);
-                    });
+                    inspectorContent.innerHTML = `
+            <div class="form-group">
+              <label>Text Content</label>
+              <textarea id="prop-text-val" rows="3">${textEl.textContent.trim()}</textarea>
+            </div>
+            <div class="form-group">
+              <label>Text Alignment</label>
+              <div class="row">
+                <button id="align-left" class="viewport-btn">Left</button>
+                <button id="align-center" class="viewport-btn">Center</button>
+                <button id="align-right" class="viewport-btn">Right</button>
+              </div>
+            </div>
+            <div class="prop-row">
+              <div>
+                <label>Font Size (px)</label>
+                <input type="number" id="prop-font-size" value="${parseInt(window.getComputedStyle(textEl).fontSize) || 16}">
+              </div>
+              <div>
+                <label>Font Weight</label>
+                <select id="prop-font-weight">
+                  <option value="300" ${textEl.style.fontWeight === '300' ? 'selected' : ''}>300 Light</option>
+                  <option value="400" ${textEl.style.fontWeight === '400' ? 'selected' : ''}>400 Regular</option>
+                  <option value="500" ${textEl.style.fontWeight === '500' ? 'selected' : ''}>500 Medium</option>
+                  <option value="600" ${textEl.style.fontWeight === '600' ? 'selected' : ''}>600 SemiBold</option>
+                  <option value="700" ${textEl.style.fontWeight === '700' ? 'selected' : ''}>700 Bold</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Text Color</label>
+              <input type="color" id="prop-color" value="${rgbToHex(window.getComputedStyle(textEl).color) || '#ffffff'}">
+            </div>
+          `;
 
-                    document.getElementById('insp-btn-fontsize').addEventListener('input', (e) => {
-                        btn.style.fontSize = e.target.value + 'px';
-                    });
-
-                    document.getElementById('insp-btn-weight').addEventListener('change', (e) => {
-                        btn.style.fontWeight = e.target.value;
-                    });
-
-                    document.getElementById('insp-btn-pad-y').addEventListener('input', (e) => {
-                        btn.style.paddingTop = e.target.value + 'px';
-                        btn.style.paddingBottom = e.target.value + 'px';
-                    });
-
-                    document.getElementById('insp-btn-pad-x').addEventListener('input', (e) => {
-                        btn.style.paddingLeft = e.target.value + 'px';
-                        btn.style.paddingRight = e.target.value + 'px';
-                    });
-
-                    document.getElementById('insp-btn-border-w').addEventListener('input', (e) => {
-                        btn.style.borderWidth = e.target.value + 'px';
-                    });
-
-                    document.getElementById('insp-btn-radius').addEventListener('input', (e) => {
-                        btn.style.borderRadius = e.target.value + 'px';
-                    });
-
-                    document.getElementById('insp-btn-border-s').addEventListener('change', (e) => {
-                        btn.style.borderStyle = e.target.value;
-                    });
-
-                    document.getElementById('insp-btn-border-c').addEventListener('input', (e) => {
-                        btn.style.borderColor = e.target.value;
-                    });
-
-                    document.getElementById('insp-btn-spacing').addEventListener('input', (e) => {
-                        btn.style.letterSpacing = e.target.value;
-                    });
+                    document.getElementById('prop-text-val').oninput = (e) => {
+                        textEl.textContent = e.target.value;
+                    };
+                    document.getElementById('align-left').onclick = () => { wrapEl.style.textAlign = 'left'; };
+                    document.getElementById('align-center').onclick = () => { wrapEl.style.textAlign = 'center'; };
+                    document.getElementById('align-right').onclick = () => { wrapEl.style.textAlign = 'right'; };
+                    document.getElementById('prop-font-size').oninput = (e) => {
+                        textEl.style.fontSize = e.target.value + 'px';
+                    };
+                    document.getElementById('prop-font-weight').onchange = (e) => {
+                        textEl.style.fontWeight = e.target.value;
+                    };
+                    document.getElementById('prop-color').oninput = (e) => {
+                        textEl.style.color = e.target.value;
+                    };
                 }
 
-                if (type === 'spacer') {
-                    const sp = node.querySelector('.node-spacer');
-                    const range = document.getElementById('insp-spacer-height');
-                    const valLabel = document.getElementById('spacer-val');
-                    range.addEventListener('input', () => {
-                        sp.style.height = range.value + 'px';
-                        valLabel.textContent = range.value + 'px';
-                    });
+                else if (type === 'button') {
+                    const btn = wrap.querySelector('.node-custom-btn');
+                    const wrapBtn = wrap.querySelector('.node-button-wrap');
 
-                    document.getElementById('insp-spacer-type').addEventListener('change', (e) => {
-                        sp.innerHTML = '';
-                        if (e.target.value === 'line') {
-                            const line = document.createElement('div');
-                            line.className = 'node-spacer-line';
-                            sp.appendChild(line);
+                    inspectorContent.innerHTML = `
+            <div class="form-group">
+              <label>Button Label</label>
+              <input type="text" id="prop-btn-label" value="${btn.textContent.trim()}">
+            </div>
+            <div class="form-group">
+              <label>Target URL (href)</label>
+              <input type="text" id="prop-btn-href" value="${btn.getAttribute('href') || '#'}">
+            </div>
+            <div class="form-group">
+              <label>Button Alignment</label>
+              <div class="row">
+                <button id="btn-align-left" class="viewport-btn">Left</button>
+                <button id="btn-align-center" class="viewport-btn">Center</button>
+                <button id="btn-align-right" class="viewport-btn">Right</button>
+              </div>
+            </div>
+            <div class="prop-row">
+              <div>
+                <label>Text Color</label>
+                <input type="color" id="prop-btn-color" value="${rgbToHex(window.getComputedStyle(btn).color) || '#ffffff'}">
+              </div>
+              <div>
+                <label>Background Color</label>
+                <input type="color" id="prop-btn-bg" value="${rgbToHex(window.getComputedStyle(btn).backgroundColor) || '#27272f'}">
+              </div>
+            </div>
+            <div class="prop-row">
+              <div>
+                <label>Hover Text</label>
+                <input type="color" id="prop-btn-hover-color" value="${btn.style.getPropertyValue('--hover-color') || '#ffffff'}">
+              </div>
+              <div>
+                <label>Hover Background</label>
+                <input type="color" id="prop-btn-hover-bg" value="${btn.style.getPropertyValue('--hover-bg') || '#373742'}">
+              </div>
+            </div>
+            <div class="prop-row">
+              <div>
+                <label>Border Radius (px)</label>
+                <input type="number" id="prop-btn-radius" value="${parseInt(btn.style.borderRadius) || 2}">
+              </div>
+              <div>
+                <label>Padding Y / X (px)</label>
+                <input type="text" id="prop-btn-padding" value="${btn.style.padding || '8px 18px'}">
+              </div>
+            </div>
+          `;
+
+                    document.getElementById('prop-btn-label').oninput = (e) => { btn.textContent = e.target.value; };
+                    document.getElementById('prop-btn-href').oninput = (e) => { btn.setAttribute('href', e.target.value); };
+                    document.getElementById('btn-align-left').onclick = () => { wrapBtn.style.justifyContent = 'flex-start'; };
+                    document.getElementById('btn-align-center').onclick = () => { wrapBtn.style.justifyContent = 'center'; };
+                    document.getElementById('btn-align-right').onclick = () => { wrapBtn.style.justifyContent = 'flex-end'; };
+                    document.getElementById('prop-btn-color').oninput = (e) => { btn.style.color = e.target.value; };
+                    document.getElementById('prop-btn-bg').oninput = (e) => { btn.style.backgroundColor = e.target.value; };
+                    document.getElementById('prop-btn-hover-color').oninput = (e) => { btn.style.setProperty('--hover-color', e.target.value); };
+                    document.getElementById('prop-btn-hover-bg').oninput = (e) => { btn.style.setProperty('--hover-bg', e.target.value); };
+                    document.getElementById('prop-btn-radius').oninput = (e) => { btn.style.borderRadius = e.target.value + 'px'; };
+                    document.getElementById('prop-btn-padding').oninput = (e) => { btn.style.padding = e.target.value; };
+                }
+
+                else if (type === 'spacer') {
+                    const spacer = wrap.querySelector('.node-spacer');
+                    const isLine = spacer.getAttribute('data-line') === 'true';
+
+                    inspectorContent.innerHTML = `
+            <div class="form-group">
+              <label>Spacer Height (px): <span id="spacer-val">${parseInt(spacer.style.height) || 32}px</span></label>
+              <input type="range" id="prop-spacer-height" min="8" max="160" value="${parseInt(spacer.style.height) || 32}">
+            </div>
+            <div class="form-group">
+              <label>Divider Line</label>
+              <button id="btn-toggle-line" class="btn-primary" style="width: 100%;">
+                ${isLine ? 'Disable Divider Line' : 'Enable Divider Line'}
+              </button>
+            </div>
+          `;
+
+                    document.getElementById('prop-spacer-height').oninput = (e) => {
+                        spacer.style.height = e.target.value + 'px';
+                        document.getElementById('spacer-val').textContent = e.target.value + 'px';
+                    };
+
+                    document.getElementById('btn-toggle-line').onclick = () => {
+                        const current = spacer.getAttribute('data-line') === 'true';
+                        if (current) {
+                            spacer.setAttribute('data-line', 'false');
+                            spacer.innerHTML = '';
+                        } else {
+                            spacer.setAttribute('data-line', 'true');
+                            spacer.innerHTML = '<div class="node-spacer-line"></div>';
                         }
-                    });
+                        buildInspector(wrap);
+                    };
                 }
 
-                if (type === 'iframe') {
-                    const iframe = node.querySelector('iframe');
-                    document.getElementById('insp-iframe-src').addEventListener('change', (e) => {
+                else if (type === 'image') {
+                    const img = wrap.querySelector('img');
+                    inspectorContent.innerHTML = `
+            <div class="form-group">
+              <label>Upload Image (Encodes to Base64)</label>
+              <input type="file" id="prop-upload-file" accept="image/*">
+            </div>
+            <div class="form-group">
+              <label>Or External Image URL</label>
+              <input type="text" id="prop-img-url" value="${img.getAttribute('src')}">
+            </div>
+            <div class="prop-row">
+              <div>
+                <label>Max Height (px)</label>
+                <input type="number" id="prop-img-max-h" value="${parseInt(img.style.maxHeight) || 400}">
+              </div>
+              <div>
+                <label>Border Radius (px)</label>
+                <input type="number" id="prop-img-radius" value="${parseInt(img.style.borderRadius) || 2}">
+              </div>
+            </div>
+          `;
+
+                    document.getElementById('prop-upload-file').onchange = (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (evt) => {
+                                img.src = evt.target.result;
+                                document.getElementById('prop-img-url').value = 'data:image/... (Base64 Encoded)';
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    };
+
+                    document.getElementById('prop-img-url').oninput = (e) => {
+                        img.src = e.target.value;
+                    };
+                    document.getElementById('prop-img-max-h').oninput = (e) => {
+                        img.style.maxHeight = e.target.value + 'px';
+                    };
+                    document.getElementById('prop-img-radius').oninput = (e) => {
+                        img.style.borderRadius = e.target.value + 'px';
+                    };
+                }
+
+                else if (type === 'video') {
+                    const video = wrap.querySelector('video');
+                    inspectorContent.innerHTML = `
+            <div class="form-group">
+              <label>Upload Video (Encodes to Base64)</label>
+              <input type="file" id="prop-upload-video" accept="video/mp4,video/webm">
+            </div>
+            <div class="form-group">
+              <label>Max Height (px)</label>
+              <input type="number" id="prop-video-h" value="${parseInt(video.style.maxHeight) || 400}">
+            </div>
+          `;
+
+                    document.getElementById('prop-upload-video').onchange = (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (evt) => {
+                                video.src = evt.target.result;
+                                video.load();
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    };
+
+                    document.getElementById('prop-video-h').oninput = (e) => {
+                        video.style.maxHeight = e.target.value + 'px';
+                    };
+                }
+
+                else if (type === 'audio') {
+                    const audio = wrap.querySelector('audio');
+                    inspectorContent.innerHTML = `
+            <div class="form-group">
+              <label>Upload Audio (Encodes to Base64)</label>
+              <input type="file" id="prop-upload-audio" accept="audio/mp3,audio/wav,audio/ogg">
+            </div>
+          `;
+
+                    document.getElementById('prop-upload-audio').onchange = (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (evt) => {
+                                audio.src = evt.target.result;
+                                audio.load();
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    };
+                }
+
+                else if (type === 'iframe') {
+                    const iframe = wrap.querySelector('iframe');
+                    inspectorContent.innerHTML = `
+            <div class="form-group">
+              <label>iFrame Source URL</label>
+              <input type="text" id="prop-iframe-src" value="${iframe.getAttribute('src')}">
+            </div>
+            <div class="form-group">
+              <label>Height (px)</label>
+              <input type="number" id="prop-iframe-height" value="${parseInt(iframe.getAttribute('height')) || 320}">
+            </div>
+          `;
+
+                    document.getElementById('prop-iframe-src').oninput = (e) => {
                         iframe.src = e.target.value;
-                    });
-                    document.getElementById('insp-iframe-height').addEventListener('input', (e) => {
-                        iframe.style.height = e.target.value + 'px';
-                    });
-                    document.getElementById('insp-iframe-border').addEventListener('change', (e) => {
-                        iframe.style.border = e.target.value;
-                    });
-                    document.getElementById('insp-iframe-sandbox').addEventListener('input', (e) => {
-                        iframe.setAttribute('sandbox', e.target.value);
-                    });
-                }
-
-                if (type === 'image') {
-                    const fileImage = document.getElementById('insp-file-image');
-                    if (fileImage) {
-                        fileImage.addEventListener('change', (e) => {
-                            handleFileUploadToBase64(e.target.files[0], (base64) => {
-                                node.querySelector('img').src = base64;
-                                renderInspector(node);
-                            });
-                        });
-                    }
-                    const imgSrc = document.getElementById('insp-img-src');
-                    if (imgSrc) {
-                        imgSrc.addEventListener('change', (e) => {
-                            if (e.target.value.trim() !== '') {
-                                node.querySelector('img').src = e.target.value.trim();
-                                renderInspector(node);
-                            }
-                        });
-                    }
-                    const imgAlt = document.getElementById('insp-img-alt');
-                    if (imgAlt) {
-                        imgAlt.addEventListener('input', (e) => {
-                            node.querySelector('img').alt = e.target.value;
-                        });
-                    }
-                }
-
-                if (type === 'video') {
-                    const fileVideo = document.getElementById('insp-file-video');
-                    if (fileVideo) {
-                        fileVideo.addEventListener('change', (e) => {
-                            handleFileUploadToBase64(e.target.files[0], (base64) => {
-                                const vid = node.querySelector('video');
-                                vid.src = base64;
-                                vid.load();
-                                renderInspector(node);
-                            });
-                        });
-                    }
-                    const videoSrc = document.getElementById('insp-video-src');
-                    if (videoSrc) {
-                        videoSrc.addEventListener('change', (e) => {
-                            if (e.target.value.trim() !== '') {
-                                const vid = node.querySelector('video');
-                                vid.src = e.target.value.trim();
-                                vid.load();
-                                renderInspector(node);
-                            }
-                        });
-                    }
-                    const videoHeight = document.getElementById('insp-video-height');
-                    if (videoHeight) {
-                        videoHeight.addEventListener('input', (e) => {
-                            node.querySelector('video').style.height = e.target.value + 'px';
-                        });
-                    }
-                }
-
-                if (type === 'audio') {
-                    const fileAudio = document.getElementById('insp-file-audio');
-                    if (fileAudio) {
-                        fileAudio.addEventListener('change', (e) => {
-                            handleFileUploadToBase64(e.target.files[0], (base64) => {
-                                const aud = node.querySelector('audio');
-                                aud.src = base64;
-                                aud.load();
-                                renderInspector(node);
-                            });
-                        });
-                    }
-                    const audioSrc = document.getElementById('insp-audio-src');
-                    if (audioSrc) {
-                        audioSrc.addEventListener('change', (e) => {
-                            if (e.target.value.trim() !== '') {
-                                const aud = node.querySelector('audio');
-                                aud.src = e.target.value.trim();
-                                aud.load();
-                                renderInspector(node);
-                            }
-                        });
-                    }
-                }
-
-                const rawHtml = document.getElementById('insp-raw-html');
-                if (rawHtml) {
-                    rawHtml.addEventListener('input', (e) => {
-                        node.querySelector('.custom-html-block').innerHTML = e.target.value;
-                    });
-                }
-
-                const inspMargin = document.getElementById('insp-margin-bottom');
-                if (inspMargin) {
-                    inspMargin.addEventListener('input', (e) => {
-                        node.style.marginBottom = e.target.value + 'px';
-                    });
+                    };
+                    document.getElementById('prop-iframe-height').oninput = (e) => {
+                        iframe.height = e.target.value;
+                    };
                 }
             }
 
-            function setupHeaderActions() {
-                const btnTogglePreview = document.getElementById('btn-toggle-preview');
-                btnTogglePreview.addEventListener('click', () => {
-                    isPreviewMode = !isPreviewMode;
-                    if (isPreviewMode) {
-                        deselectNode();
-                        btnTogglePreview.textContent = 'Edit Mode';
-                        btnTogglePreview.classList.add('active');
-                        canvas.classList.add('preview-active');
-                        canvasStatus.textContent = 'Preview Active';
-                        canvas.querySelectorAll('[contenteditable]').forEach(el => el.contentEditable = "false");
-                    } else {
-                        btnTogglePreview.textContent = 'Preview';
-                        btnTogglePreview.classList.remove('active');
-                        canvas.classList.remove('preview-active');
-                        canvasStatus.textContent = 'Edit Mode';
-                    }
-                });
-
-                deleteBtn.addEventListener('click', () => {
-                    if (selectedElement) {
-                        selectedElement.remove();
-                        deselectNode();
-                    }
-                });
-
-                document.getElementById('btn-clear-canvas').addEventListener('click', () => {
-                    deselectNode();
-                    canvas.innerHTML = '';
-                    activeLoadedSiteSlug = null;
-                });
-
-                document.getElementById('btn-view-code').addEventListener('click', () => {
-                    codeViewer.value = generateCleanExport();
-                    codeDrawer.style.display = 'flex';
-                });
-
-                document.getElementById('btn-close-code').addEventListener('click', () => {
-                    codeDrawer.style.display = 'none';
-                });
-
-                document.getElementById('btn-copy-code').addEventListener('click', () => {
-                    codeViewer.select();
-                    document.execCommand('copy');
-                    const original = document.getElementById('btn-copy-code').textContent;
-                    document.getElementById('btn-copy-code').textContent = 'Copied';
-                    setTimeout(() => {
-                        document.getElementById('btn-copy-code').textContent = original;
-                    }, 1500);
-                });
-
-                document.getElementById('btn-export-download').addEventListener('click', () => {
-                    const code = generateCleanExport();
-                    const blob = new Blob([code], { type: 'text/html;charset=utf-8' });
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = 'clean-site.html';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(url);
-                });
-            }
-
-            function setupViewportActions() {
-                const vpDesktop = document.getElementById('vp-desktop');
-                const vpTablet = document.getElementById('vp-tablet');
-                const vpMobile = document.getElementById('vp-mobile');
-
-                const resetButtons = () => {
-                    vpDesktop.classList.remove('active');
-                    vpTablet.classList.remove('active');
-                    vpMobile.classList.remove('active');
-                };
-
-                vpDesktop.addEventListener('click', () => {
-                    resetButtons();
-                    vpDesktop.classList.add('active');
-                    canvas.style.maxWidth = '960px';
-                });
-
-                vpTablet.addEventListener('click', () => {
-                    resetButtons();
-                    vpTablet.classList.add('active');
-                    canvas.style.maxWidth = '720px';
-                });
-
-                vpMobile.addEventListener('click', () => {
-                    resetButtons();
-                    vpMobile.classList.add('active');
-                    canvas.style.maxWidth = '380px';
-                });
-            }
-
+            // Generate Clean Exported HTML
             function generateCleanExport() {
-                const clone = canvas.cloneNode(true);
-                clone.querySelectorAll('.element-tag').forEach(tag => tag.remove());
-                clone.querySelectorAll('.canvas-node').forEach(node => {
-                    node.classList.remove('canvas-node', 'is-selected');
-                    node.removeAttribute('data-node-type');
-                    node.removeAttribute('contenteditable');
-
-                    const btn = node.querySelector('.node-custom-btn');
-                    if (btn) {
-                        const url = btn.getAttribute('data-target-url');
-                        if (url && url !== '#') {
-                            btn.setAttribute('onclick', `location.href='${url}'`);
-                        }
-                    }
+                const clone = pageCanvas.cloneNode(true);
+                clone.querySelectorAll('.node-actions-bar').forEach(el => el.remove());
+                clone.querySelectorAll('.node-wrap').forEach(el => {
+                    el.classList.remove('selected');
+                    el.style.border = 'none';
+                    el.style.padding = '0';
                 });
 
                 return `<!DOCTYPE html>
@@ -2464,22 +1514,24 @@ service cloud.firestore {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Published Site</title>
+  <title>Published Website</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background-color: #0e0e11;
-      color: #a0a0aa;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      font-size: 13px;
-      line-height: 1.6;
-      padding: 40px 20px;
+      background-color: #0b0b0e;
+      color: #ffffff;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
     }
     .page-wrap {
       width: 100%;
-      max-width: 960px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
       display: flex;
       flex-direction: column;
       gap: 16px;
@@ -2508,25 +1560,373 @@ service cloud.firestore {
     .node-media-frame { width: 100%; border: none; background: #000; border-radius: 2px; }
     .node-image { max-width: 100%; height: auto; border-radius: 2px; display: block; border: 1px solid #27272a; }
     .node-audio { width: 100%; height: 40px; filter: invert(0.9) hue-rotate(180deg); }
+    .published-footer-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(14, 14, 17, 0.95);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-top: 1px solid #27272a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 16px;
+      font-size: 10px;
+      color: #888894;
+      z-index: 1000;
+      letter-spacing: 0.02em;
+    }
+    .published-footer-link {
+      color: #888894;
+      text-decoration: none;
+      font-size: 10px;
+      letter-spacing: 0.03em;
+      transition: color 0.15s ease;
+      white-space: nowrap;
+    }
+    .published-footer-link:hover {
+      color: #ffffff;
+    }
   </style>
 </head>
 <body>
   <div class="page-wrap">
 ${clone.innerHTML.trim()}
   </div>
+  <footer class="published-footer-bar">
+    <span>Disclaimer: The platform host/creator is not responsible for any content published or hosted on this website.</span>
+    <a href="https://test.notgreg.space/wscr" target="_blank" rel="noopener noreferrer" class="published-footer-link">made with https://test.notgreg.space/wscr</a>
+  </footer>
 </body>
 </html>`;
             }
 
             function rgbToHex(rgb) {
-                if (!rgb || rgb.indexOf('rgb') === -1) return rgb || '#ffffff';
+                if (!rgb || rgb === 'transparent') return '#ffffff';
                 const vals = rgb.match(/\d+/g);
                 if (!vals || vals.length < 3) return '#ffffff';
-                const r = parseInt(vals[0]).toString(16).padStart(2, '0');
-                const g = parseInt(vals[1]).toString(16).padStart(2, '0');
-                const b = parseInt(vals[2]).toString(16).padStart(2, '0');
-                return `#${r}${g}${b}`;
+                return "#" + ((1 << 24) + (parseInt(vals[0]) << 16) + (parseInt(vals[1]) << 8) + parseInt(vals[2])).toString(16).slice(1);
             }
+
+            // Export Modal Handlers
+            document.getElementById('btn-export-code').onclick = () => {
+                const modal = document.getElementById('modal-export');
+                const codeView = document.getElementById('export-code-view');
+                codeView.value = generateCleanExport();
+                modal.style.display = 'flex';
+            };
+
+            document.getElementById('btn-close-export-modal').onclick = () => {
+                document.getElementById('modal-export').style.display = 'none';
+            };
+
+            document.getElementById('btn-copy-code').onclick = () => {
+                const codeView = document.getElementById('export-code-view');
+                codeView.select();
+                document.execCommand('copy');
+                const status = document.getElementById('export-copy-status');
+                status.style.display = 'inline';
+                setTimeout(() => status.style.display = 'none', 2000);
+            };
+
+            document.getElementById('btn-download-html').onclick = () => {
+                const text = document.getElementById('export-code-view').value;
+                const blob = new Blob([text], { type: 'text/html' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'index.html';
+                a.click();
+            };
+
+            // Publishing Modal & Cloud Sync
+            const modalPublish = document.getElementById('modal-publish');
+            const publishSiteNameInput = document.getElementById('publish-sitename-input');
+            const publishUrlPreview = document.getElementById('publish-url-preview');
+            const publishStatusMsg = document.getElementById('publish-status-msg');
+
+            document.getElementById('btn-publish-site').onclick = () => {
+                modalPublish.style.display = 'flex';
+                publishStatusMsg.style.display = 'none';
+
+                if (!currentUser) {
+                    document.getElementById('publish-gate-auth').style.display = 'block';
+                    document.getElementById('publish-form-body').style.display = 'none';
+                } else {
+                    document.getElementById('publish-gate-auth').style.display = 'none';
+                    document.getElementById('publish-form-body').style.display = 'block';
+                    document.getElementById('publish-author-display').textContent = `@${currentUsername}`;
+                    updatePublishUrlPreview();
+                }
+            };
+
+            document.getElementById('btn-close-publish-modal').onclick = () => {
+                modalPublish.style.display = 'none';
+            };
+            document.getElementById('btn-cancel-publish').onclick = () => {
+                modalPublish.style.display = 'none';
+            };
+
+            publishSiteNameInput.oninput = () => {
+                publishSiteNameInput.value = publishSiteNameInput.value.toLowerCase().replace(/[^a-z0-9_-]/g, '');
+                updatePublishUrlPreview();
+            };
+
+            function updatePublishUrlPreview() {
+                const site = publishSiteNameInput.value.trim() || 'sitename';
+                publishUrlPreview.textContent = `site.html#user=${currentUsername || 'user'}&site=${site}`;
+            }
+
+            document.getElementById('btn-confirm-publish').onclick = async () => {
+                const siteName = publishSiteNameInput.value.trim();
+                if (!siteName) {
+                    showPublishError('Please enter a site slug name.');
+                    return;
+                }
+
+                const docId = `${currentUsername}_${siteName}`;
+                publishStatusMsg.style.display = 'block';
+                publishStatusMsg.style.color = '#888894';
+                publishStatusMsg.textContent = 'Publishing website...';
+
+                try {
+                    // Check if doc exists and if owned by someone else
+                    const snap = await getDoc(doc(db, 'sites', docId));
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        if (data.ownerUid !== currentUser.uid) {
+                            showPublishError('This site slug is already owned by another account.');
+                            return;
+                        }
+                    }
+
+                    const fullHtml = generateCleanExport();
+                    const elementsHtml = pageCanvas.innerHTML;
+
+                    await setDoc(doc(db, 'sites', docId), {
+                        docId: docId,
+                        siteName: siteName,
+                        username: currentUsername,
+                        ownerUid: currentUser.uid,
+                        ownerEmail: currentUser.email,
+                        html: fullHtml,
+                        elementsHtml: elementsHtml,
+                        updatedAt: serverTimestamp()
+                    }, { merge: true });
+
+                    const shareUrl = `${window.location.origin}${window.location.pathname}#user=${currentUsername}&site=${siteName}`;
+                    publishStatusMsg.style.color = '#22c55e';
+                    publishStatusMsg.innerHTML = `Published! <a href="${shareUrl}" target="_blank" style="color: #ffffff; text-decoration: underline;">Open Site &rarr;</a>`;
+                    document.getElementById('canvas-status').textContent = `Published: ${siteName}`;
+                } catch (err) {
+                    console.error('Publish error:', err);
+                    showPublishError(err.message);
+                }
+            };
+
+            function showPublishError(msg) {
+                publishStatusMsg.style.display = 'block';
+                publishStatusMsg.style.color = '#ef4444';
+                publishStatusMsg.textContent = msg;
+            }
+
+            // My Sites Drawer
+            document.getElementById('btn-my-sites').onclick = async () => {
+                const drawer = document.getElementById('drawer-my-sites');
+                drawer.classList.add('open');
+                await loadMySites();
+            };
+
+            document.getElementById('btn-close-sites-drawer').onclick = () => {
+                document.getElementById('drawer-my-sites').classList.remove('open');
+            };
+
+            async function loadMySites() {
+                const listEl = document.getElementById('my-sites-list');
+                listEl.innerHTML = `<p style="font-size: 12px; color: #888894; text-align: center; margin-top: 20px;">Fetching sites...</p>`;
+
+                try {
+                    const q = query(collection(db, 'sites'), where('ownerUid', '==', currentUser.uid));
+                    const snap = await getDocs(q);
+
+                    if (snap.empty) {
+                        listEl.innerHTML = `<p style="font-size: 12px; color: #555562; text-align: center; margin-top: 20px;">No published sites yet.</p>`;
+                        return;
+                    }
+
+                    listEl.innerHTML = '';
+                    snap.forEach(docSnap => {
+                        const data = docSnap.data();
+                        const card = document.createElement('div');
+                        card.className = 'site-card';
+                        card.innerHTML = `
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-size: 13px; font-weight: 600; color: #ffffff;">${data.siteName}</span>
+                <span style="font-size: 10px; color: #555562;">@${data.username}</span>
+              </div>
+              <div style="font-size: 11px; color: #888894; margin-bottom: 8px;">
+                Link: <code>#user=${data.username}&site=${data.siteName}</code>
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button class="btn-card-load btn-primary" style="flex: 1;">Edit in Studio</button>
+                <a href="#user=${data.username}&site=${data.siteName}" class="btn-link" style="padding: 4px 8px; font-size: 11px;">View</a>
+                <button class="btn-card-del btn-danger">Delete</button>
+              </div>
+            `;
+
+                        card.querySelector('.btn-card-load').onclick = () => {
+                            loadSiteIntoStudio(data, docSnap.id);
+                            document.getElementById('drawer-my-sites').classList.remove('open');
+                        };
+
+                        card.querySelector('.btn-card-del').onclick = async () => {
+                            if (confirm(`Delete website "${data.siteName}"? This cannot be undone.`)) {
+                                await deleteDoc(doc(db, 'sites', docSnap.id));
+                                card.remove();
+                            }
+                        };
+
+                        listEl.appendChild(card);
+                    });
+                } catch (e) {
+                    listEl.innerHTML = `<p style="color: #ef4444; font-size: 12px;">Failed to load sites: ${e.message}</p>`;
+                }
+            }
+
+            // Authentication modal logic
+            let isAuthRegisterMode = false;
+            const modalAuth = document.getElementById('modal-auth');
+            const authEmail = document.getElementById('auth-email-input');
+            const authPassword = document.getElementById('auth-password-input');
+            const authError = document.getElementById('auth-error-msg');
+            const tabLogin = document.getElementById('tab-auth-login');
+            const tabRegister = document.getElementById('tab-auth-register');
+
+            document.getElementById('btn-auth-trigger').onclick = () => {
+                modalAuth.style.display = 'flex';
+            };
+            document.getElementById('btn-prompt-auth').onclick = () => {
+                modalPublish.style.display = 'none';
+                modalAuth.style.display = 'flex';
+            };
+            document.getElementById('btn-close-auth-modal').onclick = () => {
+                modalAuth.style.display = 'none';
+            };
+            document.getElementById('btn-auth-cancel').onclick = () => {
+                modalAuth.style.display = 'none';
+            };
+
+            tabLogin.onclick = () => {
+                isAuthRegisterMode = false;
+                tabLogin.className = 'btn-primary';
+                tabRegister.className = '';
+                document.getElementById('auth-modal-heading').textContent = 'Sign In to Account';
+            };
+
+            tabRegister.onclick = () => {
+                isAuthRegisterMode = true;
+                tabRegister.className = 'btn-primary';
+                tabLogin.className = '';
+                document.getElementById('auth-modal-heading').textContent = 'Register New Account';
+            };
+
+            document.getElementById('btn-auth-submit').onclick = async () => {
+                const email = authEmail.value.trim();
+                const pass = authPassword.value;
+                authError.style.display = 'none';
+
+                if (!email || !pass) {
+                    authError.textContent = 'Please fill out email and password.';
+                    authError.style.display = 'block';
+                    return;
+                }
+
+                try {
+                    if (isAuthRegisterMode) {
+                        await createUserWithEmailAndPassword(auth, email, pass);
+                    } else {
+                        await signInWithEmailAndPassword(auth, email, pass);
+                    }
+                    modalAuth.style.display = 'none';
+                    authPassword.value = '';
+                } catch (err) {
+                    authError.textContent = err.message;
+                    authError.style.display = 'block';
+                }
+            };
+
+            document.getElementById('btn-auth-signout').onclick = async () => {
+                await signOut(auth);
+            };
+
+            // Username / Profile Modal Logic
+            const modalUsername = document.getElementById('modal-username');
+            const usernameInput = document.getElementById('username-input');
+            const usernameStatus = document.getElementById('username-status-msg');
+
+            document.getElementById('btn-username-trigger').onclick = () => {
+                modalUsername.style.display = 'flex';
+                usernameInput.value = currentUsername || '';
+                usernameStatus.style.display = 'none';
+            };
+
+            document.getElementById('btn-close-username-modal').onclick = () => {
+                modalUsername.style.display = 'none';
+            };
+            document.getElementById('btn-cancel-username').onclick = () => {
+                modalUsername.style.display = 'none';
+            };
+
+            usernameInput.oninput = () => {
+                usernameInput.value = usernameInput.value.toLowerCase().replace(/[^a-z0-9]/g, '');
+            };
+
+            document.getElementById('btn-save-username').onclick = async () => {
+                const newName = usernameInput.value.trim();
+                if (!newName || newName.length < 3) {
+                    usernameStatus.style.display = 'block';
+                    usernameStatus.style.color = '#ef4444';
+                    usernameStatus.textContent = 'Username must be at least 3 characters.';
+                    return;
+                }
+
+                if (newName === currentUsername) {
+                    modalUsername.style.display = 'none';
+                    return;
+                }
+
+                usernameStatus.style.display = 'block';
+                usernameStatus.style.color = '#888894';
+                usernameStatus.textContent = 'Checking availability...';
+
+                try {
+                    const userDocSnap = await getDoc(doc(db, 'usernames', newName));
+                    if (userDocSnap.exists() && userDocSnap.data().uid !== currentUser.uid) {
+                        usernameStatus.style.color = '#ef4444';
+                        usernameStatus.textContent = 'That username is already taken.';
+                        return;
+                    }
+
+                    // Release old handle if changing
+                    if (currentUsername) {
+                        try { await deleteDoc(doc(db, 'usernames', currentUsername)); } catch (e) { }
+                    }
+
+                    await setDoc(doc(db, 'usernames', newName), { uid: currentUser.uid });
+                    await setDoc(doc(db, 'users', currentUser.uid), { username: newName }, { merge: true });
+
+                    currentUsername = newName;
+                    document.getElementById('btn-username-trigger').textContent = `@${currentUsername}`;
+                    modalUsername.style.display = 'none';
+                } catch (err) {
+                    usernameStatus.style.color = '#ef4444';
+                    usernameStatus.textContent = err.message;
+                }
+            };
+
+            // Initial listeners for starter template nodes
+            attachNodeListeners();
         })();
     </script>
 </body>
