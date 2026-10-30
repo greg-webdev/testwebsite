@@ -578,6 +578,13 @@
             syncInputsState();
         });
 
+        inputsContainer.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.target.matches('input') && !e.isComposing) {
+                e.preventDefault();
+                btnCalc.click();
+            }
+        });
+
         inputsContainer.addEventListener('click', (e) => {
             if (e.target.matches('.btn-clear-row')) {
                 e.target.closest('.input-row').remove();
