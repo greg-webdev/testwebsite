@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studio Builder</title>
+    <style>
+        :root {
+            --bg-primary: #121214;
+            --bg-secondary: #18181b;
+            --bg-tertiary: #1e1e24;
+            --border-color: #27272a;
+            --border-highlight: #3f3f46;
+            --text-muted: #71717a;
+            --text-subtle: #a1a1aa;
+            --text-bright: #f4f4f5;
+            --selection-accent: #52525b;
+            --accent: #22c55e;
+            --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            outline: none;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-subtle);
+            font-family: var(--font-sans);
+            font-size: 12px;
+            line-height: 1.4;
+            letter-spacing: -0.01em;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        a {
+            text-decoration: none;
+            color: var(--text-muted);
+            transition: color 0.15s ease;
+        }
+
+        a:hover {
+            color: var(--text-bright);
+        }
+
+        /* Minimalist Flat Controls */
+        button,
+        .btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-family: var(--font-sans);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 6px 10px;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: color 0.15s ease, background 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        button:hover,
+        .btn:hover {
+            color: var(--text-bright);
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+
+        button.active {
+            color: var(--text-bright);
+            background-color: var(--bg-tertiary);
+        }
+
+        button.btn-danger:hover {
+            color: #ef4444;
+        }
+
+        input,
+        select,
+        textarea {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-bright);
+            font-family: var(--font-sans);
+            font-size: 11px;
+            padding: 6px 8px;
+            border-radius: 2px;
+            width: 100%;
+            transition: border-color 0.15s ease;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--border-highlight);
+        }
+
+        /* Layout Structure */
+        header {
+            height: 42px;
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 20;
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-title {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-bright);
+        }
+
+        .app-workspace {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 42px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Left Sidebar: Components */
+        .sidebar-left {
+            width: 240px;
+            background-color: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .panel-header {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 600;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .elements-catalog {
+            padding: 10px 12px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 4px;
+            overflow-y: auto;
+        }
+
+        .catalog-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 2px;
+            color: var(--text-subtle);
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.15s ease;
+        }
+
+        .catalog-item:hover {
+            color: var(--text-bright);
+            border-color: var(--border-highlight);
+            background-color: #24242b;
+        }
+
+        .catalog-item span.cat-label {
+            font-size: 9px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Canvas Center Workspace */
+        .canvas-viewport {
+            flex: 1;
+            background-color: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            overflow: auto;
+            padding: 24px;
+            position: relative;
+        }
+
+        .viewport-toolbar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            background: var(--bg-secondary);
+            padding: 3px 6px;
+            border: 1px solid var(--border-color);
+            border-radius: 2px;
+        }
+
+        #page-canvas {
+            width: 100%;
+            max-width: 960px;
+            min-height: 85vh;
+            background: #151518;
+            border: 1px solid var(--border-color);
+            border-radius: 2px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            transition: max-width 0.2s ease;
+        }
+
+        #page-canvas.preview-active {
+            background: #0f0f11;
+            border-color: #1f1f23;
+        }
+
+        /* Right Sidebar: Inspector */
+        .sidebar-right {
+            width: 320px;
+            background-color: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+
+        .inspector-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .inspector-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .inspector-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .inspector-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .inspector-row label {
+            font-size: 10px;
+            color: var(--text-subtle);
+            width: 60px;
+            flex-shrink: 0;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-btn {
+            display: block;
+            text-align: center;
+            padding: 6px;
+            background: var(--bg-tertiary);
+            border: 1px dashed var(--border-color);
+            border-radius: 2px;
+            color: var(--text-subtle);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            transition: all 0.15s ease;
+        }
+
+        .file-input-wrapper:hover .file-input-btn {
+            color: var(--text-bright);
+            border-color: var(--border-highlight);
+        }
+
+        /* Base64 Badge */
+        .base64-indicator {
+            font-size: 9px;
+            font-family: var(--font-mono);
+            background: #111e15;
+            color: var(--accent);
+            padding: 3px 6px;
+            border-radius: 2px;
+            border: 1px solid #1a3c23;
+            display: inline-block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        /* Editable Components on Canvas */
+        .canvas-node {
+            position: relative;
+            border: 1px dashed transparent;
+            transition: border-color 0.1s ease;
+            cursor: pointer;
+            min-height: 20px;
+        }
+
+        .canvas-node:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .canvas-node.is-selected {
+            border-color: var(--text-bright) !important;
+            outline: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .canvas-node .element-tag {
+            display: none;
+            position: absolute;
+            top: -18px;
+            left: 0;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 9px;
+            text-transform: uppercase;
+            padding: 2px 4px;
+            border-radius: 2px;
+            pointer-events: none;
+            letter-spacing: 0.05em;
+            font-family: var(--font-mono);
+        }
+
+        .canvas-node.is-selected .element-tag {
+            display: block;
+            color: var(--text-bright);
+            border-color: var(--border-highlight);
+        }
+
+        /* Component Default Renderings */
+        .node-text-btn {
+            display: inline-block;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 13px;
+            padding: 8px 14px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: color 0.15s ease, background 0.15s ease;
+            border-radius: 2px;
+        }
+
+        .node-text-btn:hover {
+            color: var(--text-bright);
+            background-color: rgba(255, 255, 255, 0.04);
+        }
+
+        .node-link {
+            display: inline-block;
+            text-decoration: none;
+            color: #93939f;
+            font-size: 13px;
+            transition: color 0.15s ease;
+        }
+
+        .node-link:hover {
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        .node-container {
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: 80px;
+            background: rgba(255, 255, 255, 0.01);
+            border-radius: 2px;
+        }
+
+        .node-media-frame {
+            width: 100%;
+            border: none;
+            background: #000;
+            border-radius: 2px;
+            display: block;
+        }
+
+        .node-image {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 2px;
+            border: 1px solid var(--border-color);
+        }
+
+        .node-audio {
+            width: 100%;
+            height: 40px;
+            filter: invert(0.9) hue-rotate(180deg);
+        }
+
+        /* Modal replacement: Dedicated Code Drawer overlay */
+        #code-drawer {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(18, 18, 20, 0.98);
+            z-index: 100;
+            flex-direction: column;
+        }
+
+        #code-drawer.visible {
+            display: flex;
+        }
+
+        .drawer-header {
+            height: 42px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            background: var(--bg-secondary);
+        }
+
+        #code-viewer {
+            flex: 1;
+            width: 100%;
+            background: #0d0d0f;
+            color: #d4d4d8;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            padding: 20px;
+            border: none;
+            resize: none;
+            line-height: 1.5;
+        }
+
+        /* Minimalist status bar */
+        .status-bar {
+            font-size: 10px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        /* Drag over state */
+        .canvas-node.drag-target {
+            outline: 1px dashed var(--accent);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- App Header -->
+    <header>
+        <div class="brand-section">
+            <span class="brand-title">Studio Designer</span>
+            <span class="status-bar" id="canvas-status">Edit Mode</span>
+        </div>
+
+        <div style="display: flex; gap: 6px; align-items: center;">
+            <button id="btn-toggle-preview" title="Toggle Preview / Edit">Preview</button>
+            <button id="btn-view-code">View HTML</button>
+            <button id="btn-export-download">Download</button>
+            <button id="btn-clear-canvas" class="btn-danger">Clear</button>
+        </div>
+    </header>
+
+    <!-- Main Studio Workspace -->
+    <div class="app-workspace">
+
+        <!-- Left Sidebar: Element Library -->
+        <aside class="sidebar-left">
+            <div class="panel-header">
+                <span>Components</span>
+            </div>
+            <div class="elements-catalog">
+                <div class="catalog-item" data-type="heading">
+                    <span>Heading</span>
+                    <span class="cat-label">H1</span>
+                </div>
+                <div class="catalog-item" data-type="paragraph">
+                    <span>Paragraph</span>
+                    <span class="cat-label">Text</span>
+                </div>
+                <div class="catalog-item" data-type="button">
+                    <span>Text Button</span>
+                    <span class="cat-label">Action</span>
+                </div>
+                <div class="catalog-item" data-type="link">
+                    <span>Text Link</span>
+                    <span class="cat-label">URL</span>
+                </div>
+                <div class="catalog-item" data-type="container">
+                    <span>Div Container</span>
+                    <span class="cat-label">Box</span>
+                </div>
+                <div class="catalog-item" data-type="image">
+                    <span>Image</span>
+                    <span class="cat-label">Base64</span>
+                </div>
+                <div class="catalog-item" data-type="video">
+                    <span>Video</span>
+                    <span class="cat-label">Base64</span>
+                </div>
+                <div class="catalog-item" data-type="audio">
+                    <span>Audio</span>
+                    <span class="cat-label">Base64</span>
+                </div>
+                <div class="catalog-item" data-type="iframe">
+                    <span>iFrame</span>
+                    <span class="cat-label">Embed</span>
+                </div>
+                <div class="catalog-item" data-type="custom-html">
+                    <span>Custom HTML</span>
+                    <span class="cat-label">Code</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Canvas Center Workspace -->
+        <main class="canvas-viewport">
+            <div class="viewport-toolbar">
+                <button id="vp-desktop" class="active">Desktop (960px)</button>
+                <button id="vp-tablet">Tablet (720px)</button>
+                <button id="vp-mobile">Mobile (380px)</button>
+            </div>
+
+            <div id="page-canvas" aria-label="Editable workspace">
+                <!-- Default sample content -->
+                <div class="canvas-node" data-node-type="heading">
+                    <div class="element-tag">heading</div>
+                    <h1 style="font-size: 28px; font-weight: 500; color: #f4f4f5; letter-spacing: -0.02em;">Digital
+                        Architecture</h1>
+                </div>
+                <div class="canvas-node" data-node-type="paragraph">
+                    <div class="element-tag">paragraph</div>
+                    <p style="color: #a1a1aa; font-size: 13px; line-height: 1.6;">A modern minimalist publishing
+                        workspace. Add elements from the sidebar, configure properties, and upload media directly
+                        encoded to Base64 data URLs.</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Sidebar: Inspector Panel -->
+        <aside class="sidebar-right">
+            <div class="panel-header">
+                <span>Inspector</span>
+                <button id="btn-delete-node" class="btn-danger" style="display:none; padding: 2px 4px;">Delete</button>
+            </div>
+
+            <div class="inspector-body" id="inspector-content">
+                <div style="color: var(--text-muted); font-size: 11px; padding-top: 10px;">Select an element on canvas
+                    to modify properties.</div>
+            </div>
+        </aside>
+
+        <!-- Code View Overlay Drawer -->
+        <div id="code-drawer">
+            <div class="drawer-header">
+                <span
+                    style="font-weight: 600; text-transform: uppercase; font-size: 11px; color: var(--text-bright);">Generated
+                    Self-Contained Source</span>
+                <div style="display: flex; gap: 8px;">
+                    <button id="btn-copy-code">Copy HTML</button>
+                    <button id="btn-close-code">Close</button>
+                </div>
+            </div>
+            <textarea id="code-viewer" readonly spellcheck="false"></textarea>
+        </div>
+
+    </div>
+
+    <script>
+        (function () {
+            // Core state
+            let selectedElement = null;
+            let isPreviewMode = false;
+            const canvas = document.getElementById('page-canvas');
+            const inspectorContent = document.getElementById('inspector-content');
+            const deleteBtn = document.getElementById('btn-delete-node');
+            const canvasStatus = document.getElementById('canvas-status');
+            const codeDrawer = document.getElementById('code-drawer');
+            const codeViewer = document.getElementById('code-viewer');
+
+            // Initialize workspace
+            setupCanvasListeners();
+            setupCatalogActions();
+            setupHeaderActions();
+            setupViewportActions();
+
+            // Ensure initial elements are selectable
+            canvas.querySelectorAll('.canvas-node').forEach(node => attachNodeEvents(node));
+
+            function setupCanvasListeners() {
+                canvas.addEventListener('click', (e) => {
+                    if (isPreviewMode) return;
+
+                    // Find closest canvas node
+                    const target = e.target.closest('.canvas-node');
+                    if (target && canvas.contains(target)) {
+                        e.stopPropagation();
+                        selectNode(target);
+                    } else if (e.target === canvas) {
+                        deselectNode();
+                    }
+                });
+            }
+
+            function selectNode(node) {
+                if (selectedElement) {
+                    selectedElement.classList.remove('is-selected');
+                }
+                selectedElement = node;
+                selectedElement.classList.add('is-selected');
+                deleteBtn.style.display = 'inline-block';
+                renderInspector(node);
+            }
+
+            function deselectNode() {
+                if (selectedElement) {
+                    selectedElement.classList.remove('is-selected');
+                    selectedElement = null;
+                }
+                deleteBtn.style.display = 'none';
+                inspectorContent.innerHTML = `<div style="color: var(--text-muted); font-size: 11px; padding-top: 10px;">Select an element on canvas to modify properties.</div>`;
+            }
+
+            function attachNodeEvents(node) {
+                // Double-click to make inline text editable directly
+                node.addEventListener('dblclick', (e) => {
+                    if (isPreviewMode) return;
+                    const editableTarget = getEditableChild(node);
+                    if (editableTarget) {
+                        editableTarget.contentEditable = "true";
+                        editableTarget.focus();
+                        editableTarget.onblur = () => {
+                            editableTarget.contentEditable = "false";
+                            renderInspector(node); // Sync inspector
+                        };
+                    }
+                });
+            }
+
+            function getEditableChild(node) {
+                return node.querySelector('h1, h2, h3, p, a, button, span, div:not(.element-tag)');
+            }
+
+            // Catalog items creation
+            function setupCatalogActions() {
+                document.querySelectorAll('.catalog-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const type = item.getAttribute('data-type');
+                        createElementOnCanvas(type);
+                    });
+                });
+            }
+
+            function createElementOnCanvas(type) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'canvas-node';
+                wrapper.setAttribute('data-node-type', type);
+
+                const tag = document.createElement('div');
+                tag.className = 'element-tag';
+                tag.textContent = type;
+                wrapper.appendChild(tag);
+
+                switch (type) {
+                    case 'heading': {
+                        const h2 = document.createElement('h2');
+                        h2.style.fontSize = '22px';
+                        h2.style.fontWeight = '500';
+                        h2.style.color = '#f4f4f5';
+                        h2.textContent = 'New Heading Title';
+                        wrapper.appendChild(h2);
+                        break;
+                    }
+                    case 'paragraph': {
+                        const p = document.createElement('p');
+                        p.style.color = '#a1a1aa';
+                        p.style.fontSize = '13px';
+                        p.style.lineHeight = '1.6';
+                        p.textContent = 'Clean editorial paragraph. Click to select, double click to edit inline, or refine styling in the inspector.';
+                        wrapper.appendChild(p);
+                        break;
+                    }
+                    case 'button': {
+                        const btn = document.createElement('button');
+                        btn.className = 'node-text-btn';
+                        btn.textContent = 'EXPLORE SYSTEM';
+                        btn.setAttribute('data-target-url', '#');
+                        btn.style.fontSize = '12px';
+                        btn.style.padding = '8px 14px';
+                        btn.style.letterSpacing = '0.04em';
+                        wrapper.appendChild(btn);
+                        break;
+                    }
+                    case 'link': {
+                        const link = document.createElement('a');
+                        link.className = 'node-link';
+                        link.href = '#';
+                        link.textContent = 'Reference link without underline';
+                        link.style.fontSize = '12px';
+                        wrapper.appendChild(link);
+                        break;
+                    }
+                    case 'container': {
+                        const container = document.createElement('div');
+                        container.className = 'node-container';
+                        const childP = document.createElement('p');
+                        childP.textContent = 'Inner container box';
+                        childP.style.color = '#71717a';
+                        container.appendChild(childP);
+                        wrapper.appendChild(container);
+                        break;
+                    }
+                    case 'image': {
+                        const img = document.createElement('img');
+                        img.className = 'node-image';
+                        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="240" viewBox="0 0 600 240"><rect fill="#1e1e24" width="600" height="240"/><text fill="#71717a" font-family="sans-serif" font-size="12" x="50%" y="50%" text-anchor="middle" dominant-baseline="middle">IMAGE PLACEHOLDER (BASE64 READY)</text></svg>');
+                        img.alt = 'Embedded Asset';
+                        wrapper.appendChild(img);
+                        break;
+                    }
+                    case 'video': {
+                        const video = document.createElement('video');
+                        video.className = 'node-media-frame';
+                        video.controls = true;
+                        video.style.height = '240px';
+                        video.innerHTML = '<p style="color:#71717a; padding:10px;">Empty video block. Use inspector to upload or specify source.</p>';
+                        wrapper.appendChild(video);
+                        break;
+                    }
+                    case 'audio': {
+                        const audio = document.createElement('audio');
+                        audio.className = 'node-audio';
+                        audio.controls = true;
+                        wrapper.appendChild(audio);
+                        break;
+                    }
+                    case 'iframe': {
+                        const iframe = document.createElement('iframe');
+                        iframe.className = 'node-media-frame';
+                        iframe.src = 'https://example.com';
+                        iframe.style.height = '280px';
+                        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
+                        wrapper.appendChild(iframe);
+                        break;
+                    }
+                    case 'custom-html': {
+                        const custom = document.createElement('div');
+                        custom.className = 'custom-html-block';
+                        custom.innerHTML = '<div style="padding: 12px; background: #1a1a1e; border: 1px solid #27272a; font-family: monospace; font-size: 11px; color: #a1a1aa;">&lt;div&gt;Custom HTML Block&lt;/div&gt;</div>';
+                        wrapper.appendChild(custom);
+                        break;
+                    }
+                }
+
+                attachNodeEvents(wrapper);
+                canvas.appendChild(wrapper);
+                selectNode(wrapper);
+            }
+
+            // Convert any user-selected local file to pure Base64
+            function handleFileUploadToBase64(file, callback) {
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const base64Url = e.target.result;
+                    callback(base64Url, file.name, file.size);
+                };
+                reader.onerror = function () {
+                    console.error("FileReader failed to convert media.");
+                };
+                reader.readAsDataURL(file);
+            }
+
+            // Inspector panel rendering
+            function renderInspector(node) {
+                const type = node.getAttribute('data-node-type');
+                let html = `
+          <div class="inspector-group">
+            <span class="inspector-label">Type: ${type.toUpperCase()}</span>
+          </div>
+        `;
+
+                if (type === 'heading' || type === 'paragraph') {
+                    const elem = node.querySelector('h1, h2, h3, p');
+                    html += `
+            <div class="inspector-group">
+              <label class="inspector-label">Text Content</label>
+              <textarea id="insp-text" rows="3">${elem.innerText}</textarea>
+            </div>
+            <div class="inspector-group">
+              <label class="inspector-label">Font Size (px)</label>
+              <input type="number" id="insp-fontsize" value="${parseInt(window.getComputedStyle(elem).fontSize, 10)}">
+            </div>
+            <div class="inspector-group">
+              <label class="inspector-label">Color Hex</label>
+              <input type="text" id="insp-color" value="${rgbToHex(window.getComputedStyle(elem).color)}">
+            </div>
+          `;
+                } else if (type === 'button') {
+                    const btn = node.querySelector('button');
+                    html += `
+            <div class="inspector-group">
+              <label class="inspector-label">Button Label</label>
+              <input type="text" id="insp-btn-text" value="${btn.innerText}">
+            </div>
+            <div class="inspector-group">
+              <label class="inspector-label">Destination URL</label>
+              <input type="text" id="insp-btn-url" value="${btn.getAttribute('data-target-url') || '#'}">
+            </div>
+            <div class="inspector-group">
+              <label class="inspector-label">Font Size (px)</label>
+              <input type="number" id="insp-fontsize" value="${parseInt(window.getComputedStyle(btn).fontSize, 10)}">
+            </div>
+            <div class="inspector-group">
+              <label class="inspector-label">Letter Spacing (em)</label>
+              <input type="text" id="insp-btn-spacing" value="${btn.style.letterSpacing || '0.04em'}">
+            </div>
+          `;
+                } else if (type === 'link') {
+                    const a = node.querySelector('a');
+                    html += `
+            <div class="inspector-group">
+              <label class="inspector-label">Link Text</label>
+              <input type="text" id="insp-link-text" value="${a.innerText}">
+            </div>
+            <div class="inspector-group">
+              <label class="inspector-label">Target URL</label>
+              <input type="text" id="insp-link-url" value="${a.getAttribute('href') || '#'}">
+            </div>
+            <div class="inspector-group">
+              <label class="inspector-label">Font Size (px)</label>
+              <input type="number" id="insp-fontsize" value="${parseInt(window.getComputedStyle(a).fontSize, 10)}">
+            </div>
+          `;
+                } else if (type === 'iframe') {
+                    const iframe = node.querySelector('iframe');
+                    html += `
+            <div class="inspector-group">
+              <label class="inspector-label">iFrame Source (URL)</label>
+              <input type="text" id="insp-iframe-src" value="${iframe.getAttribute('src') || ''}">
+            </div>
+            <div class="inspector-group">
+              <label class="inspector-label">Frame Height (px)</label>
+              <input type="number" id="insp-iframe-height" value="${parseInt(iframe.style.height, 10) || 280}">
+            </div>
+            <div class="inspector-group">
+              <label class="inspector-label">Sandbox Security</label>
+              <input type="text" id="insp-iframe-sandbox" value="${iframe.getAttribute('sandbox') || 'allow-scripts allow-same-origin'}">
+            </div>
+          `;
+                } else if (type === 'image') {
+                    const img = node.querySelector('img');
+                    const isBase64 = (img.src || '').startsWith('data:');
+                    html += `
+            <div class="inspector-group">
+              <label class="inspector-label">Upload Image (Auto Base64)</label>
+              <div class="file-input-wrapper">
+                <div class="file-input-btn">Select Local Image File</div>
+                <input type="file" id="insp-file-image" accept="image/*">
+              </div>
+            </div>
+            <div class="inspector-group">
+              <label class="inspector-label">Or Image URL</label>
+              <input type="text" id="insp-img-src" value="${isBase64 ? '' : img.src}" placeholder="https://...">
+            </div>
+            <div class="inspector-group">
+              <label class="inspector-label">Encoding Status</label>
+              <span class="base64-indicator">${isBase64 ? 'ENCODED BASE64 (' + Math.round(img.src.length / 1024) + ' KB)' : 'External Source URL'}</span>
+            </div>
+            <div class="inspector-group">
+              <label class="inspector-label">Alt Tag</label>
+              <input type="text" id="insp-img-alt" value="${img.alt || ''}">
+            </div>
+          `;
+                } else if (type === 'video') {
+                    const vid = node.querySelector('video');
+                    const isBase64 = (vid.src || '').startsWith('data:');
+                    html += `
+            <div class="inspector-group">
+              <label class="inspector-label">Upload Video (Auto Base64)</label>
+              <div class="file-input-wrapper">
+                <div class="file-input-btn">Select Local Video File</div>
+                <input type="file" id="insp-file-video" accept="video/*">
+              </div>
+            </div>
+            <div class="inspector-group">
+              <label class="inspector-label">Or Video URL</label>
+              <input type="text" id="insp-video-src" value="${isBase64 ? '' : vid.src}" placeholder="https://... or .mp4">
+            </div>
+            <div class="inspector-group">
+              <label class="inspector-label">Encoding Status</label>
+              <span class="base64-indicator">${isBase64 ? 'ENCODED BASE64 (' + Math.round(vid.src.length / 1024) + ' KB)' : 'External Source'}</span>
+            </div>
+            <div class="inspector-group">
+              <label class="inspector-label">Video Height (px)</label>
+              <input type="number" id="insp-video-height" value="${parseInt(vid.style.height, 10) || 240}">
+            </div>
+          `;
+                } else if (type === 'audio') {
+                    const aud = node.querySelector('audio');
+                    const isBase64 = (aud.src || '').startsWith('data:');
+                    html += `
+            <div class="inspector-group">
+              <label class="inspector-label">Upload Audio (Auto Base64)</label>
+              <div class="file-input-wrapper">
+                <div class="file-input-btn">Select Local Audio File</div>
+                <input type="file" id="insp-file-audio" accept="audio/*">
+              </div>
+            </div>
+            <div class="inspector-group">
+              <label class="inspector-label">Or Audio URL</label>
+              <input type="text" id="insp-audio-src" value="${isBase64 ? '' : aud.src}" placeholder="https://... or .mp3">
+            </div>
+            <div class="inspector-group">
+              <label class="inspector-label">Encoding Status</label>
+              <span class="base64-indicator">${isBase64 ? 'ENCODED BASE64 (' + Math.round(aud.src.length / 1024) + ' KB)' : 'External Source'}</span>
+            </div>
+          `;
+                } else if (type === 'custom-html') {
+                    const container = node.querySelector('.custom-html-block');
+                    html += `
+            <div class="inspector-group">
+              <label class="inspector-label">Raw HTML Source</label>
+              <textarea id="insp-raw-html" rows="7" style="font-family: var(--font-mono); font-size:11px;">${container.innerHTML}</textarea>
+            </div>
+          `;
+                }
+
+                // Common layout settings
+                html += `
+          <div class="inspector-group" style="margin-top: 8px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+            <label class="inspector-label">Margin Bottom (px)</label>
+            <input type="number" id="insp-margin-bottom" value="${parseInt(window.getComputedStyle(node).marginBottom, 10) || 0}">
+          </div>
+        `;
+
+                inspectorContent.innerHTML = html;
+                bindInspectorEvents(node, type);
+            }
+
+            function bindInspectorEvents(node, type) {
+                // Text changes
+                const inspText = document.getElementById('insp-text');
+                if (inspText) {
+                    inspText.addEventListener('input', () => {
+                        const elem = node.querySelector('h1, h2, h3, p');
+                        if (elem) elem.innerText = inspText.value;
+                    });
+                }
+
+                // Font size changes
+                const inspFontSize = document.getElementById('insp-fontsize');
+                if (inspFontSize) {
+                    inspFontSize.addEventListener('input', () => {
+                        const elem = getEditableChild(node);
+                        if (elem) elem.style.fontSize = inspFontSize.value + 'px';
+                    });
+                }
+
+                // Color changes
+                const inspColor = document.getElementById('insp-color');
+                if (inspColor) {
+                    inspColor.addEventListener('input', () => {
+                        const elem = getEditableChild(node);
+                        if (elem) elem.style.color = inspColor.value;
+                    });
+                }
+
+                // Button events
+                const btnText = document.getElementById('insp-btn-text');
+                const btnUrl = document.getElementById('insp-btn-url');
+                const btnSpacing = document.getElementById('insp-btn-spacing');
+                if (btnText) {
+                    btnText.addEventListener('input', () => {
+                        node.querySelector('button').innerText = btnText.value;
+                    });
+                }
+                if (btnUrl) {
+                    btnUrl.addEventListener('input', () => {
+                        node.querySelector('button').setAttribute('data-target-url', btnUrl.value);
+                    });
+                }
+                if (btnSpacing) {
+                    btnSpacing.addEventListener('input', () => {
+                        node.querySelector('button').style.letterSpacing = btnSpacing.value;
+                    });
+                }
+
+                // Link events
+                const linkText = document.getElementById('insp-link-text');
+                const linkUrl = document.getElementById('insp-link-url');
+                if (linkText) {
+                    linkText.addEventListener('input', () => {
+                        node.querySelector('a').innerText = linkText.value;
+                    });
+                }
+                if (linkUrl) {
+                    linkUrl.addEventListener('input', () => {
+                        node.querySelector('a').setAttribute('href', linkUrl.value);
+                    });
+                }
+
+                // iFrame events
+                const ifrSrc = document.getElementById('insp-iframe-src');
+                const ifrHeight = document.getElementById('insp-iframe-height');
+                const ifrSandbox = document.getElementById('insp-iframe-sandbox');
+                if (ifrSrc) {
+                    ifrSrc.addEventListener('change', () => {
+                        node.querySelector('iframe').setAttribute('src', ifrSrc.value);
+                    });
+                }
+                if (ifrHeight) {
+                    ifrHeight.addEventListener('input', () => {
+                        node.querySelector('iframe').style.height = ifrHeight.value + 'px';
+                    });
+                }
+                if (ifrSandbox) {
+                    ifrSandbox.addEventListener('input', () => {
+                        node.querySelector('iframe').setAttribute('sandbox', ifrSandbox.value);
+                    });
+                }
+
+                // Image Base64 / URL handling
+                const fileImage = document.getElementById('insp-file-image');
+                const imgSrc = document.getElementById('insp-img-src');
+                const imgAlt = document.getElementById('insp-img-alt');
+                if (fileImage) {
+                    fileImage.addEventListener('change', (e) => {
+                        const file = e.target.files[0];
+                        handleFileUploadToBase64(file, (base64) => {
+                            const img = node.querySelector('img');
+                            img.src = base64;
+                            renderInspector(node);
+                        });
+                    });
+                }
+                if (imgSrc) {
+                    imgSrc.addEventListener('change', () => {
+                        if (imgSrc.value.trim() !== '') {
+                            node.querySelector('img').src = imgSrc.value.trim();
+                            renderInspector(node);
+                        }
+                    });
+                }
+                if (imgAlt) {
+                    imgAlt.addEventListener('input', () => {
+                        node.querySelector('img').alt = imgAlt.value;
+                    });
+                }
+
+                // Video Base64 / URL handling
+                const fileVideo = document.getElementById('insp-file-video');
+                const videoSrc = document.getElementById('insp-video-src');
+                const videoHeight = document.getElementById('insp-video-height');
+                if (fileVideo) {
+                    fileVideo.addEventListener('change', (e) => {
+                        const file = e.target.files[0];
+                        handleFileUploadToBase64(file, (base64) => {
+                            const vid = node.querySelector('video');
+                            vid.src = base64;
+                            vid.load();
+                            renderInspector(node);
+                        });
+                    });
+                }
+                if (videoSrc) {
+                    videoSrc.addEventListener('change', () => {
+                        if (videoSrc.value.trim() !== '') {
+                            const vid = node.querySelector('video');
+                            vid.src = videoSrc.value.trim();
+                            vid.load();
+                            renderInspector(node);
+                        }
+                    });
+                }
+                if (videoHeight) {
+                    videoHeight.addEventListener('input', () => {
+                        node.querySelector('video').style.height = videoHeight.value + 'px';
+                    });
+                }
+
+                // Audio Base64 / URL handling
+                const fileAudio = document.getElementById('insp-file-audio');
+                const audioSrc = document.getElementById('insp-audio-src');
+                if (fileAudio) {
+                    fileAudio.addEventListener('change', (e) => {
+                        const file = e.target.files[0];
+                        handleFileUploadToBase64(file, (base64) => {
+                            const aud = node.querySelector('audio');
+                            aud.src = base64;
+                            aud.load();
+                            renderInspector(node);
+                        });
+                    });
+                }
+                if (audioSrc) {
+                    audioSrc.addEventListener('change', () => {
+                        if (audioSrc.value.trim() !== '') {
+                            const aud = node.querySelector('audio');
+                            aud.src = audioSrc.value.trim();
+                            aud.load();
+                            renderInspector(node);
+                        }
+                    });
+                }
+
+                // Custom HTML handling
+                const rawHtml = document.getElementById('insp-raw-html');
+                if (rawHtml) {
+                    rawHtml.addEventListener('input', () => {
+                        node.querySelector('.custom-html-block').innerHTML = rawHtml.value;
+                    });
+                }
+
+                // Margin adjustment
+                const inspMargin = document.getElementById('insp-margin-bottom');
+                if (inspMargin) {
+                    inspMargin.addEventListener('input', () => {
+                        node.style.marginBottom = inspMargin.value + 'px';
+                    });
+                }
+            }
+
+            function setupHeaderActions() {
+                // Toggle preview
+                const btnTogglePreview = document.getElementById('btn-toggle-preview');
+                btnTogglePreview.addEventListener('click', () => {
+                    isPreviewMode = !isPreviewMode;
+                    if (isPreviewMode) {
+                        deselectNode();
+                        btnTogglePreview.textContent = 'Edit Mode';
+                        btnTogglePreview.classList.add('active');
+                        canvas.classList.add('preview-active');
+                        canvasStatus.textContent = 'Preview Active';
+                        // Disable inline contenteditable
+                        canvas.querySelectorAll('[contenteditable]').forEach(el => el.contentEditable = "false");
+                    } else {
+                        btnTogglePreview.textContent = 'Preview';
+                        btnTogglePreview.classList.remove('active');
+                        canvas.classList.remove('preview-active');
+                        canvasStatus.textContent = 'Edit Mode';
+                    }
+                });
+
+                // Delete active node
+                deleteBtn.addEventListener('click', () => {
+                    if (selectedElement) {
+                        selectedElement.remove();
+                        deselectNode();
+                    }
+                });
+
+                // Clear canvas
+                document.getElementById('btn-clear-canvas').addEventListener('click', () => {
+                    deselectNode();
+                    canvas.innerHTML = '';
+                });
+
+                // View generated clean HTML
+                document.getElementById('btn-view-code').addEventListener('click', () => {
+                    const code = generateCleanExport();
+                    codeViewer.value = code;
+                    codeDrawer.classList.add('visible');
+                });
+
+                document.getElementById('btn-close-code').addEventListener('click', () => {
+                    codeDrawer.classList.remove('visible');
+                });
+
+                document.getElementById('btn-copy-code').addEventListener('click', () => {
+                    codeViewer.select();
+                    document.execCommand('copy');
+                    const original = document.getElementById('btn-copy-code').textContent;
+                    document.getElementById('btn-copy-code').textContent = 'Copied';
+                    setTimeout(() => {
+                        document.getElementById('btn-copy-code').textContent = original;
+                    }, 1500);
+                });
+
+                // Download exported HTML file
+                document.getElementById('btn-export-download').addEventListener('click', () => {
+                    const code = generateCleanExport();
+                    const blob = new Blob([code], { type: 'text/html;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'published-page.html';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                });
+            }
+
+            function setupViewportActions() {
+                const vpDesktop = document.getElementById('vp-desktop');
+                const vpTablet = document.getElementById('vp-tablet');
+                const vpMobile = document.getElementById('vp-mobile');
+
+                const resetButtons = () => {
+                    vpDesktop.classList.remove('active');
+                    vpTablet.classList.remove('active');
+                    vpMobile.classList.remove('active');
+                };
+
+                vpDesktop.addEventListener('click', () => {
+                    resetButtons();
+                    vpDesktop.classList.add('active');
+                    canvas.style.maxWidth = '960px';
+                });
+
+                vpTablet.addEventListener('click', () => {
+                    resetButtons();
+                    vpTablet.classList.add('active');
+                    canvas.style.maxWidth = '720px';
+                });
+
+                vpMobile.addEventListener('click', () => {
+                    resetButtons();
+                    vpMobile.classList.add('active');
+                    canvas.style.maxWidth = '380px';
+                });
+            }
+
+            // Generate standalone, self-contained HTML production export
+            function generateCleanExport() {
+                const clone = canvas.cloneNode(true);
+
+                // Remove designer tags and artifacts
+                clone.querySelectorAll('.element-tag').forEach(tag => tag.remove());
+                clone.querySelectorAll('.canvas-node').forEach(node => {
+                    node.classList.remove('canvas-node', 'is-selected');
+                    node.removeAttribute('data-node-type');
+                    node.removeAttribute('contenteditable');
+
+                    // Ensure buttons function as clickable links if configured
+                    const btn = node.querySelector('button.node-text-btn');
+                    if (btn) {
+                        const url = btn.getAttribute('data-target-url');
+                        if (url && url !== '#') {
+                            btn.setAttribute('onclick', `location.href='${url}'`);
+                        }
+                    }
+                });
+
+                const exportBodyContent = clone.innerHTML.trim();
+
+                return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Published Page</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #121214;
+      color: #a1a1aa;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 13px;
+      line-height: 1.6;
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .page-container {
+      width: 100%;
+      max-width: 960px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    a {
+      text-decoration: none;
+      color: #93939f;
+      transition: color 0.15s ease;
+    }
+    a:hover {
+      color: #ffffff;
+      text-decoration: none;
+    }
+    .node-text-btn {
+      background: transparent;
+      border: none;
+      color: #71717a;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: color 0.15s ease, background 0.15s ease;
+      display: inline-block;
+      text-decoration: none;
+    }
+    .node-text-btn:hover {
+      color: #f4f4f5;
+      background-color: rgba(255, 255, 255, 0.04);
+    }
+    .node-container {
+      border: 1px solid #27272a;
+      padding: 20px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.01);
+    }
+    .node-media-frame {
+      width: 100%;
+      border: none;
+      background: #000;
+      border-radius: 2px;
+    }
+    .node-image {
+      max-width: 100%;
+      height: auto;
+      border-radius: 2px;
+      display: block;
+    }
+    .node-audio {
+      width: 100%;
+      height: 40px;
+      filter: invert(0.9) hue-rotate(180deg);
+    }
+  </style>
+</head>
+<body>
+  <div class="page-container">
+${exportBodyContent}
+  </div>
+</body>
+</html>`;
+            }
+
+            function rgbToHex(rgb) {
+                if (!rgb || rgb.indexOf('rgb') === -1) return rgb || '#ffffff';
+                const vals = rgb.match(/\d+/g);
+                if (!vals || vals.length < 3) return '#ffffff';
+                const r = parseInt(vals[0]).toString(16).padStart(2, '0');
+                const g = parseInt(vals[1]).toString(16).padStart(2, '0');
+                const b = parseInt(vals[2]).toString(16).padStart(2, '0');
+                return `#${r}${g}${b}`;
+            }
+        })();
+    </script>
+</body>
+
+</html>
