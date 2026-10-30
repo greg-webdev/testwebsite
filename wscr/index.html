@@ -7,15 +7,15 @@
     <title>Studio Builder</title>
     <style>
         :root {
-            --bg-primary: #141416;
-            --bg-secondary: #1b1b1f;
-            --bg-tertiary: #222227;
-            --border-color: #2a2a30;
-            --border-highlight: #3e3e48;
-            --text-muted: #80808a;
+            --bg-primary: #0e0e11;
+            --bg-secondary: #141418;
+            --bg-tertiary: #18181f;
+            --bg-surface: #22222b;
+            --border-color: #27272a;
+            --border-highlight: #3f3f46;
+            --text-muted: #888894;
             --text-subtle: #a0a0aa;
             --text-bright: #ffffff;
-            --accent-subtle: #2d2d35;
             --danger: #cf4b4b;
             --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -50,9 +50,9 @@
 
         a:hover {
             color: var(--text-bright);
+            text-decoration: none;
         }
 
-        /* Minimalist flat text-first controls */
         button,
         .btn {
             background: transparent;
@@ -62,7 +62,7 @@
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 0.04em;
-            padding: 6px 10px;
+            padding: 5px 9px;
             cursor: pointer;
             border-radius: 2px;
             transition: color 0.15s ease, background 0.15s ease;
@@ -80,7 +80,7 @@
 
         button.active {
             color: var(--text-bright);
-            background-color: var(--bg-tertiary);
+            background-color: var(--bg-surface);
         }
 
         button.btn-danger {
@@ -118,7 +118,6 @@
             border-color: var(--border-highlight);
         }
 
-        /* Studio Header */
         header {
             height: 42px;
             background-color: var(--bg-secondary);
@@ -159,9 +158,8 @@
             overflow: hidden;
         }
 
-        /* Left Sidebar: Components Dock */
         .sidebar-left {
-            width: 230px;
+            width: 220px;
             background-color: var(--bg-secondary);
             border-right: 1px solid var(--border-color);
             display: flex;
@@ -171,7 +169,7 @@
         }
 
         .panel-header {
-            padding: 11px 14px;
+            padding: 10px 14px;
             border-bottom: 1px solid var(--border-color);
             font-size: 10px;
             text-transform: uppercase;
@@ -195,7 +193,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 8px 10px;
+            padding: 7px 10px;
             background: var(--bg-tertiary);
             border: 1px solid var(--border-color);
             border-radius: 2px;
@@ -208,7 +206,7 @@
         .catalog-item:hover {
             color: var(--text-bright);
             border-color: var(--border-highlight);
-            background-color: #272730;
+            background-color: var(--bg-surface);
         }
 
         .catalog-item span.cat-label {
@@ -218,7 +216,6 @@
             font-family: var(--font-mono);
         }
 
-        /* Canvas Viewport */
         .canvas-viewport {
             flex: 1;
             background-color: var(--bg-primary);
@@ -245,7 +242,7 @@
             width: 100%;
             max-width: 960px;
             min-height: 85vh;
-            background: #17171b;
+            background: var(--bg-secondary);
             border: 1px solid var(--border-color);
             border-radius: 2px;
             position: relative;
@@ -262,9 +259,8 @@
             border-color: #1a1a20;
         }
 
-        /* Right Sidebar: Inspector */
         .sidebar-right {
-            width: 330px;
+            width: 320px;
             background-color: var(--bg-secondary);
             border-left: 1px solid var(--border-color);
             display: flex;
@@ -278,7 +274,7 @@
             padding: 14px;
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 12px;
         }
 
         .inspector-group {
@@ -373,7 +369,6 @@
             max-width: 100%;
         }
 
-        /* Editable Components on Canvas */
         .canvas-node {
             position: relative;
             border: 1px dashed transparent;
@@ -415,7 +410,6 @@
             border-color: var(--border-highlight);
         }
 
-        /* Component Default Styles */
         .node-text-wrap {
             width: 100%;
         }
@@ -496,58 +490,95 @@
             filter: invert(0.9) hue-rotate(180deg);
         }
 
-        /* Source Code View Drawer */
-        #code-drawer {
+        .modal-drawer {
             display: none;
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(18, 18, 20, 0.98);
+            background: rgba(14, 14, 17, 0.98);
             z-index: 100;
             flex-direction: column;
-        }
-
-        #code-drawer.visible {
-            display: flex;
-        }
-
-        .drawer-header {
-            height: 42px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 0 16px;
-            background: var(--bg-secondary);
+            justify-content: center;
+            padding: 20px;
         }
 
-        #code-viewer {
-            flex: 1;
+        .modal-box {
             width: 100%;
-            background: #0d0d0f;
-            color: #d4d4d8;
-            font-family: var(--font-mono);
-            font-size: 11px;
+            max-width: 500px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 2px;
             padding: 20px;
-            border: none;
-            resize: none;
-            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .modal-box-wide {
+            max-width: 680px;
+            max-height: 80vh;
+        }
+
+        .modal-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .modal-title {
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 10px;
+            color: var(--text-bright);
+            letter-spacing: 0.05em;
+        }
+
+        .site-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            padding: 10px 12px;
+            border-radius: 2px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: border-color 0.15s ease;
+        }
+
+        .site-card:hover {
+            border-color: var(--border-highlight);
         }
     </style>
 </head>
 
 <body>
 
-    <!-- Application Top Navigation Bar -->
+    <!-- Top Bar Navigation -->
     <header>
         <div class="brand-section">
             <span class="brand-title">Studio Builder</span>
             <span class="status-indicator" id="canvas-status">Edit Mode</span>
         </div>
 
-        <div style="display: flex; gap: 4px; align-items: center;">
+        <div style="display: flex; gap: 6px; align-items: center;">
+            <!-- Auth & Account Status Controls -->
+            <div id="auth-controls"
+                style="display: flex; align-items: center; gap: 8px; margin-right: 12px; border-right: 1px solid var(--border-color); padding-right: 12px;">
+                <span id="user-email-display"
+                    style="font-size: 10px; font-family: var(--font-mono); color: var(--text-bright); display: none;"></span>
+                <button id="btn-username-profile"
+                    style="display: none; font-family: var(--font-mono); color: #a1a1aa;">@username</button>
+                <button id="btn-auth-open">Sign In / Register</button>
+                <button id="btn-my-sites" style="display: none;">My Sites</button>
+                <button id="btn-auth-signout" style="display: none;">Sign Out</button>
+            </div>
+
+            <button id="btn-cloud-publish" style="color: #6ee7b7;">Publish Site</button>
+            <button id="btn-firestore-rules">Security Rules</button>
             <button id="btn-toggle-preview">Preview</button>
             <button id="btn-view-code">View HTML</button>
             <button id="btn-export-download">Download</button>
@@ -555,10 +586,9 @@
         </div>
     </header>
 
-    <!-- Studio Workspace -->
     <div class="app-workspace">
 
-        <!-- Left Palette: Elements Catalog -->
+        <!-- Left Sidebar: Components Dock -->
         <aside class="sidebar-left">
             <div class="panel-header">
                 <span>Components</span>
@@ -620,7 +650,6 @@
             </div>
 
             <div id="page-canvas" aria-label="Visual canvas">
-                <!-- Default sample elements -->
                 <div class="canvas-node" data-node-type="heading">
                     <div class="element-tag">heading</div>
                     <div class="node-text-wrap" style="text-align: left;">
@@ -669,41 +698,836 @@
             </div>
         </aside>
 
+        <!-- Authentication Drawer -->
+        <div id="auth-drawer" class="modal-drawer">
+            <div class="modal-box">
+                <div class="modal-title-row">
+                    <span class="modal-title" id="auth-modal-title">Sign In / Register</span>
+                    <button id="btn-close-auth">Close</button>
+                </div>
+                <div
+                    style="display: flex; gap: 4px; background: var(--bg-primary); padding: 2px; border: 1px solid var(--border-color); border-radius: 2px;">
+                    <button id="tab-auth-signin" class="active" style="flex: 1;">Sign In</button>
+                    <button id="tab-auth-register" style="flex: 1;">Register</button>
+                </div>
+                <div class="inspector-group">
+                    <label class="inspector-label">Email Address</label>
+                    <input type="email" id="auth-email-input" placeholder="you@domain.com">
+                </div>
+                <div class="inspector-group">
+                    <label class="inspector-label">Password</label>
+                    <input type="password" id="auth-password-input" placeholder="••••••••">
+                </div>
+                <div id="auth-status-msg" style="font-size: 10px; font-family: var(--font-mono); min-height: 14px;">
+                </div>
+                <button id="btn-submit-auth"
+                    style="background: var(--bg-surface); border: 1px solid var(--border-highlight); padding: 8px; color: #ffffff;">Sign
+                    In</button>
+            </div>
+        </div>
+
+        <!-- Username / Profile Settings Drawer -->
+        <div id="username-drawer" class="modal-drawer">
+            <div class="modal-box">
+                <div class="modal-title-row">
+                    <span class="modal-title">Profile & Username Settings</span>
+                    <button id="btn-close-username">Close</button>
+                </div>
+                <p style="color: var(--text-subtle); font-size: 11px;">Your username forms the first part of your site
+                    links: <span style="font-family: var(--font-mono); color: #fff;">#user=username&site=sitename</span>
+                </p>
+                <div class="inspector-group">
+                    <label class="inspector-label">Custom Username</label>
+                    <input type="text" id="username-input" placeholder="alphanumeric only (e.g. alex)"
+                        style="font-family: var(--font-mono); text-transform: lowercase;">
+                </div>
+                <div id="username-status-msg" style="font-size: 10px; font-family: var(--font-mono); min-height: 14px;">
+                </div>
+                <button id="btn-save-username"
+                    style="background: var(--bg-surface); border: 1px solid var(--border-highlight); padding: 8px; color: #ffffff;">Save
+                    Username</button>
+            </div>
+        </div>
+
+        <!-- My Sites Ownership Drawer -->
+        <div id="mysites-drawer" class="modal-drawer">
+            <div class="modal-box modal-box-wide">
+                <div class="modal-title-row">
+                    <span class="modal-title">My Owned Websites</span>
+                    <button id="btn-close-mysites">Close</button>
+                </div>
+                <div id="mysites-list"
+                    style="display: flex; flex-direction: column; gap: 8px; max-height: 60vh; overflow-y: auto;">
+                    <div style="color: var(--text-muted); font-size: 11px;">Loading your sites...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Publish Cloud Drawer -->
+        <div id="publish-drawer" class="modal-drawer">
+            <div class="modal-box">
+                <div class="modal-title-row">
+                    <span class="modal-title">Publish Site to Cloud</span>
+                    <button id="btn-close-publish">Close</button>
+                </div>
+                <div id="publish-auth-gate-warning"
+                    style="display: none; padding: 10px; background: #231818; border: 1px solid #4a2424; color: #fca5a5; font-size: 11px; border-radius: 2px;">
+                    You must be signed in with an email account to publish or update websites.
+                    <button id="btn-gate-signin"
+                        style="display: block; margin-top: 8px; border: 1px solid #6b3030; color: #ffffff; padding: 4px 8px;">Sign
+                        In or Register</button>
+                </div>
+                <div id="publish-username-gate-warning"
+                    style="display: none; padding: 10px; background: #231818; border: 1px solid #4a2424; color: #fca5a5; font-size: 11px; border-radius: 2px;">
+                    Please select a username first before publishing websites.
+                    <button id="btn-gate-set-username"
+                        style="display: block; margin-top: 8px; border: 1px solid #6b3030; color: #ffffff; padding: 4px 8px;">Set
+                        Username</button>
+                </div>
+                <div id="publish-form-fields">
+                    <div class="inspector-group">
+                        <label class="inspector-label">Creator Username</label>
+                        <input type="text" id="site-user-display" readonly
+                            style="font-family: var(--font-mono); color: var(--text-muted); background: var(--bg-primary);">
+                    </div>
+                    <div class="inspector-group">
+                        <label class="inspector-label">Site Name (Slug)</label>
+                        <input type="text" id="site-slug-input" placeholder="e.g. portfolio, landing, store"
+                            style="font-family: var(--font-mono); text-transform: lowercase;">
+                    </div>
+                    <div id="publish-status-box"
+                        style="font-size: 10px; font-family: var(--font-mono); color: var(--text-muted); margin-top: 8px; min-height: 18px;">
+                    </div>
+                    <div id="publish-link-container"
+                        style="display: none; flex-direction: column; gap: 6px; padding: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 2px; margin-top: 8px;">
+                        <span style="font-size: 9px; text-transform: uppercase; color: var(--text-muted);">Shareable
+                            Live URL:</span>
+                        <input type="text" id="publish-live-url" readonly
+                            style="font-family: var(--font-mono); font-size: 10px;">
+                        <div style="display: flex; gap: 6px; margin-top: 4px;">
+                            <button id="btn-copy-live-url"
+                                style="flex: 1; border: 1px solid var(--border-color); background: var(--bg-primary);">Copy
+                                Link</button>
+                            <button id="btn-open-live-url"
+                                style="flex: 1; border: 1px solid var(--border-color); background: var(--bg-primary);">Open
+                                Live</button>
+                        </div>
+                    </div>
+                    <button id="btn-confirm-publish"
+                        style="margin-top: 10px; width: 100%; background: var(--bg-surface); border: 1px solid var(--border-highlight); padding: 8px; font-weight: 600; color: #ffffff;">Publish
+                        Site</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Rules Drawer -->
+        <div id="rules-drawer" class="modal-drawer">
+            <div class="modal-box modal-box-wide">
+                <div class="modal-title-row">
+                    <span class="modal-title">Firestore Security Rules</span>
+                    <button id="btn-close-rules">Close</button>
+                </div>
+                <p style="color: var(--text-subtle); font-size: 11px;">Paste these exact rules into your Firebase
+                    Console to support unique usernames and user-scoped sites:</p>
+                <textarea readonly
+                    style="height: 220px; font-family: var(--font-mono); font-size: 11px; background: #08080a; color: #93c5fd; padding: 12px; line-height: 1.4; border: 1px solid var(--border-color);"
+                    id="rules-code-block">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /usernames/{username} {
+      allow read: if true;
+      allow create, update, delete: if request.auth != null;
+    }
+    match /sites/{docId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.ownerUid == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.ownerUid == request.auth.uid;
+    }
+  }
+}</textarea>
+                <button id="btn-copy-rules"
+                    style="border: 1px solid var(--border-color); background: var(--bg-surface); padding: 8px; color: #ffffff;">Copy
+                    Security Rules</button>
+            </div>
+        </div>
+
         <!-- Exported Code Drawer Overlay -->
-        <div id="code-drawer">
-            <div class="drawer-header">
+        <div id="code-drawer" class="modal-drawer" style="align-items: stretch; justify-content: stretch; padding: 0;">
+            <div
+                style="height: 42px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: var(--bg-secondary);">
                 <span
-                    style="font-weight: 600; text-transform: uppercase; font-size: 10px; color: var(--text-bright);">Generated
-                    Production Standalone HTML</span>
+                    style="font-weight: 600; text-transform: uppercase; font-size: 10px; color: var(--text-bright);">Standalone
+                    Generated HTML</span>
                 <div style="display: flex; gap: 6px;">
                     <button id="btn-copy-code">Copy HTML</button>
                     <button id="btn-close-code">Close</button>
                 </div>
             </div>
-            <textarea id="code-viewer" readonly spellcheck="false"></textarea>
+            <textarea id="code-viewer" readonly spellcheck="false"
+                style="flex: 1; width: 100%; background: #08080a; color: #d4d4d8; font-family: var(--font-mono); font-size: 11px; padding: 20px; border: none; resize: none; line-height: 1.5;"></textarea>
+        </div>
+
+        <!-- Fullscreen Public Site Viewer -->
+        <div id="public-site-viewer"
+            style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #0e0e11; z-index: 200; overflow-y: auto;">
+            <div
+                style="position: fixed; top: 8px; right: 12px; z-index: 210; display: flex; gap: 6px; background: rgba(20,20,24,0.95); border: 1px solid var(--border-color); padding: 4px 6px; border-radius: 2px;">
+                <button id="btn-viewer-edit-owner" style="display: none; color: #6ee7b7;">Edit This Site</button>
+                <button id="btn-viewer-delete-owner" class="btn-danger" style="display: none;">Delete This Site</button>
+                <a id="btn-viewer-exit" href="#"
+                    style="padding: 5px 9px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted);">Back
+                    to Studio</a>
+            </div>
+            <div id="public-site-content" style="width: 100%; min-height: 100vh;"></div>
         </div>
 
     </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+        import {
+            getAuth,
+            signInWithEmailAndPassword,
+            createUserWithEmailAndPassword,
+            signOut,
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+        import {
+            getFirestore,
+            doc,
+            setDoc,
+            getDoc,
+            deleteDoc,
+            collection,
+            getDocs,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAU2z6vsj6EiamgHjiw32Q3V0z9r74o3_A",
+            authDomain: "test-notgreg-space-wscr-index.firebaseapp.com",
+            projectId: "test-notgreg-space-wscr-index",
+            storageBucket: "test-notgreg-space-wscr-index.firebasestorage.app",
+            messagingSenderId: "455194867322",
+            appId: "1:455194867322:web:0d4cfd8d05b2f88aef6dc3"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.__studioFirebase = {
+            auth,
+            db,
+            signInWithEmailAndPassword,
+            createUserWithEmailAndPassword,
+            signOut,
+            onAuthStateChanged,
+            doc,
+            setDoc,
+            getDoc,
+            deleteDoc,
+            collection,
+            getDocs,
+            serverTimestamp,
+            currentUser: null,
+            currentUsername: null
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            window.__studioFirebase.currentUser = user;
+            let username = null;
+            if (user && !user.isAnonymous && user.email) {
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    if (userDoc.exists() && userDoc.data().username) {
+                        username = userDoc.data().username;
+                    } else {
+                        const defaultName = user.email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '');
+                        const checkName = await getDoc(doc(db, 'usernames', defaultName));
+                        if (!checkName.exists() || checkName.data().uid === user.uid) {
+                            await setDoc(doc(db, 'users', user.uid), { username: defaultName, email: user.email }, { merge: true });
+                            await setDoc(doc(db, 'usernames', defaultName), { uid: user.uid });
+                            username = defaultName;
+                        }
+                    }
+                } catch (err) {
+                    console.warn('Username lookup notice:', err);
+                }
+            }
+            window.__studioFirebase.currentUsername = username;
+            window.dispatchEvent(new CustomEvent('studio-auth-changed', { detail: { user, username } }));
+        });
+
+        window.dispatchEvent(new CustomEvent('studio-firebase-ready'));
+    </script>
 
     <script>
         (function () {
             let selectedElement = null;
             let isPreviewMode = false;
+            let authMode = 'signin';
+            let activeLoadedSiteSlug = null;
+
             const canvas = document.getElementById('page-canvas');
             const inspectorContent = document.getElementById('inspector-content');
             const deleteBtn = document.getElementById('btn-delete-node');
             const canvasStatus = document.getElementById('canvas-status');
             const codeDrawer = document.getElementById('code-drawer');
             const codeViewer = document.getElementById('code-viewer');
+            const publishDrawer = document.getElementById('publish-drawer');
+            const rulesDrawer = document.getElementById('rules-drawer');
+            const authDrawer = document.getElementById('auth-drawer');
+            const usernameDrawer = document.getElementById('username-drawer');
+            const mysitesDrawer = document.getElementById('mysites-drawer');
+            const publicViewer = document.getElementById('public-site-viewer');
+            const publicContent = document.getElementById('public-site-content');
+
+            const userEmailDisplay = document.getElementById('user-email-display');
+            const btnUsernameProfile = document.getElementById('btn-username-profile');
+            const btnAuthOpen = document.getElementById('btn-auth-open');
+            const btnAuthSignout = document.getElementById('btn-auth-signout');
+            const btnMySites = document.getElementById('btn-my-sites');
 
             setupCanvasListeners();
             setupCatalogActions();
             setupHeaderActions();
             setupViewportActions();
+            setupAuthActions();
+            setupUsernameActions();
+            setupPublishAndSitesActions();
+            checkHashRoute();
 
-            canvas.querySelectorAll('.canvas-node').forEach(node => attachNodeEvents(node));
+            window.addEventListener('hashchange', checkHashRoute);
+            window.addEventListener('studio-auth-changed', (e) => {
+                updateAuthUI(e.detail.user, e.detail.username);
+                checkHashRoute();
+            });
+
+            function updateAuthUI(user, username) {
+                if (user && !user.isAnonymous && user.email) {
+                    userEmailDisplay.textContent = user.email;
+                    userEmailDisplay.style.display = 'inline-block';
+                    btnUsernameProfile.textContent = username ? `@${username}` : '@set-username';
+                    btnUsernameProfile.style.display = 'inline-block';
+                    btnAuthOpen.style.display = 'none';
+                    btnAuthSignout.style.display = 'inline-block';
+                    btnMySites.style.display = 'inline-block';
+
+                    document.getElementById('publish-auth-gate-warning').style.display = 'none';
+                    if (!username) {
+                        document.getElementById('publish-username-gate-warning').style.display = 'block';
+                        document.getElementById('publish-form-fields').style.display = 'none';
+                    } else {
+                        document.getElementById('publish-username-gate-warning').style.display = 'none';
+                        document.getElementById('publish-form-fields').style.display = 'block';
+                        document.getElementById('site-user-display').value = username;
+                    }
+                } else {
+                    userEmailDisplay.textContent = '';
+                    userEmailDisplay.style.display = 'none';
+                    btnUsernameProfile.style.display = 'none';
+                    btnAuthOpen.style.display = 'inline-block';
+                    btnAuthSignout.style.display = 'none';
+                    btnMySites.style.display = 'none';
+
+                    document.getElementById('publish-auth-gate-warning').style.display = 'block';
+                    document.getElementById('publish-username-gate-warning').style.display = 'none';
+                    document.getElementById('publish-form-fields').style.display = 'none';
+                }
+            }
+
+            function setupAuthActions() {
+                const btnAuthOpen = document.getElementById('btn-auth-open');
+                const btnCloseAuth = document.getElementById('btn-close-auth');
+                const btnAuthSignout = document.getElementById('btn-auth-signout');
+                const tabSignIn = document.getElementById('tab-auth-signin');
+                const tabRegister = document.getElementById('tab-auth-register');
+                const emailInput = document.getElementById('auth-email-input');
+                const passwordInput = document.getElementById('auth-password-input');
+                const authStatusMsg = document.getElementById('auth-status-msg');
+                const btnSubmitAuth = document.getElementById('btn-submit-auth');
+                const btnGateSignIn = document.getElementById('btn-gate-signin');
+
+                const setTab = (mode) => {
+                    authMode = mode;
+                    authStatusMsg.textContent = '';
+                    if (mode === 'signin') {
+                        tabSignIn.classList.add('active');
+                        tabRegister.classList.remove('active');
+                        btnSubmitAuth.textContent = 'Sign In';
+                        document.getElementById('auth-modal-title').textContent = 'Sign In';
+                    } else {
+                        tabRegister.classList.add('active');
+                        tabSignIn.classList.remove('active');
+                        btnSubmitAuth.textContent = 'Create Account';
+                        document.getElementById('auth-modal-title').textContent = 'Register Account';
+                    }
+                };
+
+                tabSignIn.addEventListener('click', () => setTab('signin'));
+                tabRegister.addEventListener('click', () => setTab('register'));
+
+                btnAuthOpen.addEventListener('click', () => {
+                    authDrawer.style.display = 'flex';
+                    authStatusMsg.textContent = '';
+                });
+
+                if (btnGateSignIn) {
+                    btnGateSignIn.addEventListener('click', () => {
+                        publishDrawer.style.display = 'none';
+                        authDrawer.style.display = 'flex';
+                        authStatusMsg.textContent = '';
+                    });
+                }
+
+                btnCloseAuth.addEventListener('click', () => {
+                    authDrawer.style.display = 'none';
+                });
+
+                btnAuthSignout.addEventListener('click', async () => {
+                    try {
+                        if (window.__studioFirebase?.signOut && window.__studioFirebase?.auth) {
+                            await window.__studioFirebase.signOut(window.__studioFirebase.auth);
+                        }
+                    } catch (err) {
+                        console.error('Sign out error:', err);
+                    }
+                });
+
+                btnSubmitAuth.addEventListener('click', async () => {
+                    const email = emailInput.value.trim();
+                    const password = passwordInput.value;
+
+                    if (!email || !password) {
+                        authStatusMsg.style.color = '#cf4b4b';
+                        authStatusMsg.textContent = 'Email and password are required.';
+                        return;
+                    }
+
+                    authStatusMsg.style.color = '#a0a0aa';
+                    authStatusMsg.textContent = 'Authenticating...';
+
+                    try {
+                        const { auth, signInWithEmailAndPassword, createUserWithEmailAndPassword } = window.__studioFirebase;
+                        if (authMode === 'signin') {
+                            await signInWithEmailAndPassword(auth, email, password);
+                        } else {
+                            await createUserWithEmailAndPassword(auth, email, password);
+                        }
+                        authStatusMsg.style.color = '#6ee7b7';
+                        authStatusMsg.textContent = 'Success!';
+                        setTimeout(() => {
+                            authDrawer.style.display = 'none';
+                            emailInput.value = '';
+                            passwordInput.value = '';
+                        }, 600);
+                    } catch (err) {
+                        authStatusMsg.style.color = '#cf4b4b';
+                        authStatusMsg.textContent = err.message;
+                    }
+                });
+            }
+
+            function setupUsernameActions() {
+                const btnCloseUsername = document.getElementById('btn-close-username');
+                const usernameInput = document.getElementById('username-input');
+                const statusMsg = document.getElementById('username-status-msg');
+                const btnSave = document.getElementById('btn-save-username');
+
+                btnUsernameProfile.addEventListener('click', () => {
+                    usernameInput.value = window.__studioFirebase?.currentUsername || '';
+                    statusMsg.textContent = '';
+                    usernameDrawer.style.display = 'flex';
+                });
+
+                document.getElementById('btn-gate-set-username').addEventListener('click', () => {
+                    publishDrawer.style.display = 'none';
+                    usernameInput.value = window.__studioFirebase?.currentUsername || '';
+                    statusMsg.textContent = '';
+                    usernameDrawer.style.display = 'flex';
+                });
+
+                btnCloseUsername.addEventListener('click', () => {
+                    usernameDrawer.style.display = 'none';
+                });
+
+                btnSave.addEventListener('click', async () => {
+                    const user = window.__studioFirebase?.currentUser;
+                    if (!user) return;
+                    const cleanUser = usernameInput.value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+                    if (cleanUser.length < 2) {
+                        statusMsg.style.color = '#cf4b4b';
+                        statusMsg.textContent = 'Username must be at least 2 alphanumeric characters.';
+                        return;
+                    }
+
+                    statusMsg.style.color = '#a0a0aa';
+                    statusMsg.textContent = 'Checking availability...';
+
+                    try {
+                        const { db, doc, getDoc, setDoc, deleteDoc } = window.__studioFirebase;
+                        const existingNameDoc = await getDoc(doc(db, 'usernames', cleanUser));
+                        if (existingNameDoc.exists() && existingNameDoc.data().uid !== user.uid) {
+                            statusMsg.style.color = '#cf4b4b';
+                            statusMsg.textContent = 'Username is already taken.';
+                            return;
+                        }
+
+                        const oldUsername = window.__studioFirebase.currentUsername;
+                        if (oldUsername && oldUsername !== cleanUser) {
+                            await deleteDoc(doc(db, 'usernames', oldUsername));
+                        }
+
+                        await setDoc(doc(db, 'usernames', cleanUser), { uid: user.uid });
+                        await setDoc(doc(db, 'users', user.uid), { username: cleanUser, email: user.email }, { merge: true });
+
+                        window.__studioFirebase.currentUsername = cleanUser;
+                        updateAuthUI(user, cleanUser);
+                        statusMsg.style.color = '#6ee7b7';
+                        statusMsg.textContent = 'Username updated!';
+                        setTimeout(() => { usernameDrawer.style.display = 'none'; }, 800);
+                    } catch (err) {
+                        statusMsg.style.color = '#cf4b4b';
+                        statusMsg.textContent = err.message;
+                    }
+                });
+            }
+
+            function setupPublishAndSitesActions() {
+                const btnPublish = document.getElementById('btn-cloud-publish');
+                const btnClosePublish = document.getElementById('btn-close-publish');
+                const btnConfirmPublish = document.getElementById('btn-confirm-publish');
+                const siteSlugInput = document.getElementById('site-slug-input');
+                const statusBox = document.getElementById('publish-status-box');
+                const linkContainer = document.getElementById('publish-link-container');
+                const liveUrlInput = document.getElementById('publish-live-url');
+                const btnCopyLiveUrl = document.getElementById('btn-copy-live-url');
+                const btnOpenLiveUrl = document.getElementById('btn-open-live-url');
+
+                btnPublish.addEventListener('click', () => {
+                    publishDrawer.style.display = 'flex';
+                    linkContainer.style.display = 'none';
+                    statusBox.textContent = '';
+                    const user = window.__studioFirebase?.currentUser;
+                    const username = window.__studioFirebase?.currentUsername;
+
+                    if (!user || user.isAnonymous || !user.email) {
+                        document.getElementById('publish-auth-gate-warning').style.display = 'block';
+                        document.getElementById('publish-username-gate-warning').style.display = 'none';
+                        document.getElementById('publish-form-fields').style.display = 'none';
+                    } else if (!username) {
+                        document.getElementById('publish-auth-gate-warning').style.display = 'none';
+                        document.getElementById('publish-username-gate-warning').style.display = 'block';
+                        document.getElementById('publish-form-fields').style.display = 'none';
+                    } else {
+                        document.getElementById('publish-auth-gate-warning').style.display = 'none';
+                        document.getElementById('publish-username-gate-warning').style.display = 'none';
+                        document.getElementById('publish-form-fields').style.display = 'block';
+                        document.getElementById('site-user-display').value = username;
+                        if (activeLoadedSiteSlug) siteSlugInput.value = activeLoadedSiteSlug;
+                    }
+                });
+
+                btnClosePublish.addEventListener('click', () => {
+                    publishDrawer.style.display = 'none';
+                });
+
+                btnConfirmPublish.addEventListener('click', async () => {
+                    const user = window.__studioFirebase?.currentUser;
+                    const username = window.__studioFirebase?.currentUsername;
+                    if (!user || !username) {
+                        statusBox.style.color = '#cf4b4b';
+                        statusBox.textContent = 'Account with verified username required to publish.';
+                        return;
+                    }
+
+                    const rawSlug = siteSlugInput.value.trim().toLowerCase();
+                    const slug = rawSlug.replace(/[^a-z0-9_\-]/g, '-');
+                    if (!slug) {
+                        statusBox.style.color = '#cf4b4b';
+                        statusBox.textContent = 'Please enter a valid site name.';
+                        return;
+                    }
+
+                    const docId = `${username}_${slug}`;
+                    statusBox.style.color = '#a0a0aa';
+                    statusBox.textContent = 'Saving site to Firestore...';
+
+                    try {
+                        const { db, setDoc, getDoc, doc, serverTimestamp } = window.__studioFirebase;
+                        const docRef = doc(db, 'sites', docId);
+                        const existingSnap = await getDoc(docRef);
+
+                        if (existingSnap.exists()) {
+                            const existingData = existingSnap.data();
+                            if (existingData.ownerUid && existingData.ownerUid !== user.uid) {
+                                statusBox.style.color = '#cf4b4b';
+                                statusBox.textContent = 'This site name is owned by another account.';
+                                return;
+                            }
+                        }
+
+                        const compiledHtml = generateCleanExport();
+
+                        await setDoc(docRef, {
+                            docId: docId,
+                            username: username,
+                            siteName: slug,
+                            ownerUid: user.uid,
+                            ownerEmail: user.email,
+                            html: compiledHtml,
+                            elementsHtml: canvas.innerHTML,
+                            updatedAt: serverTimestamp()
+                        });
+
+                        activeLoadedSiteSlug = slug;
+                        statusBox.style.color = '#6ee7b7';
+                        statusBox.textContent = 'Published successfully!';
+
+                        const path = window.location.pathname.endsWith('/') ? window.location.pathname + 'site.html' : window.location.pathname;
+                        const fullUrl = `${window.location.origin}${path}#user=${username}&site=${slug}`;
+                        liveUrlInput.value = fullUrl;
+                        linkContainer.style.display = 'flex';
+                    } catch (err) {
+                        statusBox.style.color = '#cf4b4b';
+                        statusBox.textContent = 'Publish failed: ' + err.message;
+                    }
+                });
+
+                btnCopyLiveUrl.addEventListener('click', () => {
+                    liveUrlInput.select();
+                    document.execCommand('copy');
+                    btnCopyLiveUrl.textContent = 'Copied!';
+                    setTimeout(() => { btnCopyLiveUrl.textContent = 'Copy Link'; }, 1500);
+                });
+
+                btnOpenLiveUrl.addEventListener('click', () => {
+                    const username = window.__studioFirebase?.currentUsername;
+                    const siteSlug = siteSlugInput.value.trim().toLowerCase().replace(/[^a-z0-9_\-]/g, '-');
+                    window.location.hash = `user=${username}&site=${siteSlug}`;
+                    publishDrawer.style.display = 'none';
+                });
+
+                // My Sites Drawer
+                const btnCloseMySites = document.getElementById('btn-close-mysites');
+                const mySitesList = document.getElementById('mysites-list');
+
+                btnMySites.addEventListener('click', async () => {
+                    mysitesDrawer.style.display = 'flex';
+                    await loadUserSitesList();
+                });
+
+                btnCloseMySites.addEventListener('click', () => {
+                    mysitesDrawer.style.display = 'none';
+                });
+
+                async function loadUserSitesList() {
+                    const user = window.__studioFirebase?.currentUser;
+                    if (!user) {
+                        mySitesList.innerHTML = '<div style="color: #cf4b4b;">Please sign in to view your sites.</div>';
+                        return;
+                    }
+
+                    mySitesList.innerHTML = '<div style="color: var(--text-muted); font-size: 11px;">Fetching your sites...</div>';
+                    try {
+                        const { db, collection, getDocs } = window.__studioFirebase;
+                        const querySnap = await getDocs(collection(db, 'sites'));
+                        const userSites = [];
+                        querySnap.forEach(docSnap => {
+                            const data = docSnap.data();
+                            if (data.ownerUid === user.uid) {
+                                userSites.push(data);
+                            }
+                        });
+
+                        if (userSites.length === 0) {
+                            mySitesList.innerHTML = '<div style="color: var(--text-muted); padding: 14px 0; font-size: 11px;">You haven\'t published any sites yet under this account.</div>';
+                            return;
+                        }
+
+                        mySitesList.innerHTML = '';
+                        userSites.forEach(site => {
+                            const docId = site.docId || `${site.username}_${site.siteName || site.slug}`;
+                            const uName = site.username || 'user';
+                            const sName = site.siteName || site.slug;
+                            const card = document.createElement('div');
+                            card.className = 'site-card';
+                            card.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                  <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-bright);">#user=${uName}&site=${sName}</span>
+                  <span style="font-size: 9px; color: var(--text-muted);">Creator: @${uName}</span>
+                </div>
+                <div style="display: flex; gap: 4px; align-items: center;">
+                  <button class="btn-load-site" style="border: 1px solid var(--border-color); background: var(--bg-surface);">Edit in Studio</button>
+                  <button class="btn-open-site" style="border: 1px solid var(--border-color);">Open Live</button>
+                  <button class="btn-delete-site btn-danger" style="border: 1px solid var(--border-color);">Delete</button>
+                </div>
+              `;
+
+                            card.querySelector('.btn-load-site').addEventListener('click', () => {
+                                if (site.elementsHtml) {
+                                    canvas.innerHTML = site.elementsHtml;
+                                    canvas.querySelectorAll('.canvas-node').forEach(node => attachNodeEvents(node));
+                                    activeLoadedSiteSlug = sName;
+                                    mysitesDrawer.style.display = 'none';
+                                }
+                            });
+
+                            card.querySelector('.btn-open-site').addEventListener('click', () => {
+                                mysitesDrawer.style.display = 'none';
+                                window.location.hash = `user=${uName}&site=${sName}`;
+                            });
+
+                            card.querySelector('.btn-delete-site').addEventListener('click', async () => {
+                                card.style.opacity = '0.5';
+                                try {
+                                    const { db, deleteDoc, doc } = window.__studioFirebase;
+                                    await deleteDoc(doc(db, 'sites', docId));
+                                    if (activeLoadedSiteSlug === sName) activeLoadedSiteSlug = null;
+                                    await loadUserSitesList();
+                                } catch (err) {
+                                    alert('Delete failed: ' + err.message);
+                                    card.style.opacity = '1';
+                                }
+                            });
+
+                            mySitesList.appendChild(card);
+                        });
+                    } catch (err) {
+                        mySitesList.innerHTML = `<div style="color: #cf4b4b;">Error: ${err.message}</div>`;
+                    }
+                }
+
+                // Security Rules Drawer
+                const btnRules = document.getElementById('btn-firestore-rules');
+                const btnCloseRules = document.getElementById('btn-close-rules');
+                const btnCopyRules = document.getElementById('btn-copy-rules');
+                const rulesCode = document.getElementById('rules-code-block');
+
+                btnRules.addEventListener('click', () => { rulesDrawer.style.display = 'flex'; });
+                btnCloseRules.addEventListener('click', () => { rulesDrawer.style.display = 'none'; });
+                btnCopyRules.addEventListener('click', () => {
+                    rulesCode.select();
+                    document.execCommand('copy');
+                    btnCopyRules.textContent = 'Copied Rules!';
+                    setTimeout(() => { btnCopyRules.textContent = 'Copy Security Rules'; }, 1500);
+                });
+            }
+
+            function parseSiteRoute(hash) {
+                if (!hash) return null;
+                const clean = hash.replace(/^#/, '');
+                // Match #user=username&site=sitename
+                const userMatch = clean.match(/user=([^&]+)/);
+                const siteMatch = clean.match(/site=([^&]+)/);
+                if (userMatch && siteMatch) {
+                    return { username: userMatch[1].toLowerCase(), siteName: siteMatch[1].toLowerCase() };
+                }
+                // Match #username/sitename
+                const slashMatch = clean.match(/^([a-zA-Z0-9_\-]+)\/([a-zA-Z0-9_\-]+)$/);
+                if (slashMatch) {
+                    return { username: slashMatch[1].toLowerCase(), siteName: slashMatch[2].toLowerCase() };
+                }
+                // Fallback backward compatibility: #site=sitename
+                if (siteMatch) {
+                    return { username: null, siteName: siteMatch[1].toLowerCase() };
+                }
+                return null;
+            }
+
+            async function checkHashRoute() {
+                const route = parseSiteRoute(window.location.hash);
+                if (route) {
+                    await showPublicViewer(route.username, route.siteName);
+                } else {
+                    publicViewer.style.display = 'none';
+                }
+            }
+
+            async function showPublicViewer(username, siteName) {
+                publicViewer.style.display = 'block';
+                const routeLabel = username ? `${username}/${siteName}` : siteName;
+                publicContent.innerHTML = `<div style="padding: 40px; text-align: center; color: #888894; font-family: monospace; font-size: 11px;">RETRIEVING SITE [${routeLabel}]...</div>`;
+
+                const btnEditOwner = document.getElementById('btn-viewer-edit-owner');
+                const btnDeleteOwner = document.getElementById('btn-viewer-delete-owner');
+                const btnExit = document.getElementById('btn-viewer-exit');
+
+                btnEditOwner.style.display = 'none';
+                btnDeleteOwner.style.display = 'none';
+                btnExit.href = window.location.pathname;
+
+                try {
+                    if (!window.__studioFirebase) return;
+                    const { db, getDoc, deleteDoc, doc } = window.__studioFirebase;
+                    const docId = username ? `${username}_${siteName}` : siteName;
+                    let snap = await getDoc(doc(db, 'sites', docId));
+
+                    // Fallback if not found with compound id
+                    if (!snap.exists() && username) {
+                        snap = await getDoc(doc(db, 'sites', siteName));
+                    }
+
+                    if (!snap.exists()) {
+                        publicContent.innerHTML = `<div style="padding: 60px 20px; text-align: center; color: #a0a0aa; font-family: monospace; font-size: 12px;">SITE "${routeLabel}" NOT FOUND IN FIRESTORE.<br><br><a href="${window.location.pathname}" style="color: #ffffff; text-decoration: none; border-bottom: 1px dotted #888;">Return to Studio</a></div>`;
+                        return;
+                    }
+
+                    const data = snap.data();
+                    publicContent.innerHTML = data.html || '';
+
+                    const currentUser = window.__studioFirebase.currentUser;
+                    const isOwner = currentUser && !currentUser.isAnonymous && currentUser.uid === data.ownerUid;
+
+                    if (isOwner) {
+                        btnEditOwner.style.display = 'inline-block';
+                        btnDeleteOwner.style.display = 'inline-block';
+
+                        btnEditOwner.onclick = () => {
+                            if (data.elementsHtml) {
+                                canvas.innerHTML = data.elementsHtml;
+                                canvas.querySelectorAll('.canvas-node').forEach(node => attachNodeEvents(node));
+                                activeLoadedSiteSlug = siteName;
+                            }
+                            window.location.hash = '';
+                        };
+
+                        btnDeleteOwner.onclick = async () => {
+                            try {
+                                await deleteDoc(doc(db, 'sites', docId));
+                                window.location.hash = '';
+                            } catch (err) {
+                                alert('Deletion error: ' + err.message);
+                            }
+                        };
+                    }
+
+                    publicContent.querySelectorAll('.node-custom-btn').forEach(btn => {
+                        btn.onmouseenter = () => {
+                            btn.style.color = btn.getAttribute('data-hover-color') || '#ffffff';
+                            btn.style.backgroundColor = btn.getAttribute('data-hover-bg') || 'rgba(255, 255, 255, 0.04)';
+                        };
+                        btn.onmouseleave = () => {
+                            btn.style.color = btn.getAttribute('data-color') || '#80808a';
+                            btn.style.backgroundColor = btn.getAttribute('data-bg') || 'transparent';
+                        };
+                        btn.onclick = () => {
+                            const url = btn.getAttribute('data-target-url');
+                            if (url && url !== '#') window.location.href = url;
+                        };
+                    });
+                } catch (err) {
+                    publicContent.innerHTML = `<div style="padding: 40px; text-align: center; color: #cf4b4b; font-family: monospace; font-size: 11px;">ERROR LOADING SITE: ${err.message}</div>`;
+                }
+            }
 
             function setupCanvasListeners() {
+                canvas.querySelectorAll('.canvas-node').forEach(node => attachNodeEvents(node));
                 canvas.addEventListener('click', (e) => {
                     if (isPreviewMode) return;
                     const target = e.target.closest('.canvas-node');
@@ -873,7 +1697,7 @@
                     case 'image': {
                         const img = document.createElement('img');
                         img.className = 'node-image';
-                        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="240" viewBox="0 0 600 240"><rect fill="#1e1e24" width="600" height="240"/><text fill="#71717a" font-family="sans-serif" font-size="12" x="50%" y="50%" text-anchor="middle" dominant-baseline="middle">IMAGE PLACEHOLDER (BASE64 READY)</text></svg>');
+                        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="240" viewBox="0 0 600 240"><rect fill="#18181f" width="600" height="240"/><text fill="#71717a" font-family="sans-serif" font-size="12" x="50%" y="50%" text-anchor="middle" dominant-baseline="middle">IMAGE PLACEHOLDER (BASE64 READY)</text></svg>');
                         img.alt = 'Uploaded Asset';
                         wrapper.appendChild(img);
                         break;
@@ -905,7 +1729,7 @@
                     case 'custom-html': {
                         const custom = document.createElement('div');
                         custom.className = 'custom-html-block';
-                        custom.innerHTML = '<div style="padding: 12px; background: #1a1a1f; border: 1px solid #2a2a30; font-family: monospace; font-size: 11px; color: #a0a0aa;">&lt;div&gt;Custom Embed Code Block&lt;/div&gt;</div>';
+                        custom.innerHTML = '<div style="padding: 12px; background: #18181f; border: 1px solid #27272a; font-family: monospace; font-size: 11px; color: #a0a0aa;">&lt;div&gt;Custom Embed Code Block&lt;/div&gt;</div>';
                         wrapper.appendChild(custom);
                         break;
                     }
@@ -1028,7 +1852,7 @@
             <div class="inspector-grid-2">
               <div class="inspector-group">
                 <label class="inspector-label">Background</label>
-                <input type="text" id="insp-btn-bg" value="${btn.getAttribute('data-bg') || 'transparent'}" placeholder="transparent or #1b1b1f">
+                <input type="text" id="insp-btn-bg" value="${btn.getAttribute('data-bg') || 'transparent'}" placeholder="transparent or #18181f">
               </div>
               <div class="inspector-group">
                 <label class="inspector-label">Hover Background</label>
@@ -1080,7 +1904,7 @@
               </div>
               <div class="inspector-group">
                 <label class="inspector-label">Border Color</label>
-                <input type="color" id="insp-btn-border-c" value="${rgbToHex(btn.style.borderColor || '#2a2a30')}">
+                <input type="color" id="insp-btn-border-c" value="${rgbToHex(btn.style.borderColor || '#27272a')}">
               </div>
             </div>
             <div class="inspector-group">
@@ -1119,7 +1943,7 @@
               <label class="inspector-label">Border</label>
               <select id="insp-iframe-border">
                 <option value="none" ${iframe.style.border === 'none' ? 'selected' : ''}>None</option>
-                <option value="1px solid #2a2a30" ${iframe.style.border !== 'none' ? 'selected' : ''}>Muted Subtle Border</option>
+                <option value="1px solid #27272a" ${iframe.style.border !== 'none' ? 'selected' : ''}>Muted Subtle Border</option>
               </select>
             </div>
             <div class="inspector-group">
@@ -1217,7 +2041,6 @@
             }
 
             function bindInspectorEvents(node, type) {
-                // Text alignments
                 const ctrlAlign = document.getElementById('ctrl-align');
                 if (ctrlAlign) {
                     ctrlAlign.querySelectorAll('button').forEach(btn => {
@@ -1278,7 +2101,6 @@
                     });
                 }
 
-                // Comprehensive Button bindings
                 if (type === 'button') {
                     const btn = node.querySelector('.node-custom-btn');
                     const wrap = node.querySelector('.node-button-wrap');
@@ -1308,11 +2130,11 @@
                     document.getElementById('btn-preset-solid').addEventListener('click', () => {
                         btn.setAttribute('data-color', '#ffffff');
                         btn.setAttribute('data-hover-color', '#ffffff');
-                        btn.setAttribute('data-bg', '#222227');
-                        btn.setAttribute('data-hover-bg', '#2b2b32');
+                        btn.setAttribute('data-bg', '#18181f');
+                        btn.setAttribute('data-hover-bg', '#22222b');
                         btn.style.color = '#ffffff';
-                        btn.style.backgroundColor = '#222227';
-                        btn.style.border = '1px solid #2a2a30';
+                        btn.style.backgroundColor = '#18181f';
+                        btn.style.border = '1px solid #27272a';
                         renderInspector(node);
                     });
 
@@ -1320,10 +2142,10 @@
                         btn.setAttribute('data-color', '#a0a0aa');
                         btn.setAttribute('data-hover-color', '#ffffff');
                         btn.setAttribute('data-bg', 'transparent');
-                        btn.setAttribute('data-hover-bg', '#1b1b1f');
+                        btn.setAttribute('data-hover-bg', '#141418');
                         btn.style.color = '#a0a0aa';
                         btn.style.backgroundColor = 'transparent';
-                        btn.style.border = '1px solid #3e3e48';
+                        btn.style.border = '1px solid #3f3f46';
                         renderInspector(node);
                     });
 
@@ -1392,7 +2214,6 @@
                     });
                 }
 
-                // Spacer bindings
                 if (type === 'spacer') {
                     const sp = node.querySelector('.node-spacer');
                     const range = document.getElementById('insp-spacer-height');
@@ -1412,7 +2233,6 @@
                     });
                 }
 
-                // iFrame bindings
                 if (type === 'iframe') {
                     const iframe = node.querySelector('iframe');
                     document.getElementById('insp-iframe-src').addEventListener('change', (e) => {
@@ -1429,7 +2249,6 @@
                     });
                 }
 
-                // Image bindings
                 if (type === 'image') {
                     const fileImage = document.getElementById('insp-file-image');
                     if (fileImage) {
@@ -1457,7 +2276,6 @@
                     }
                 }
 
-                // Video bindings
                 if (type === 'video') {
                     const fileVideo = document.getElementById('insp-file-video');
                     if (fileVideo) {
@@ -1489,7 +2307,6 @@
                     }
                 }
 
-                // Audio bindings
                 if (type === 'audio') {
                     const fileAudio = document.getElementById('insp-file-audio');
                     if (fileAudio) {
@@ -1515,7 +2332,6 @@
                     }
                 }
 
-                // Custom HTML
                 const rawHtml = document.getElementById('insp-raw-html');
                 if (rawHtml) {
                     rawHtml.addEventListener('input', (e) => {
@@ -1523,7 +2339,6 @@
                     });
                 }
 
-                // Margin bottom
                 const inspMargin = document.getElementById('insp-margin-bottom');
                 if (inspMargin) {
                     inspMargin.addEventListener('input', (e) => {
@@ -1561,15 +2376,16 @@
                 document.getElementById('btn-clear-canvas').addEventListener('click', () => {
                     deselectNode();
                     canvas.innerHTML = '';
+                    activeLoadedSiteSlug = null;
                 });
 
                 document.getElementById('btn-view-code').addEventListener('click', () => {
                     codeViewer.value = generateCleanExport();
-                    codeDrawer.classList.add('visible');
+                    codeDrawer.style.display = 'flex';
                 });
 
                 document.getElementById('btn-close-code').addEventListener('click', () => {
-                    codeDrawer.classList.remove('visible');
+                    codeDrawer.style.display = 'none';
                 });
 
                 document.getElementById('btn-copy-code').addEventListener('click', () => {
@@ -1652,7 +2468,7 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background-color: #141416;
+      background-color: #0e0e11;
       color: #a0a0aa;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       font-size: 13px;
@@ -1687,10 +2503,10 @@
       background-color: var(--hover-bg, rgba(255, 255, 255, 0.04)) !important;
     }
     .node-spacer { width: 100%; display: flex; align-items: center; justify-content: center; }
-    .node-spacer-line { width: 100%; height: 1px; background-color: #2a2a30; }
-    .node-container { border: 1px solid #2a2a30; padding: 18px; border-radius: 2px; background: rgba(255, 255, 255, 0.01); }
+    .node-spacer-line { width: 100%; height: 1px; background-color: #27272a; }
+    .node-container { border: 1px solid #27272a; padding: 18px; border-radius: 2px; background: rgba(255, 255, 255, 0.01); }
     .node-media-frame { width: 100%; border: none; background: #000; border-radius: 2px; }
-    .node-image { max-width: 100%; height: auto; border-radius: 2px; display: block; border: 1px solid #2a2a30; }
+    .node-image { max-width: 100%; height: auto; border-radius: 2px; display: block; border: 1px solid #27272a; }
     .node-audio { width: 100%; height: 40px; filter: invert(0.9) hue-rotate(180deg); }
   </style>
 </head>
