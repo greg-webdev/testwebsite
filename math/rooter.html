@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Root Index Simplifier</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg: #121315;
+            --card-bg: #18191d;
+            --card-border: #26282f;
+            --border-focus: #4b4f5d;
+            --text: #e6e8ee;
+            --text-dim: #8b909e;
+            --text-sub: #545864;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* ReactBits subtle background grid & tracking spotlight */
+        .bg-grid {
+            background-image:
+                linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        .spotlight {
+            pointer-events: none;
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 255, 255, 0.035), transparent 70%);
+            z-index: 1;
+        }
+
+        .math-font {
+            font-family: "Cambria Math", "KaTeX_Main", "Times New Roman", serif;
+            font-style: normal;
+        }
+
+        .radical {
+            display: inline-flex;
+            align-items: flex-end;
+            vertical-align: middle;
+        }
+
+        .radical-idx {
+            font-size: 0.65em;
+            position: relative;
+            bottom: 0.6em;
+            margin-right: -0.15em;
+            color: var(--text-dim);
+        }
+
+        .radical-sym {
+            font-size: 1.2em;
+            line-height: 1;
+        }
+
+        .radical-content {
+            border-top: 1.5px solid currentColor;
+            padding-top: 0.06em;
+            padding-left: 0.15em;
+            padding-right: 0.15em;
+            margin-left: -0.05em;
+        }
+
+        .panel {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 4px;
+        }
+
+        /* Input inside 2D Square */
+        .shape-square {
+            width: 108px;
+            height: 108px;
+            background: #141519;
+            border: 1.5px solid #363944;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            transition: border-color 0.15s ease;
+        }
+
+        .shape-square:focus-within {
+            border-color: #636879;
+        }
+
+        /* Static 3D Isometric Cube */
+        .cube-stage {
+            width: 130px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 700px;
+        }
+
+        .iso-cube {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: rotateX(24deg) rotateY(-36deg);
+        }
+
+        .cube-face {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            box-sizing: border-box;
+        }
+
+        .face-front {
+            transform: translateZ(40px);
+            background: #141519;
+            border: 1.5px solid #363944;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .iso-cube:focus-within .face-front {
+            border-color: #636879;
+        }
+
+        .face-top {
+            transform: rotateX(90deg) translateZ(40px);
+            background: #1e2027;
+            border: 1px solid #454957;
+            pointer-events: none;
+        }
+
+        .face-right {
+            transform: rotateY(90deg) translateZ(40px);
+            background: #0f1013;
+            border: 1px solid #2b2e38;
+            pointer-events: none;
+        }
+
+        /* Embedded typing input */
+        .shape-input {
+            width: 90%;
+            background: transparent;
+            border: none;
+            outline: none;
+            text-align: center;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #ffffff;
+            padding: 0;
+        }
+
+        .label-badge {
+            font-size: 0.6875rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            color: #9da3b4;
+            background: #111215;
+            border: 1px solid #292b33;
+            border-radius: 3px;
+            padding: 1px 6px;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-grid p-4 sm:p-6 flex flex-col justify-between relative">
+    <div class="spotlight" id="spotlight"></div>
+
+    <main class="max-w-5xl w-full mx-auto space-y-4 relative z-10">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <!-- ================= SQUARE ROOT ================= -->
+            <section class="panel p-4 space-y-4">
+                <div class="flex items-center justify-between border-b border-[#22242a] pb-2">
+                    <h2 class="text-sm font-semibold tracking-wide text-neutral-100 font-mono">Square Root</h2>
+                    <span class="text-[11px] font-mono text-[var(--text-sub)]">Index 2</span>
+                </div>
+
+                <!-- 2D Shape Input -->
+                <div
+                    class="flex flex-col items-center justify-center py-4 bg-[#101114] border border-[#202228] rounded">
+                    <span id="sq-side-top" class="label-badge mb-2"></span>
+                    <div class="flex items-center gap-2">
+                        <span id="sq-side-left" class="label-badge rotate-[-90deg]"></span>
+                        <div class="shape-square" onclick="document.getElementById('in-sq').focus()">
+                            <input id="in-sq" type="text" value="72" class="shape-input" oninput="runSqrt()"
+                                autocomplete="off" />
+                        </div>
+                        <span id="sq-side-right" class="label-badge rotate-[90deg]"></span>
+                    </div>
+                    <span id="sq-side-bottom" class="label-badge mt-2"></span>
+                </div>
+
+                <div id="out-sq" class="space-y-2"></div>
+            </section>
+
+            <!-- ================= CUBE ROOT ================= -->
+            <section class="panel p-4 space-y-4">
+                <div class="flex items-center justify-between border-b border-[#22242a] pb-2">
+                    <h2 class="text-sm font-semibold tracking-wide text-neutral-100 font-mono">Cube Root</h2>
+                    <span class="text-[11px] font-mono text-[var(--text-sub)]">Index 3</span>
+                </div>
+
+                <!-- Static 3D Isometric Cube Input -->
+                <div
+                    class="flex flex-col items-center justify-center py-3 bg-[#101114] border border-[#202228] rounded">
+                    <div class="cube-stage">
+                        <div class="iso-cube" onclick="document.getElementById('in-cb').focus()">
+                            <div class="cube-face face-front">
+                                <input id="in-cb" type="text" value="108" class="shape-input" oninput="runCube()"
+                                    autocomplete="off" />
+                            </div>
+                            <div class="cube-face face-top"></div>
+                            <div class="cube-face face-right"></div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 mt-2">
+                        <span id="cb-edge-w" class="label-badge"></span>
+                        <span id="cb-edge-d" class="label-badge"></span>
+                    </div>
+                </div>
+
+                <div id="out-cb" class="space-y-2"></div>
+            </section>
+
+        </div>
+    </main>
+
+    <footer class="text-center text-[11px] font-mono text-[var(--text-sub)] pt-4 relative z-10">
+        Canonical index partitioning: e = q·k + r
+    </footer>
+
+    <script>
+        // Spotlight cursor effect
+        window.addEventListener('mousemove', e => {
+            const sp = document.getElementById('spotlight');
+            sp.style.setProperty('--mouse-x', `${e.clientX}px`);
+            sp.style.setProperty('--mouse-y', `${e.clientY}px`);
+        });
+
+        // Factorization & Math
+        function parseNum(raw) {
+            const s = raw.trim().replace(/[×xX]/g, '*');
+            if (!s) return null;
+            let total = 1n;
+            for (const t of s.split('*').map(x => x.trim()).filter(Boolean)) {
+                if (t.includes('^')) {
+                    const [b, e] = t.split('^').map(x => x.trim());
+                    if (!/^\d+$/.test(b) || !/^\d+$/.test(e)) return null;
+                    const exp = parseInt(e, 10);
+                    if (exp > 300) return null;
+                    total *= (BigInt(b) ** BigInt(exp));
+                } else {
+                    if (!/^\d+$/.test(t)) return null;
+                    total *= BigInt(t);
+                }
+            }
+            return total > 0n ? total : null;
+        }
+
+        function getFactors(n) {
+            const m = new Map();
+            let d = 2n;
+            while (d * d <= n) {
+                if (n % d === 0n) {
+                    let c = 0;
+                    while (n % d === 0n) { c++; n /= d; }
+                    m.set(d, c);
+                }
+                d = (d === 2n) ? 3n : d + 2n;
+            }
+            if (n > 1n) m.set(n, (m.get(n) || 0) + 1);
+            return m;
+        }
+
+        function radHtml(k, val) {
+            const idx = k === 2 ? '' : `<sup class="radical-idx">${k}</sup>`;
+            return `<span class="radical math-font">${idx}<span class="radical-sym">√</span><span class="radical-content">${val}</span></span>`;
+        }
+
+        function formatFactors(factors) {
+            if (factors.size === 0) return '1';
+            return Array.from(factors.entries())
+                .map(([p, e]) => e === 1 ? `${p}` : `${p}<sup>${e}</sup>`)
+                .join(' · ');
+        }
+
+        function compute(n, k) {
+            const factors = getFactors(n);
+            let outVal = 1n;
+            let inVal = 1n;
+            const partsOut = [];
+            const partsIn = [];
+
+            for (const [p, exp] of factors.entries()) {
+                const q = Math.floor(exp / k);
+                const r = exp % k;
+                if (q > 0) {
+                    outVal *= (p ** BigInt(q));
+                    partsOut.push(q * k === 1 ? `${p}` : `${p}<sup>${q * k}</sup>`);
+                }
+                if (r > 0) {
+                    inVal *= (p ** BigInt(r));
+                    partsIn.push(r === 1 ? `${p}` : `${p}<sup>${r}</sup>`);
+                }
+            }
+
+            const dec = k === 2 ? Math.sqrt(Number(n)) : Math.cbrt(Number(n));
+            let exact = '';
+            if (inVal === 1n) exact = outVal.toLocaleString();
+            else if (outVal === 1n) exact = radHtml(k, inVal.toLocaleString());
+            else exact = `${outVal.toLocaleString()}·${radHtml(k, inVal.toLocaleString())}`;
+
+            return { n, k, factors, outVal, inVal, partsOut, partsIn, exact, dec };
+        }
+
+        // Render Logic
+        function runSqrt() {
+            const val = parseNum(document.getElementById('in-sq').value);
+            const out = document.getElementById('out-sq');
+            const top = document.getElementById('sq-side-top');
+            const btm = document.getElementById('sq-side-bottom');
+            const lft = document.getElementById('sq-side-left');
+            const rgt = document.getElementById('sq-side-right');
+
+            if (!val || val > 100000000000000n) {
+                top.textContent = btm.textContent = lft.textContent = rgt.textContent = '—';
+                out.innerHTML = `<div class="text-xs font-mono text-neutral-500 py-2">—</div>`;
+                return;
+            }
+
+            const r = compute(val, 2);
+            top.innerHTML = r.exact;
+            btm.textContent = `≈ ${r.dec.toFixed(4)}`;
+            lft.innerHTML = r.exact;
+            rgt.textContent = `≈ ${r.dec.toFixed(4)}`;
+
+            const expandedRoot = r.partsOut.length && r.partsIn.length
+                ? `${radHtml(2, r.partsOut.join(' · '))} · ${radHtml(2, r.partsIn.join(' · '))}`
+                : '';
+
+            out.innerHTML = `
+        <div class="bg-[#121316] border border-[#202227] rounded p-2.5 font-mono text-xs space-y-1.5">
+          <div class="text-[#8e94a4]">${r.n.toLocaleString()} = ${formatFactors(r.factors)}</div>
+          <div class="text-[#717684]">
+            ${radHtml(2, r.n.toLocaleString())}
+            ${expandedRoot ? ` = ${expandedRoot}` : ''}
+            = <span class="text-white font-semibold">${r.exact}</span>
+          </div>
+        </div>
+        <div class="flex items-baseline justify-between font-mono text-xs px-1 text-[#838896]">
+          <span>${r.exact}</span>
+          <span class="text-neutral-400">≈ ${r.dec.toFixed(8)}</span>
+        </div>
+      `;
+        }
+
+        function runCube() {
+            const val = parseNum(document.getElementById('in-cb').value);
+            const out = document.getElementById('out-cb');
+            const w = document.getElementById('cb-edge-w');
+            const d = document.getElementById('cb-edge-d');
+
+            if (!val || val > 100000000000000n) {
+                w.textContent = d.textContent = '—';
+                out.innerHTML = `<div class="text-xs font-mono text-neutral-500 py-2">—</div>`;
+                return;
+            }
+
+            const r = compute(val, 3);
+            w.innerHTML = `edge: ${r.exact}`;
+            d.textContent = `≈ ${r.dec.toFixed(4)}`;
+
+            const expandedRoot = r.partsOut.length && r.partsIn.length
+                ? `${radHtml(3, r.partsOut.join(' · '))} · ${radHtml(3, r.partsIn.join(' · '))}`
+                : '';
+
+            out.innerHTML = `
+        <div class="bg-[#121316] border border-[#202227] rounded p-2.5 font-mono text-xs space-y-1.5">
+          <div class="text-[#8e94a4]">${r.n.toLocaleString()} = ${formatFactors(r.factors)}</div>
+          <div class="text-[#717684]">
+            ${radHtml(3, r.n.toLocaleString())}
+            ${expandedRoot ? ` = ${expandedRoot}` : ''}
+            = <span class="text-white font-semibold">${r.exact}</span>
+          </div>
+        </div>
+        <div class="flex items-baseline justify-between font-mono text-xs px-1 text-[#838896]">
+          <span>${r.exact}</span>
+          <span class="text-neutral-400">≈ ${r.dec.toFixed(8)}</span>
+        </div>
+      `;
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            runSqrt();
+            runCube();
+        });
+    </script>
+</body>
+
+</html>
