@@ -80,31 +80,41 @@
         }
 
         /* Input inside 2D Square */
+        .shape-square-wrapper {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+
         .shape-square {
             width: 108px;
             height: 108px;
             background: #141519;
             border: 1.5px solid #363944;
+            border-left: 2.5px solid #ffffff;
+            /* Highlighted single edge */
             border-radius: 3px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), -2px 0 10px rgba(255, 255, 255, 0.08);
             transition: border-color 0.15s ease;
         }
 
         .shape-square:focus-within {
             border-color: #636879;
+            border-left-color: #ffffff;
         }
 
         /* Static 3D Isometric Cube */
         .cube-stage {
-            width: 130px;
+            width: 160px;
             height: 120px;
             display: flex;
             align-items: center;
             justify-content: center;
             perspective: 700px;
+            position: relative;
         }
 
         .iso-cube {
@@ -148,6 +158,9 @@
             transform: rotateY(90deg) translateZ(40px);
             background: #0f1013;
             border: 1px solid #2b2e38;
+            border-left: 2.5px solid #ffffff;
+            /* Highlighted vertical front-right edge */
+            box-shadow: -2px 0 8px rgba(255, 255, 255, 0.12);
             pointer-events: none;
         }
 
@@ -192,19 +205,20 @@
                     <span class="text-[11px] font-mono text-[var(--text-sub)]">Index 2</span>
                 </div>
 
-                <!-- 2D Shape Input -->
-                <div
-                    class="flex flex-col items-center justify-center py-4 bg-[#101114] border border-[#202228] rounded">
-                    <span id="sq-side-top" class="label-badge mb-2"></span>
-                    <div class="flex items-center gap-2">
-                        <span id="sq-side-left" class="label-badge rotate-[-90deg]"></span>
+                <!-- 2D Shape Input with Highlighted Left Edge & Dimension Beside It -->
+                <div class="flex items-center justify-center py-6 bg-[#101114] border border-[#202228] rounded">
+                    <div class="shape-square-wrapper gap-3">
+                        <!-- Edge size positioned beside the highlighted left edge -->
+                        <div class="flex flex-col items-end">
+                            <span id="sq-edge-exact"
+                                class="label-badge border-white/20 text-neutral-100 font-semibold"></span>
+                            <span id="sq-edge-dec" class="text-[10px] font-mono text-neutral-400 mt-0.5"></span>
+                        </div>
                         <div class="shape-square" onclick="document.getElementById('in-sq').focus()">
                             <input id="in-sq" type="text" value="72" class="shape-input" oninput="runSqrt()"
                                 autocomplete="off" />
                         </div>
-                        <span id="sq-side-right" class="label-badge rotate-[90deg]"></span>
                     </div>
-                    <span id="sq-side-bottom" class="label-badge mt-2"></span>
                 </div>
 
                 <div id="out-sq" class="space-y-2"></div>
@@ -217,22 +231,25 @@
                     <span class="text-[11px] font-mono text-[var(--text-sub)]">Index 3</span>
                 </div>
 
-                <!-- Static 3D Isometric Cube Input -->
-                <div
-                    class="flex flex-col items-center justify-center py-3 bg-[#101114] border border-[#202228] rounded">
-                    <div class="cube-stage">
-                        <div class="iso-cube" onclick="document.getElementById('in-cb').focus()">
-                            <div class="cube-face face-front">
-                                <input id="in-cb" type="text" value="108" class="shape-input" oninput="runCube()"
-                                    autocomplete="off" />
+                <!-- Static 3D Isometric Cube Input with Highlighted Corner Edge & Dimension Beside It -->
+                <div class="flex items-center justify-center py-6 bg-[#101114] border border-[#202228] rounded">
+                    <div class="flex items-center gap-3">
+                        <div class="cube-stage">
+                            <div class="iso-cube" onclick="document.getElementById('in-cb').focus()">
+                                <div class="cube-face face-front">
+                                    <input id="in-cb" type="text" value="108" class="shape-input" oninput="runCube()"
+                                        autocomplete="off" />
+                                </div>
+                                <div class="cube-face face-top"></div>
+                                <div class="cube-face face-right"></div>
                             </div>
-                            <div class="cube-face face-top"></div>
-                            <div class="cube-face face-right"></div>
                         </div>
-                    </div>
-                    <div class="flex gap-2 mt-2">
-                        <span id="cb-edge-w" class="label-badge"></span>
-                        <span id="cb-edge-d" class="label-badge"></span>
+                        <!-- Edge size positioned beside the highlighted edge -->
+                        <div class="flex flex-col items-start -ml-2">
+                            <span id="cb-edge-exact"
+                                class="label-badge border-white/20 text-neutral-100 font-semibold"></span>
+                            <span id="cb-edge-dec" class="text-[10px] font-mono text-neutral-400 mt-0.5"></span>
+                        </div>
                     </div>
                 </div>
 
@@ -334,22 +351,19 @@
         function runSqrt() {
             const val = parseNum(document.getElementById('in-sq').value);
             const out = document.getElementById('out-sq');
-            const top = document.getElementById('sq-side-top');
-            const btm = document.getElementById('sq-side-bottom');
-            const lft = document.getElementById('sq-side-left');
-            const rgt = document.getElementById('sq-side-right');
+            const exactEl = document.getElementById('sq-edge-exact');
+            const decEl = document.getElementById('sq-edge-dec');
 
             if (!val || val > 100000000000000n) {
-                top.textContent = btm.textContent = lft.textContent = rgt.textContent = '—';
+                exactEl.textContent = '—';
+                decEl.textContent = '';
                 out.innerHTML = `<div class="text-xs font-mono text-neutral-500 py-2">—</div>`;
                 return;
             }
 
             const r = compute(val, 2);
-            top.innerHTML = r.exact;
-            btm.textContent = `≈ ${r.dec.toFixed(4)}`;
-            lft.innerHTML = r.exact;
-            rgt.textContent = `≈ ${r.dec.toFixed(4)}`;
+            exactEl.innerHTML = r.exact;
+            decEl.textContent = `≈ ${r.dec.toFixed(4)}`;
 
             const expandedRoot = r.partsOut.length && r.partsIn.length
                 ? `${radHtml(2, r.partsOut.join(' · '))} · ${radHtml(2, r.partsIn.join(' · '))}`
@@ -374,18 +388,19 @@
         function runCube() {
             const val = parseNum(document.getElementById('in-cb').value);
             const out = document.getElementById('out-cb');
-            const w = document.getElementById('cb-edge-w');
-            const d = document.getElementById('cb-edge-d');
+            const exactEl = document.getElementById('cb-edge-exact');
+            const decEl = document.getElementById('cb-edge-dec');
 
             if (!val || val > 100000000000000n) {
-                w.textContent = d.textContent = '—';
+                exactEl.textContent = '—';
+                decEl.textContent = '';
                 out.innerHTML = `<div class="text-xs font-mono text-neutral-500 py-2">—</div>`;
                 return;
             }
 
             const r = compute(val, 3);
-            w.innerHTML = `edge: ${r.exact}`;
-            d.textContent = `≈ ${r.dec.toFixed(4)}`;
+            exactEl.innerHTML = r.exact;
+            decEl.textContent = `≈ ${r.dec.toFixed(4)}`;
 
             const expandedRoot = r.partsOut.length && r.partsIn.length
                 ? `${radHtml(3, r.partsOut.join(' · '))} · ${radHtml(3, r.partsIn.join(' · '))}`
