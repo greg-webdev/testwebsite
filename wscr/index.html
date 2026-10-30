@@ -7,16 +7,16 @@
     <title>Studio Builder</title>
     <style>
         :root {
-            --bg-primary: #121214;
-            --bg-secondary: #18181b;
-            --bg-tertiary: #1e1e24;
-            --border-color: #27272a;
-            --border-highlight: #3f3f46;
-            --text-muted: #71717a;
-            --text-subtle: #a1a1aa;
-            --text-bright: #f4f4f5;
-            --selection-accent: #52525b;
-            --accent: #22c55e;
+            --bg-primary: #141416;
+            --bg-secondary: #1b1b1f;
+            --bg-tertiary: #222227;
+            --border-color: #2a2a30;
+            --border-highlight: #3e3e48;
+            --text-muted: #80808a;
+            --text-subtle: #a0a0aa;
+            --text-bright: #ffffff;
+            --accent-subtle: #2d2d35;
+            --danger: #cf4b4b;
             --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
@@ -32,7 +32,7 @@
             background-color: var(--bg-primary);
             color: var(--text-subtle);
             font-family: var(--font-sans);
-            font-size: 12px;
+            font-size: 11px;
             line-height: 1.4;
             letter-spacing: -0.01em;
             height: 100vh;
@@ -52,7 +52,7 @@
             color: var(--text-bright);
         }
 
-        /* Minimalist Flat Controls */
+        /* Minimalist flat text-first controls */
         button,
         .btn {
             background: transparent;
@@ -69,7 +69,7 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            white-space: nowrap;
         }
 
         button:hover,
@@ -83,8 +83,12 @@
             background-color: var(--bg-tertiary);
         }
 
+        button.btn-danger {
+            color: var(--danger);
+        }
+
         button.btn-danger:hover {
-            color: #ef4444;
+            color: #ff6464;
         }
 
         input,
@@ -95,10 +99,17 @@
             color: var(--text-bright);
             font-family: var(--font-sans);
             font-size: 11px;
-            padding: 6px 8px;
+            padding: 5px 8px;
             border-radius: 2px;
             width: 100%;
             transition: border-color 0.15s ease;
+        }
+
+        input[type="color"] {
+            padding: 1px 2px;
+            height: 26px;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
         }
 
         input:focus,
@@ -107,7 +118,7 @@
             border-color: var(--border-highlight);
         }
 
-        /* Layout Structure */
+        /* Studio Header */
         header {
             height: 42px;
             background-color: var(--bg-secondary);
@@ -122,15 +133,22 @@
         .brand-section {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
         }
 
         .brand-title {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             letter-spacing: 0.08em;
             text-transform: uppercase;
             color: var(--text-bright);
+        }
+
+        .status-indicator {
+            font-size: 10px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            text-transform: uppercase;
         }
 
         .app-workspace {
@@ -141,9 +159,9 @@
             overflow: hidden;
         }
 
-        /* Left Sidebar: Components */
+        /* Left Sidebar: Components Dock */
         .sidebar-left {
-            width: 240px;
+            width: 230px;
             background-color: var(--bg-secondary);
             border-right: 1px solid var(--border-color);
             display: flex;
@@ -153,7 +171,7 @@
         }
 
         .panel-header {
-            padding: 12px 14px;
+            padding: 11px 14px;
             border-bottom: 1px solid var(--border-color);
             font-size: 10px;
             text-transform: uppercase;
@@ -190,17 +208,17 @@
         .catalog-item:hover {
             color: var(--text-bright);
             border-color: var(--border-highlight);
-            background-color: #24242b;
+            background-color: #272730;
         }
 
         .catalog-item span.cat-label {
             font-size: 9px;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            font-family: var(--font-mono);
         }
 
-        /* Canvas Center Workspace */
+        /* Canvas Viewport */
         .canvas-viewport {
             flex: 1;
             background-color: var(--bg-primary);
@@ -208,17 +226,17 @@
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            overflow: auto;
+            overflow-y: auto;
             padding: 24px;
             position: relative;
         }
 
         .viewport-toolbar {
             display: flex;
-            gap: 8px;
+            gap: 4px;
             margin-bottom: 16px;
             background: var(--bg-secondary);
-            padding: 3px 6px;
+            padding: 2px 4px;
             border: 1px solid var(--border-color);
             border-radius: 2px;
         }
@@ -227,12 +245,12 @@
             width: 100%;
             max-width: 960px;
             min-height: 85vh;
-            background: #151518;
+            background: #17171b;
             border: 1px solid var(--border-color);
             border-radius: 2px;
             position: relative;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-            padding: 32px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+            padding: 36px;
             display: flex;
             flex-direction: column;
             gap: 16px;
@@ -240,13 +258,13 @@
         }
 
         #page-canvas.preview-active {
-            background: #0f0f11;
-            border-color: #1f1f23;
+            background: #111114;
+            border-color: #1a1a20;
         }
 
         /* Right Sidebar: Inspector */
         .sidebar-right {
-            width: 320px;
+            width: 330px;
             background-color: var(--bg-secondary);
             border-left: 1px solid var(--border-color);
             display: flex;
@@ -257,16 +275,16 @@
         }
 
         .inspector-body {
-            padding: 16px;
+            padding: 14px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 14px;
         }
 
         .inspector-group {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
         }
 
         .inspector-label {
@@ -277,17 +295,31 @@
             font-weight: 600;
         }
 
-        .inspector-row {
-            display: flex;
-            gap: 8px;
-            align-items: center;
+        .inspector-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
         }
 
-        .inspector-row label {
+        .inspector-grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 4px;
+        }
+
+        .segmented-control {
+            display: flex;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 2px;
+            padding: 1px;
+        }
+
+        .segmented-control button {
+            flex: 1;
             font-size: 10px;
-            color: var(--text-subtle);
-            width: 60px;
-            flex-shrink: 0;
+            padding: 4px 0;
+            border-radius: 2px;
         }
 
         .file-input-wrapper {
@@ -326,15 +358,14 @@
             border-color: var(--border-highlight);
         }
 
-        /* Base64 Badge */
-        .base64-indicator {
+        .base64-badge {
             font-size: 9px;
             font-family: var(--font-mono);
-            background: #111e15;
-            color: var(--accent);
+            background: #171c18;
+            color: #78a380;
             padding: 3px 6px;
             border-radius: 2px;
-            border: 1px solid #1a3c23;
+            border: 1px solid #233526;
             display: inline-block;
             white-space: nowrap;
             overflow: hidden;
@@ -348,7 +379,7 @@
             border: 1px dashed transparent;
             transition: border-color 0.1s ease;
             cursor: pointer;
-            min-height: 20px;
+            min-height: 16px;
         }
 
         .canvas-node:hover {
@@ -356,8 +387,8 @@
         }
 
         .canvas-node.is-selected {
-            border-color: var(--text-bright) !important;
-            outline: 1px solid rgba(255, 255, 255, 0.2);
+            border-color: #555562 !important;
+            outline: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .canvas-node .element-tag {
@@ -370,11 +401,12 @@
             color: var(--text-muted);
             font-size: 9px;
             text-transform: uppercase;
-            padding: 2px 4px;
+            padding: 1px 4px;
             border-radius: 2px;
             pointer-events: none;
             letter-spacing: 0.05em;
             font-family: var(--font-mono);
+            z-index: 5;
         }
 
         .canvas-node.is-selected .element-tag {
@@ -383,29 +415,32 @@
             border-color: var(--border-highlight);
         }
 
-        /* Component Default Renderings */
-        .node-text-btn {
-            display: inline-block;
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            font-size: 13px;
-            padding: 8px 14px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: color 0.15s ease, background 0.15s ease;
-            border-radius: 2px;
+        /* Component Default Styles */
+        .node-text-wrap {
+            width: 100%;
         }
 
-        .node-text-btn:hover {
-            color: var(--text-bright);
-            background-color: rgba(255, 255, 255, 0.04);
+        .node-button-wrap {
+            display: flex;
+            width: 100%;
+            align-items: center;
+        }
+
+        .node-custom-btn {
+            cursor: pointer;
+            border-radius: 2px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.15s ease;
+            box-sizing: border-box;
         }
 
         .node-link {
             display: inline-block;
             text-decoration: none;
-            color: #93939f;
+            color: #888894;
             font-size: 13px;
             transition: color 0.15s ease;
         }
@@ -417,13 +452,26 @@
 
         .node-container {
             border: 1px solid var(--border-color);
-            padding: 20px;
+            padding: 18px;
             display: flex;
             flex-direction: column;
             gap: 12px;
-            min-height: 80px;
+            min-height: 60px;
             background: rgba(255, 255, 255, 0.01);
             border-radius: 2px;
+        }
+
+        .node-spacer {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .node-spacer-line {
+            width: 100%;
+            height: 1px;
+            background-color: var(--border-color);
         }
 
         .node-media-frame {
@@ -448,7 +496,7 @@
             filter: invert(0.9) hue-rotate(180deg);
         }
 
-        /* Modal replacement: Dedicated Code Drawer overlay */
+        /* Source Code View Drawer */
         #code-drawer {
             display: none;
             position: absolute;
@@ -471,7 +519,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 20px;
+            padding: 0 16px;
             background: var(--bg-secondary);
         }
 
@@ -481,48 +529,36 @@
             background: #0d0d0f;
             color: #d4d4d8;
             font-family: var(--font-mono);
-            font-size: 12px;
+            font-size: 11px;
             padding: 20px;
             border: none;
             resize: none;
             line-height: 1.5;
-        }
-
-        /* Minimalist status bar */
-        .status-bar {
-            font-size: 10px;
-            color: var(--text-muted);
-            font-family: var(--font-mono);
-        }
-
-        /* Drag over state */
-        .canvas-node.drag-target {
-            outline: 1px dashed var(--accent);
         }
     </style>
 </head>
 
 <body>
 
-    <!-- App Header -->
+    <!-- Application Top Navigation Bar -->
     <header>
         <div class="brand-section">
-            <span class="brand-title">Studio Designer</span>
-            <span class="status-bar" id="canvas-status">Edit Mode</span>
+            <span class="brand-title">Studio Builder</span>
+            <span class="status-indicator" id="canvas-status">Edit Mode</span>
         </div>
 
-        <div style="display: flex; gap: 6px; align-items: center;">
-            <button id="btn-toggle-preview" title="Toggle Preview / Edit">Preview</button>
+        <div style="display: flex; gap: 4px; align-items: center;">
+            <button id="btn-toggle-preview">Preview</button>
             <button id="btn-view-code">View HTML</button>
             <button id="btn-export-download">Download</button>
             <button id="btn-clear-canvas" class="btn-danger">Clear</button>
         </div>
     </header>
 
-    <!-- Main Studio Workspace -->
+    <!-- Studio Workspace -->
     <div class="app-workspace">
 
-        <!-- Left Sidebar: Element Library -->
+        <!-- Left Palette: Elements Catalog -->
         <aside class="sidebar-left">
             <div class="panel-header">
                 <span>Components</span>
@@ -537,8 +573,12 @@
                     <span class="cat-label">Text</span>
                 </div>
                 <div class="catalog-item" data-type="button">
-                    <span>Text Button</span>
-                    <span class="cat-label">Action</span>
+                    <span>Custom Button</span>
+                    <span class="cat-label">Btn</span>
+                </div>
+                <div class="catalog-item" data-type="spacer">
+                    <span>Spacer</span>
+                    <span class="cat-label">Gap</span>
                 </div>
                 <div class="catalog-item" data-type="link">
                     <span>Text Link</span>
@@ -550,15 +590,15 @@
                 </div>
                 <div class="catalog-item" data-type="image">
                     <span>Image</span>
-                    <span class="cat-label">Base64</span>
+                    <span class="cat-label">Media</span>
                 </div>
                 <div class="catalog-item" data-type="video">
                     <span>Video</span>
-                    <span class="cat-label">Base64</span>
+                    <span class="cat-label">Media</span>
                 </div>
                 <div class="catalog-item" data-type="audio">
                     <span>Audio</span>
-                    <span class="cat-label">Base64</span>
+                    <span class="cat-label">Media</span>
                 </div>
                 <div class="catalog-item" data-type="iframe">
                     <span>iFrame</span>
@@ -571,7 +611,7 @@
             </div>
         </aside>
 
-        <!-- Canvas Center Workspace -->
+        <!-- Canvas Workspace Viewport -->
         <main class="canvas-viewport">
             <div class="viewport-toolbar">
                 <button id="vp-desktop" class="active">Desktop (960px)</button>
@@ -579,23 +619,44 @@
                 <button id="vp-mobile">Mobile (380px)</button>
             </div>
 
-            <div id="page-canvas" aria-label="Editable workspace">
-                <!-- Default sample content -->
+            <div id="page-canvas" aria-label="Visual canvas">
+                <!-- Default sample elements -->
                 <div class="canvas-node" data-node-type="heading">
                     <div class="element-tag">heading</div>
-                    <h1 style="font-size: 28px; font-weight: 500; color: #f4f4f5; letter-spacing: -0.02em;">Digital
-                        Architecture</h1>
+                    <div class="node-text-wrap" style="text-align: left;">
+                        <h1 style="font-size: 26px; font-weight: 500; color: #ffffff; letter-spacing: -0.02em;">Digital
+                            Architecture</h1>
+                    </div>
                 </div>
+
                 <div class="canvas-node" data-node-type="paragraph">
                     <div class="element-tag">paragraph</div>
-                    <p style="color: #a1a1aa; font-size: 13px; line-height: 1.6;">A modern minimalist publishing
-                        workspace. Add elements from the sidebar, configure properties, and upload media directly
-                        encoded to Base64 data URLs.</p>
+                    <div class="node-text-wrap" style="text-align: left;">
+                        <p style="color: #a0a0aa; font-size: 13px; line-height: 1.6;">A modern minimalist website
+                            builder. Adjust typography, alignments, button presets, spacers, and local uploads with
+                            automatic Base64 encoding.</p>
+                    </div>
+                </div>
+
+                <div class="canvas-node" data-node-type="spacer">
+                    <div class="element-tag">spacer</div>
+                    <div class="node-spacer" style="height: 24px;"></div>
+                </div>
+
+                <div class="canvas-node" data-node-type="button">
+                    <div class="element-tag">button</div>
+                    <div class="node-button-wrap" style="justify-content: flex-start;">
+                        <button class="node-custom-btn" data-target-url="#" data-color="#80808a"
+                            data-hover-color="#ffffff" data-bg="transparent" data-hover-bg="rgba(255, 255, 255, 0.04)"
+                            style="color: #80808a; background: transparent; font-size: 11px; font-weight: 400; letter-spacing: 0.04em; padding: 7px 14px; border: 1px solid transparent; border-radius: 2px;">
+                            EXPLORE ARCHITECTURE
+                        </button>
+                    </div>
                 </div>
             </div>
         </main>
 
-        <!-- Right Sidebar: Inspector Panel -->
+        <!-- Right Sidebar: Properties & Settings Inspector -->
         <aside class="sidebar-right">
             <div class="panel-header">
                 <span>Inspector</span>
@@ -608,13 +669,13 @@
             </div>
         </aside>
 
-        <!-- Code View Overlay Drawer -->
+        <!-- Exported Code Drawer Overlay -->
         <div id="code-drawer">
             <div class="drawer-header">
                 <span
-                    style="font-weight: 600; text-transform: uppercase; font-size: 11px; color: var(--text-bright);">Generated
-                    Self-Contained Source</span>
-                <div style="display: flex; gap: 8px;">
+                    style="font-weight: 600; text-transform: uppercase; font-size: 10px; color: var(--text-bright);">Generated
+                    Production Standalone HTML</span>
+                <div style="display: flex; gap: 6px;">
                     <button id="btn-copy-code">Copy HTML</button>
                     <button id="btn-close-code">Close</button>
                 </div>
@@ -626,7 +687,6 @@
 
     <script>
         (function () {
-            // Core state
             let selectedElement = null;
             let isPreviewMode = false;
             const canvas = document.getElementById('page-canvas');
@@ -636,20 +696,16 @@
             const codeDrawer = document.getElementById('code-drawer');
             const codeViewer = document.getElementById('code-viewer');
 
-            // Initialize workspace
             setupCanvasListeners();
             setupCatalogActions();
             setupHeaderActions();
             setupViewportActions();
 
-            // Ensure initial elements are selectable
             canvas.querySelectorAll('.canvas-node').forEach(node => attachNodeEvents(node));
 
             function setupCanvasListeners() {
                 canvas.addEventListener('click', (e) => {
                     if (isPreviewMode) return;
-
-                    // Find closest canvas node
                     const target = e.target.closest('.canvas-node');
                     if (target && canvas.contains(target)) {
                         e.stopPropagation();
@@ -680,8 +736,7 @@
             }
 
             function attachNodeEvents(node) {
-                // Double-click to make inline text editable directly
-                node.addEventListener('dblclick', (e) => {
+                node.addEventListener('dblclick', () => {
                     if (isPreviewMode) return;
                     const editableTarget = getEditableChild(node);
                     if (editableTarget) {
@@ -689,17 +744,32 @@
                         editableTarget.focus();
                         editableTarget.onblur = () => {
                             editableTarget.contentEditable = "false";
-                            renderInspector(node); // Sync inspector
+                            renderInspector(node);
                         };
                     }
                 });
+
+                const btn = node.querySelector('.node-custom-btn');
+                if (btn) {
+                    attachButtonHoverLogic(btn);
+                }
+            }
+
+            function attachButtonHoverLogic(btn) {
+                btn.onmouseenter = () => {
+                    btn.style.color = btn.getAttribute('data-hover-color') || '#ffffff';
+                    btn.style.backgroundColor = btn.getAttribute('data-hover-bg') || 'rgba(255, 255, 255, 0.04)';
+                };
+                btn.onmouseleave = () => {
+                    btn.style.color = btn.getAttribute('data-color') || '#80808a';
+                    btn.style.backgroundColor = btn.getAttribute('data-bg') || 'transparent';
+                };
             }
 
             function getEditableChild(node) {
-                return node.querySelector('h1, h2, h3, p, a, button, span, div:not(.element-tag)');
+                return node.querySelector('h1, h2, h3, p, a, button:not(.btn-danger), .custom-html-block');
             }
 
-            // Catalog items creation
             function setupCatalogActions() {
                 document.querySelectorAll('.catalog-item').forEach(item => {
                     item.addEventListener('click', () => {
@@ -721,49 +791,81 @@
 
                 switch (type) {
                     case 'heading': {
+                        const wrap = document.createElement('div');
+                        wrap.className = 'node-text-wrap';
+                        wrap.style.textAlign = 'left';
                         const h2 = document.createElement('h2');
                         h2.style.fontSize = '22px';
                         h2.style.fontWeight = '500';
-                        h2.style.color = '#f4f4f5';
-                        h2.textContent = 'New Heading Title';
-                        wrapper.appendChild(h2);
+                        h2.style.color = '#ffffff';
+                        h2.textContent = 'New Section Title';
+                        wrap.appendChild(h2);
+                        wrapper.appendChild(wrap);
                         break;
                     }
                     case 'paragraph': {
+                        const wrap = document.createElement('div');
+                        wrap.className = 'node-text-wrap';
+                        wrap.style.textAlign = 'left';
                         const p = document.createElement('p');
-                        p.style.color = '#a1a1aa';
+                        p.style.color = '#a0a0aa';
                         p.style.fontSize = '13px';
                         p.style.lineHeight = '1.6';
-                        p.textContent = 'Clean editorial paragraph. Click to select, double click to edit inline, or refine styling in the inspector.';
-                        wrapper.appendChild(p);
+                        p.textContent = 'Editorial descriptive paragraph. Customize font properties, colors, and layout alignments directly from the inspector panel.';
+                        wrap.appendChild(p);
+                        wrapper.appendChild(wrap);
                         break;
                     }
                     case 'button': {
+                        const wrap = document.createElement('div');
+                        wrap.className = 'node-button-wrap';
+                        wrap.style.justifyContent = 'flex-start';
                         const btn = document.createElement('button');
-                        btn.className = 'node-text-btn';
-                        btn.textContent = 'EXPLORE SYSTEM';
+                        btn.className = 'node-custom-btn';
+                        btn.textContent = 'EXPLORE';
                         btn.setAttribute('data-target-url', '#');
-                        btn.style.fontSize = '12px';
-                        btn.style.padding = '8px 14px';
+                        btn.setAttribute('data-color', '#80808a');
+                        btn.setAttribute('data-hover-color', '#ffffff');
+                        btn.setAttribute('data-bg', 'transparent');
+                        btn.setAttribute('data-hover-bg', 'rgba(255, 255, 255, 0.04)');
+                        btn.style.color = '#80808a';
+                        btn.style.backgroundColor = 'transparent';
+                        btn.style.fontSize = '11px';
+                        btn.style.fontWeight = '400';
                         btn.style.letterSpacing = '0.04em';
-                        wrapper.appendChild(btn);
+                        btn.style.padding = '7px 14px';
+                        btn.style.border = '1px solid transparent';
+                        btn.style.borderRadius = '2px';
+                        wrap.appendChild(btn);
+                        wrapper.appendChild(wrap);
+                        break;
+                    }
+                    case 'spacer': {
+                        const sp = document.createElement('div');
+                        sp.className = 'node-spacer';
+                        sp.style.height = '32px';
+                        wrapper.appendChild(sp);
                         break;
                     }
                     case 'link': {
+                        const wrap = document.createElement('div');
+                        wrap.className = 'node-text-wrap';
+                        wrap.style.textAlign = 'left';
                         const link = document.createElement('a');
                         link.className = 'node-link';
                         link.href = '#';
-                        link.textContent = 'Reference link without underline';
+                        link.textContent = 'Muted text navigation link';
                         link.style.fontSize = '12px';
-                        wrapper.appendChild(link);
+                        wrap.appendChild(link);
+                        wrapper.appendChild(wrap);
                         break;
                     }
                     case 'container': {
                         const container = document.createElement('div');
                         container.className = 'node-container';
                         const childP = document.createElement('p');
-                        childP.textContent = 'Inner container box';
-                        childP.style.color = '#71717a';
+                        childP.textContent = 'Internal box container element';
+                        childP.style.color = '#70707a';
                         container.appendChild(childP);
                         wrapper.appendChild(container);
                         break;
@@ -772,7 +874,7 @@
                         const img = document.createElement('img');
                         img.className = 'node-image';
                         img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="240" viewBox="0 0 600 240"><rect fill="#1e1e24" width="600" height="240"/><text fill="#71717a" font-family="sans-serif" font-size="12" x="50%" y="50%" text-anchor="middle" dominant-baseline="middle">IMAGE PLACEHOLDER (BASE64 READY)</text></svg>');
-                        img.alt = 'Embedded Asset';
+                        img.alt = 'Uploaded Asset';
                         wrapper.appendChild(img);
                         break;
                     }
@@ -781,7 +883,6 @@
                         video.className = 'node-media-frame';
                         video.controls = true;
                         video.style.height = '240px';
-                        video.innerHTML = '<p style="color:#71717a; padding:10px;">Empty video block. Use inspector to upload or specify source.</p>';
                         wrapper.appendChild(video);
                         break;
                     }
@@ -804,7 +905,7 @@
                     case 'custom-html': {
                         const custom = document.createElement('div');
                         custom.className = 'custom-html-block';
-                        custom.innerHTML = '<div style="padding: 12px; background: #1a1a1e; border: 1px solid #27272a; font-family: monospace; font-size: 11px; color: #a1a1aa;">&lt;div&gt;Custom HTML Block&lt;/div&gt;</div>';
+                        custom.innerHTML = '<div style="padding: 12px; background: #1a1a1f; border: 1px solid #2a2a30; font-family: monospace; font-size: 11px; color: #a0a0aa;">&lt;div&gt;Custom Embed Code Block&lt;/div&gt;</div>';
                         wrapper.appendChild(custom);
                         break;
                     }
@@ -815,21 +916,15 @@
                 selectNode(wrapper);
             }
 
-            // Convert any user-selected local file to pure Base64
             function handleFileUploadToBase64(file, callback) {
                 if (!file) return;
                 const reader = new FileReader();
                 reader.onload = function (e) {
-                    const base64Url = e.target.result;
-                    callback(base64Url, file.name, file.size);
-                };
-                reader.onerror = function () {
-                    console.error("FileReader failed to convert media.");
+                    callback(e.target.result, file.name, file.size);
                 };
                 reader.readAsDataURL(file);
             }
 
-            // Inspector panel rendering
             function renderInspector(node) {
                 const type = node.getAttribute('data-node-type');
                 let html = `
@@ -838,71 +933,197 @@
           </div>
         `;
 
-                if (type === 'heading' || type === 'paragraph') {
-                    const elem = node.querySelector('h1, h2, h3, p');
+                if (type === 'heading' || type === 'paragraph' || type === 'link') {
+                    const elem = node.querySelector('h1, h2, h3, p, a');
+                    const wrap = node.querySelector('.node-text-wrap') || elem;
+                    const currentAlign = wrap.style.textAlign || 'left';
+
                     html += `
+            <div class="inspector-group">
+              <label class="inspector-label">Text Alignment</label>
+              <div class="segmented-control" id="ctrl-align">
+                <button type="button" data-val="left" class="${currentAlign === 'left' ? 'active' : ''}">Left</button>
+                <button type="button" data-val="center" class="${currentAlign === 'center' ? 'active' : ''}">Center</button>
+                <button type="button" data-val="right" class="${currentAlign === 'right' ? 'active' : ''}">Right</button>
+                <button type="button" data-val="justify" class="${currentAlign === 'justify' ? 'active' : ''}">Justify</button>
+              </div>
+            </div>
             <div class="inspector-group">
               <label class="inspector-label">Text Content</label>
               <textarea id="insp-text" rows="3">${elem.innerText}</textarea>
             </div>
+            ${type === 'link' ? `
             <div class="inspector-group">
-              <label class="inspector-label">Font Size (px)</label>
-              <input type="number" id="insp-fontsize" value="${parseInt(window.getComputedStyle(elem).fontSize, 10)}">
+              <label class="inspector-label">Target URL</label>
+              <input type="text" id="insp-link-url" value="${elem.getAttribute('href') || '#'}">
+            </div>` : ''}
+            <div class="inspector-grid-2">
+              <div class="inspector-group">
+                <label class="inspector-label">Font Size (px)</label>
+                <input type="number" id="insp-fontsize" value="${parseInt(window.getComputedStyle(elem).fontSize, 10)}">
+              </div>
+              <div class="inspector-group">
+                <label class="inspector-label">Text Color</label>
+                <input type="color" id="insp-color" value="${rgbToHex(window.getComputedStyle(elem).color)}">
+              </div>
             </div>
-            <div class="inspector-group">
-              <label class="inspector-label">Color Hex</label>
-              <input type="text" id="insp-color" value="${rgbToHex(window.getComputedStyle(elem).color)}">
+            <div class="inspector-grid-2">
+              <div class="inspector-group">
+                <label class="inspector-label">Weight</label>
+                <select id="insp-fontweight">
+                  <option value="300" ${elem.style.fontWeight === '300' ? 'selected' : ''}>Light (300)</option>
+                  <option value="400" ${elem.style.fontWeight === '400' || !elem.style.fontWeight ? 'selected' : ''}>Regular (400)</option>
+                  <option value="500" ${elem.style.fontWeight === '500' ? 'selected' : ''}>Medium (500)</option>
+                  <option value="600" ${elem.style.fontWeight === '600' ? 'selected' : ''}>Semibold (600)</option>
+                </select>
+              </div>
+              <div class="inspector-group">
+                <label class="inspector-label">Letter Space</label>
+                <input type="text" id="insp-letterspacing" value="${elem.style.letterSpacing || 'normal'}">
+              </div>
             </div>
           `;
                 } else if (type === 'button') {
-                    const btn = node.querySelector('button');
+                    const wrap = node.querySelector('.node-button-wrap');
+                    const btn = node.querySelector('.node-custom-btn');
+                    const currentJustify = wrap.style.justifyContent || 'flex-start';
+                    const alignMap = { 'flex-start': 'left', 'center': 'center', 'flex-end': 'right' };
+                    const activeAlign = alignMap[currentJustify] || 'left';
+
                     html += `
             <div class="inspector-group">
-              <label class="inspector-label">Button Label</label>
+              <label class="inspector-label">Button Alignment</label>
+              <div class="segmented-control" id="ctrl-btn-align">
+                <button type="button" data-val="flex-start" class="${activeAlign === 'left' ? 'active' : ''}">Left</button>
+                <button type="button" data-val="center" class="${activeAlign === 'center' ? 'active' : ''}">Center</button>
+                <button type="button" data-val="flex-end" class="${activeAlign === 'right' ? 'active' : ''}">Right</button>
+              </div>
+            </div>
+            <div class="inspector-group">
+              <label class="inspector-label">Quick Style Presets</label>
+              <div class="inspector-grid-3">
+                <button type="button" id="btn-preset-ghost" class="btn" style="background:var(--bg-primary); border:1px solid var(--border-color); font-size:10px;">Ghost</button>
+                <button type="button" id="btn-preset-solid" class="btn" style="background:var(--bg-primary); border:1px solid var(--border-color); font-size:10px;">Solid</button>
+                <button type="button" id="btn-preset-outline" class="btn" style="background:var(--bg-primary); border:1px solid var(--border-color); font-size:10px;">Outline</button>
+              </div>
+            </div>
+            <div class="inspector-group">
+              <label class="inspector-label">Button Text</label>
               <input type="text" id="insp-btn-text" value="${btn.innerText}">
             </div>
             <div class="inspector-group">
               <label class="inspector-label">Destination URL</label>
               <input type="text" id="insp-btn-url" value="${btn.getAttribute('data-target-url') || '#'}">
             </div>
-            <div class="inspector-group">
-              <label class="inspector-label">Font Size (px)</label>
-              <input type="number" id="insp-fontsize" value="${parseInt(window.getComputedStyle(btn).fontSize, 10)}">
+            <div class="inspector-grid-2">
+              <div class="inspector-group">
+                <label class="inspector-label">Text Color</label>
+                <input type="color" id="insp-btn-color" value="${rgbToHex(btn.getAttribute('data-color') || '#80808a')}">
+              </div>
+              <div class="inspector-group">
+                <label class="inspector-label">Text Hover</label>
+                <input type="color" id="insp-btn-color-hover" value="${rgbToHex(btn.getAttribute('data-hover-color') || '#ffffff')}">
+              </div>
+            </div>
+            <div class="inspector-grid-2">
+              <div class="inspector-group">
+                <label class="inspector-label">Background</label>
+                <input type="text" id="insp-btn-bg" value="${btn.getAttribute('data-bg') || 'transparent'}" placeholder="transparent or #1b1b1f">
+              </div>
+              <div class="inspector-group">
+                <label class="inspector-label">Hover Background</label>
+                <input type="text" id="insp-btn-bg-hover" value="${btn.getAttribute('data-hover-bg') || 'rgba(255, 255, 255, 0.04)'}">
+              </div>
+            </div>
+            <div class="inspector-grid-2">
+              <div class="inspector-group">
+                <label class="inspector-label">Font Size (px)</label>
+                <input type="number" id="insp-btn-fontsize" value="${parseInt(window.getComputedStyle(btn).fontSize, 10)}">
+              </div>
+              <div class="inspector-group">
+                <label class="inspector-label">Weight</label>
+                <select id="insp-btn-weight">
+                  <option value="400" ${btn.style.fontWeight === '400' ? 'selected' : ''}>Regular (400)</option>
+                  <option value="500" ${btn.style.fontWeight === '500' ? 'selected' : ''}>Medium (500)</option>
+                  <option value="600" ${btn.style.fontWeight === '600' ? 'selected' : ''}>Semibold (600)</option>
+                </select>
+              </div>
+            </div>
+            <div class="inspector-grid-2">
+              <div class="inspector-group">
+                <label class="inspector-label">Padding Y (px)</label>
+                <input type="number" id="insp-btn-pad-y" value="${parseInt(btn.style.paddingTop, 10) || 7}">
+              </div>
+              <div class="inspector-group">
+                <label class="inspector-label">Padding X (px)</label>
+                <input type="number" id="insp-btn-pad-x" value="${parseInt(btn.style.paddingLeft, 10) || 14}">
+              </div>
+            </div>
+            <div class="inspector-grid-2">
+              <div class="inspector-group">
+                <label class="inspector-label">Border Width (px)</label>
+                <input type="number" id="insp-btn-border-w" value="${parseInt(btn.style.borderWidth, 10) || 1}">
+              </div>
+              <div class="inspector-group">
+                <label class="inspector-label">Border Radius (px)</label>
+                <input type="number" id="insp-btn-radius" max="4" value="${parseInt(btn.style.borderRadius, 10) || 2}">
+              </div>
+            </div>
+            <div class="inspector-grid-2">
+              <div class="inspector-group">
+                <label class="inspector-label">Border Style</label>
+                <select id="insp-btn-border-s">
+                  <option value="solid" ${btn.style.borderStyle === 'solid' ? 'selected' : ''}>Solid</option>
+                  <option value="none" ${btn.style.borderStyle === 'none' ? 'selected' : ''}>None</option>
+                  <option value="dashed" ${btn.style.borderStyle === 'dashed' ? 'selected' : ''}>Dashed</option>
+                </select>
+              </div>
+              <div class="inspector-group">
+                <label class="inspector-label">Border Color</label>
+                <input type="color" id="insp-btn-border-c" value="${rgbToHex(btn.style.borderColor || '#2a2a30')}">
+              </div>
             </div>
             <div class="inspector-group">
-              <label class="inspector-label">Letter Spacing (em)</label>
+              <label class="inspector-label">Letter Spacing</label>
               <input type="text" id="insp-btn-spacing" value="${btn.style.letterSpacing || '0.04em'}">
             </div>
           `;
-                } else if (type === 'link') {
-                    const a = node.querySelector('a');
+                } else if (type === 'spacer') {
+                    const sp = node.querySelector('.node-spacer');
+                    const hasLine = !!sp.querySelector('.node-spacer-line');
                     html += `
             <div class="inspector-group">
-              <label class="inspector-label">Link Text</label>
-              <input type="text" id="insp-link-text" value="${a.innerText}">
+              <label class="inspector-label">Spacer Height (px): <span id="spacer-val">${parseInt(sp.style.height, 10)}px</span></label>
+              <input type="range" id="insp-spacer-height" min="8" max="160" value="${parseInt(sp.style.height, 10) || 32}">
             </div>
             <div class="inspector-group">
-              <label class="inspector-label">Target URL</label>
-              <input type="text" id="insp-link-url" value="${a.getAttribute('href') || '#'}">
-            </div>
-            <div class="inspector-group">
-              <label class="inspector-label">Font Size (px)</label>
-              <input type="number" id="insp-fontsize" value="${parseInt(window.getComputedStyle(a).fontSize, 10)}">
+              <label class="inspector-label">Divider Line</label>
+              <select id="insp-spacer-type">
+                <option value="blank" ${!hasLine ? 'selected' : ''}>Blank Space</option>
+                <option value="line" ${hasLine ? 'selected' : ''}>Hairline Divider</option>
+              </select>
             </div>
           `;
                 } else if (type === 'iframe') {
                     const iframe = node.querySelector('iframe');
                     html += `
             <div class="inspector-group">
-              <label class="inspector-label">iFrame Source (URL)</label>
+              <label class="inspector-label">iFrame URL</label>
               <input type="text" id="insp-iframe-src" value="${iframe.getAttribute('src') || ''}">
             </div>
             <div class="inspector-group">
-              <label class="inspector-label">Frame Height (px)</label>
+              <label class="inspector-label">Height (px)</label>
               <input type="number" id="insp-iframe-height" value="${parseInt(iframe.style.height, 10) || 280}">
             </div>
             <div class="inspector-group">
-              <label class="inspector-label">Sandbox Security</label>
+              <label class="inspector-label">Border</label>
+              <select id="insp-iframe-border">
+                <option value="none" ${iframe.style.border === 'none' ? 'selected' : ''}>None</option>
+                <option value="1px solid #2a2a30" ${iframe.style.border !== 'none' ? 'selected' : ''}>Muted Subtle Border</option>
+              </select>
+            </div>
+            <div class="inspector-group">
+              <label class="inspector-label">Sandbox Security Flags</label>
               <input type="text" id="insp-iframe-sandbox" value="${iframe.getAttribute('sandbox') || 'allow-scripts allow-same-origin'}">
             </div>
           `;
@@ -918,12 +1139,12 @@
               </div>
             </div>
             <div class="inspector-group">
-              <label class="inspector-label">Or Image URL</label>
+              <label class="inspector-label">Or External URL</label>
               <input type="text" id="insp-img-src" value="${isBase64 ? '' : img.src}" placeholder="https://...">
             </div>
             <div class="inspector-group">
               <label class="inspector-label">Encoding Status</label>
-              <span class="base64-indicator">${isBase64 ? 'ENCODED BASE64 (' + Math.round(img.src.length / 1024) + ' KB)' : 'External Source URL'}</span>
+              <span class="base64-badge">${isBase64 ? 'ENCODED BASE64 (' + Math.round(img.src.length / 1024) + ' KB)' : 'External Source URL'}</span>
             </div>
             <div class="inspector-group">
               <label class="inspector-label">Alt Tag</label>
@@ -947,7 +1168,7 @@
             </div>
             <div class="inspector-group">
               <label class="inspector-label">Encoding Status</label>
-              <span class="base64-indicator">${isBase64 ? 'ENCODED BASE64 (' + Math.round(vid.src.length / 1024) + ' KB)' : 'External Source'}</span>
+              <span class="base64-badge">${isBase64 ? 'ENCODED BASE64 (' + Math.round(vid.src.length / 1024) + ' KB)' : 'External Source'}</span>
             </div>
             <div class="inspector-group">
               <label class="inspector-label">Video Height (px)</label>
@@ -971,7 +1192,7 @@
             </div>
             <div class="inspector-group">
               <label class="inspector-label">Encoding Status</label>
-              <span class="base64-indicator">${isBase64 ? 'ENCODED BASE64 (' + Math.round(aud.src.length / 1024) + ' KB)' : 'External Source'}</span>
+              <span class="base64-badge">${isBase64 ? 'ENCODED BASE64 (' + Math.round(aud.src.length / 1024) + ' KB)' : 'External Source'}</span>
             </div>
           `;
                 } else if (type === 'custom-html') {
@@ -979,14 +1200,13 @@
                     html += `
             <div class="inspector-group">
               <label class="inspector-label">Raw HTML Source</label>
-              <textarea id="insp-raw-html" rows="7" style="font-family: var(--font-mono); font-size:11px;">${container.innerHTML}</textarea>
+              <textarea id="insp-raw-html" rows="8" style="font-family: var(--font-mono); font-size:11px;">${container.innerHTML}</textarea>
             </div>
           `;
                 }
 
-                // Common layout settings
                 html += `
-          <div class="inspector-group" style="margin-top: 8px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+          <div class="inspector-group" style="margin-top: 6px; border-top: 1px solid var(--border-color); padding-top: 10px;">
             <label class="inspector-label">Margin Bottom (px)</label>
             <input type="number" id="insp-margin-bottom" value="${parseInt(window.getComputedStyle(node).marginBottom, 10) || 0}">
           </div>
@@ -997,190 +1217,322 @@
             }
 
             function bindInspectorEvents(node, type) {
-                // Text changes
+                // Text alignments
+                const ctrlAlign = document.getElementById('ctrl-align');
+                if (ctrlAlign) {
+                    ctrlAlign.querySelectorAll('button').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            ctrlAlign.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                            btn.classList.add('active');
+                            const wrap = node.querySelector('.node-text-wrap') || node.querySelector('h1, h2, h3, p, a');
+                            wrap.style.textAlign = btn.getAttribute('data-val');
+                        });
+                    });
+                }
+
                 const inspText = document.getElementById('insp-text');
                 if (inspText) {
                     inspText.addEventListener('input', () => {
-                        const elem = node.querySelector('h1, h2, h3, p');
+                        const elem = node.querySelector('h1, h2, h3, p, a');
                         if (elem) elem.innerText = inspText.value;
                     });
                 }
 
-                // Font size changes
                 const inspFontSize = document.getElementById('insp-fontsize');
                 if (inspFontSize) {
                     inspFontSize.addEventListener('input', () => {
-                        const elem = getEditableChild(node);
+                        const elem = node.querySelector('h1, h2, h3, p, a');
                         if (elem) elem.style.fontSize = inspFontSize.value + 'px';
                     });
                 }
 
-                // Color changes
                 const inspColor = document.getElementById('insp-color');
                 if (inspColor) {
                     inspColor.addEventListener('input', () => {
-                        const elem = getEditableChild(node);
+                        const elem = node.querySelector('h1, h2, h3, p, a');
                         if (elem) elem.style.color = inspColor.value;
                     });
                 }
 
-                // Button events
-                const btnText = document.getElementById('insp-btn-text');
-                const btnUrl = document.getElementById('insp-btn-url');
-                const btnSpacing = document.getElementById('insp-btn-spacing');
-                if (btnText) {
-                    btnText.addEventListener('input', () => {
-                        node.querySelector('button').innerText = btnText.value;
-                    });
-                }
-                if (btnUrl) {
-                    btnUrl.addEventListener('input', () => {
-                        node.querySelector('button').setAttribute('data-target-url', btnUrl.value);
-                    });
-                }
-                if (btnSpacing) {
-                    btnSpacing.addEventListener('input', () => {
-                        node.querySelector('button').style.letterSpacing = btnSpacing.value;
+                const inspFontWeight = document.getElementById('insp-fontweight');
+                if (inspFontWeight) {
+                    inspFontWeight.addEventListener('change', () => {
+                        const elem = node.querySelector('h1, h2, h3, p, a');
+                        if (elem) elem.style.fontWeight = inspFontWeight.value;
                     });
                 }
 
-                // Link events
-                const linkText = document.getElementById('insp-link-text');
-                const linkUrl = document.getElementById('insp-link-url');
-                if (linkText) {
-                    linkText.addEventListener('input', () => {
-                        node.querySelector('a').innerText = linkText.value;
-                    });
-                }
-                if (linkUrl) {
-                    linkUrl.addEventListener('input', () => {
-                        node.querySelector('a').setAttribute('href', linkUrl.value);
+                const inspLetterSpacing = document.getElementById('insp-letterspacing');
+                if (inspLetterSpacing) {
+                    inspLetterSpacing.addEventListener('input', () => {
+                        const elem = node.querySelector('h1, h2, h3, p, a');
+                        if (elem) elem.style.letterSpacing = inspLetterSpacing.value;
                     });
                 }
 
-                // iFrame events
-                const ifrSrc = document.getElementById('insp-iframe-src');
-                const ifrHeight = document.getElementById('insp-iframe-height');
-                const ifrSandbox = document.getElementById('insp-iframe-sandbox');
-                if (ifrSrc) {
-                    ifrSrc.addEventListener('change', () => {
-                        node.querySelector('iframe').setAttribute('src', ifrSrc.value);
-                    });
-                }
-                if (ifrHeight) {
-                    ifrHeight.addEventListener('input', () => {
-                        node.querySelector('iframe').style.height = ifrHeight.value + 'px';
-                    });
-                }
-                if (ifrSandbox) {
-                    ifrSandbox.addEventListener('input', () => {
-                        node.querySelector('iframe').setAttribute('sandbox', ifrSandbox.value);
+                const inspLinkUrl = document.getElementById('insp-link-url');
+                if (inspLinkUrl) {
+                    inspLinkUrl.addEventListener('input', () => {
+                        const link = node.querySelector('a');
+                        if (link) link.setAttribute('href', inspLinkUrl.value);
                     });
                 }
 
-                // Image Base64 / URL handling
-                const fileImage = document.getElementById('insp-file-image');
-                const imgSrc = document.getElementById('insp-img-src');
-                const imgAlt = document.getElementById('insp-img-alt');
-                if (fileImage) {
-                    fileImage.addEventListener('change', (e) => {
-                        const file = e.target.files[0];
-                        handleFileUploadToBase64(file, (base64) => {
-                            const img = node.querySelector('img');
-                            img.src = base64;
-                            renderInspector(node);
+                // Comprehensive Button bindings
+                if (type === 'button') {
+                    const btn = node.querySelector('.node-custom-btn');
+                    const wrap = node.querySelector('.node-button-wrap');
+
+                    const ctrlBtnAlign = document.getElementById('ctrl-btn-align');
+                    if (ctrlBtnAlign) {
+                        ctrlBtnAlign.querySelectorAll('button').forEach(b => {
+                            b.addEventListener('click', () => {
+                                ctrlBtnAlign.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+                                b.classList.add('active');
+                                wrap.style.justifyContent = b.getAttribute('data-val');
+                            });
                         });
+                    }
+
+                    document.getElementById('btn-preset-ghost').addEventListener('click', () => {
+                        btn.setAttribute('data-color', '#80808a');
+                        btn.setAttribute('data-hover-color', '#ffffff');
+                        btn.setAttribute('data-bg', 'transparent');
+                        btn.setAttribute('data-hover-bg', 'rgba(255, 255, 255, 0.04)');
+                        btn.style.color = '#80808a';
+                        btn.style.backgroundColor = 'transparent';
+                        btn.style.border = '1px solid transparent';
+                        renderInspector(node);
+                    });
+
+                    document.getElementById('btn-preset-solid').addEventListener('click', () => {
+                        btn.setAttribute('data-color', '#ffffff');
+                        btn.setAttribute('data-hover-color', '#ffffff');
+                        btn.setAttribute('data-bg', '#222227');
+                        btn.setAttribute('data-hover-bg', '#2b2b32');
+                        btn.style.color = '#ffffff';
+                        btn.style.backgroundColor = '#222227';
+                        btn.style.border = '1px solid #2a2a30';
+                        renderInspector(node);
+                    });
+
+                    document.getElementById('btn-preset-outline').addEventListener('click', () => {
+                        btn.setAttribute('data-color', '#a0a0aa');
+                        btn.setAttribute('data-hover-color', '#ffffff');
+                        btn.setAttribute('data-bg', 'transparent');
+                        btn.setAttribute('data-hover-bg', '#1b1b1f');
+                        btn.style.color = '#a0a0aa';
+                        btn.style.backgroundColor = 'transparent';
+                        btn.style.border = '1px solid #3e3e48';
+                        renderInspector(node);
+                    });
+
+                    document.getElementById('insp-btn-text').addEventListener('input', (e) => {
+                        btn.innerText = e.target.value;
+                    });
+
+                    document.getElementById('insp-btn-url').addEventListener('input', (e) => {
+                        btn.setAttribute('data-target-url', e.target.value);
+                    });
+
+                    document.getElementById('insp-btn-color').addEventListener('input', (e) => {
+                        btn.setAttribute('data-color', e.target.value);
+                        btn.style.color = e.target.value;
+                    });
+
+                    document.getElementById('insp-btn-color-hover').addEventListener('input', (e) => {
+                        btn.setAttribute('data-hover-color', e.target.value);
+                    });
+
+                    document.getElementById('insp-btn-bg').addEventListener('input', (e) => {
+                        btn.setAttribute('data-bg', e.target.value);
+                        btn.style.backgroundColor = e.target.value;
+                    });
+
+                    document.getElementById('insp-btn-bg-hover').addEventListener('input', (e) => {
+                        btn.setAttribute('data-hover-bg', e.target.value);
+                    });
+
+                    document.getElementById('insp-btn-fontsize').addEventListener('input', (e) => {
+                        btn.style.fontSize = e.target.value + 'px';
+                    });
+
+                    document.getElementById('insp-btn-weight').addEventListener('change', (e) => {
+                        btn.style.fontWeight = e.target.value;
+                    });
+
+                    document.getElementById('insp-btn-pad-y').addEventListener('input', (e) => {
+                        btn.style.paddingTop = e.target.value + 'px';
+                        btn.style.paddingBottom = e.target.value + 'px';
+                    });
+
+                    document.getElementById('insp-btn-pad-x').addEventListener('input', (e) => {
+                        btn.style.paddingLeft = e.target.value + 'px';
+                        btn.style.paddingRight = e.target.value + 'px';
+                    });
+
+                    document.getElementById('insp-btn-border-w').addEventListener('input', (e) => {
+                        btn.style.borderWidth = e.target.value + 'px';
+                    });
+
+                    document.getElementById('insp-btn-radius').addEventListener('input', (e) => {
+                        btn.style.borderRadius = e.target.value + 'px';
+                    });
+
+                    document.getElementById('insp-btn-border-s').addEventListener('change', (e) => {
+                        btn.style.borderStyle = e.target.value;
+                    });
+
+                    document.getElementById('insp-btn-border-c').addEventListener('input', (e) => {
+                        btn.style.borderColor = e.target.value;
+                    });
+
+                    document.getElementById('insp-btn-spacing').addEventListener('input', (e) => {
+                        btn.style.letterSpacing = e.target.value;
                     });
                 }
-                if (imgSrc) {
-                    imgSrc.addEventListener('change', () => {
-                        if (imgSrc.value.trim() !== '') {
-                            node.querySelector('img').src = imgSrc.value.trim();
-                            renderInspector(node);
+
+                // Spacer bindings
+                if (type === 'spacer') {
+                    const sp = node.querySelector('.node-spacer');
+                    const range = document.getElementById('insp-spacer-height');
+                    const valLabel = document.getElementById('spacer-val');
+                    range.addEventListener('input', () => {
+                        sp.style.height = range.value + 'px';
+                        valLabel.textContent = range.value + 'px';
+                    });
+
+                    document.getElementById('insp-spacer-type').addEventListener('change', (e) => {
+                        sp.innerHTML = '';
+                        if (e.target.value === 'line') {
+                            const line = document.createElement('div');
+                            line.className = 'node-spacer-line';
+                            sp.appendChild(line);
                         }
                     });
                 }
-                if (imgAlt) {
-                    imgAlt.addEventListener('input', () => {
-                        node.querySelector('img').alt = imgAlt.value;
+
+                // iFrame bindings
+                if (type === 'iframe') {
+                    const iframe = node.querySelector('iframe');
+                    document.getElementById('insp-iframe-src').addEventListener('change', (e) => {
+                        iframe.src = e.target.value;
+                    });
+                    document.getElementById('insp-iframe-height').addEventListener('input', (e) => {
+                        iframe.style.height = e.target.value + 'px';
+                    });
+                    document.getElementById('insp-iframe-border').addEventListener('change', (e) => {
+                        iframe.style.border = e.target.value;
+                    });
+                    document.getElementById('insp-iframe-sandbox').addEventListener('input', (e) => {
+                        iframe.setAttribute('sandbox', e.target.value);
                     });
                 }
 
-                // Video Base64 / URL handling
-                const fileVideo = document.getElementById('insp-file-video');
-                const videoSrc = document.getElementById('insp-video-src');
-                const videoHeight = document.getElementById('insp-video-height');
-                if (fileVideo) {
-                    fileVideo.addEventListener('change', (e) => {
-                        const file = e.target.files[0];
-                        handleFileUploadToBase64(file, (base64) => {
-                            const vid = node.querySelector('video');
-                            vid.src = base64;
-                            vid.load();
-                            renderInspector(node);
+                // Image bindings
+                if (type === 'image') {
+                    const fileImage = document.getElementById('insp-file-image');
+                    if (fileImage) {
+                        fileImage.addEventListener('change', (e) => {
+                            handleFileUploadToBase64(e.target.files[0], (base64) => {
+                                node.querySelector('img').src = base64;
+                                renderInspector(node);
+                            });
                         });
-                    });
-                }
-                if (videoSrc) {
-                    videoSrc.addEventListener('change', () => {
-                        if (videoSrc.value.trim() !== '') {
-                            const vid = node.querySelector('video');
-                            vid.src = videoSrc.value.trim();
-                            vid.load();
-                            renderInspector(node);
-                        }
-                    });
-                }
-                if (videoHeight) {
-                    videoHeight.addEventListener('input', () => {
-                        node.querySelector('video').style.height = videoHeight.value + 'px';
-                    });
-                }
-
-                // Audio Base64 / URL handling
-                const fileAudio = document.getElementById('insp-file-audio');
-                const audioSrc = document.getElementById('insp-audio-src');
-                if (fileAudio) {
-                    fileAudio.addEventListener('change', (e) => {
-                        const file = e.target.files[0];
-                        handleFileUploadToBase64(file, (base64) => {
-                            const aud = node.querySelector('audio');
-                            aud.src = base64;
-                            aud.load();
-                            renderInspector(node);
+                    }
+                    const imgSrc = document.getElementById('insp-img-src');
+                    if (imgSrc) {
+                        imgSrc.addEventListener('change', (e) => {
+                            if (e.target.value.trim() !== '') {
+                                node.querySelector('img').src = e.target.value.trim();
+                                renderInspector(node);
+                            }
                         });
-                    });
-                }
-                if (audioSrc) {
-                    audioSrc.addEventListener('change', () => {
-                        if (audioSrc.value.trim() !== '') {
-                            const aud = node.querySelector('audio');
-                            aud.src = audioSrc.value.trim();
-                            aud.load();
-                            renderInspector(node);
-                        }
-                    });
+                    }
+                    const imgAlt = document.getElementById('insp-img-alt');
+                    if (imgAlt) {
+                        imgAlt.addEventListener('input', (e) => {
+                            node.querySelector('img').alt = e.target.value;
+                        });
+                    }
                 }
 
-                // Custom HTML handling
+                // Video bindings
+                if (type === 'video') {
+                    const fileVideo = document.getElementById('insp-file-video');
+                    if (fileVideo) {
+                        fileVideo.addEventListener('change', (e) => {
+                            handleFileUploadToBase64(e.target.files[0], (base64) => {
+                                const vid = node.querySelector('video');
+                                vid.src = base64;
+                                vid.load();
+                                renderInspector(node);
+                            });
+                        });
+                    }
+                    const videoSrc = document.getElementById('insp-video-src');
+                    if (videoSrc) {
+                        videoSrc.addEventListener('change', (e) => {
+                            if (e.target.value.trim() !== '') {
+                                const vid = node.querySelector('video');
+                                vid.src = e.target.value.trim();
+                                vid.load();
+                                renderInspector(node);
+                            }
+                        });
+                    }
+                    const videoHeight = document.getElementById('insp-video-height');
+                    if (videoHeight) {
+                        videoHeight.addEventListener('input', (e) => {
+                            node.querySelector('video').style.height = e.target.value + 'px';
+                        });
+                    }
+                }
+
+                // Audio bindings
+                if (type === 'audio') {
+                    const fileAudio = document.getElementById('insp-file-audio');
+                    if (fileAudio) {
+                        fileAudio.addEventListener('change', (e) => {
+                            handleFileUploadToBase64(e.target.files[0], (base64) => {
+                                const aud = node.querySelector('audio');
+                                aud.src = base64;
+                                aud.load();
+                                renderInspector(node);
+                            });
+                        });
+                    }
+                    const audioSrc = document.getElementById('insp-audio-src');
+                    if (audioSrc) {
+                        audioSrc.addEventListener('change', (e) => {
+                            if (e.target.value.trim() !== '') {
+                                const aud = node.querySelector('audio');
+                                aud.src = e.target.value.trim();
+                                aud.load();
+                                renderInspector(node);
+                            }
+                        });
+                    }
+                }
+
+                // Custom HTML
                 const rawHtml = document.getElementById('insp-raw-html');
                 if (rawHtml) {
-                    rawHtml.addEventListener('input', () => {
-                        node.querySelector('.custom-html-block').innerHTML = rawHtml.value;
+                    rawHtml.addEventListener('input', (e) => {
+                        node.querySelector('.custom-html-block').innerHTML = e.target.value;
                     });
                 }
 
-                // Margin adjustment
+                // Margin bottom
                 const inspMargin = document.getElementById('insp-margin-bottom');
                 if (inspMargin) {
-                    inspMargin.addEventListener('input', () => {
-                        node.style.marginBottom = inspMargin.value + 'px';
+                    inspMargin.addEventListener('input', (e) => {
+                        node.style.marginBottom = e.target.value + 'px';
                     });
                 }
             }
 
             function setupHeaderActions() {
-                // Toggle preview
                 const btnTogglePreview = document.getElementById('btn-toggle-preview');
                 btnTogglePreview.addEventListener('click', () => {
                     isPreviewMode = !isPreviewMode;
@@ -1190,7 +1542,6 @@
                         btnTogglePreview.classList.add('active');
                         canvas.classList.add('preview-active');
                         canvasStatus.textContent = 'Preview Active';
-                        // Disable inline contenteditable
                         canvas.querySelectorAll('[contenteditable]').forEach(el => el.contentEditable = "false");
                     } else {
                         btnTogglePreview.textContent = 'Preview';
@@ -1200,7 +1551,6 @@
                     }
                 });
 
-                // Delete active node
                 deleteBtn.addEventListener('click', () => {
                     if (selectedElement) {
                         selectedElement.remove();
@@ -1208,16 +1558,13 @@
                     }
                 });
 
-                // Clear canvas
                 document.getElementById('btn-clear-canvas').addEventListener('click', () => {
                     deselectNode();
                     canvas.innerHTML = '';
                 });
 
-                // View generated clean HTML
                 document.getElementById('btn-view-code').addEventListener('click', () => {
-                    const code = generateCleanExport();
-                    codeViewer.value = code;
+                    codeViewer.value = generateCleanExport();
                     codeDrawer.classList.add('visible');
                 });
 
@@ -1235,14 +1582,13 @@
                     }, 1500);
                 });
 
-                // Download exported HTML file
                 document.getElementById('btn-export-download').addEventListener('click', () => {
                     const code = generateCleanExport();
                     const blob = new Blob([code], { type: 'text/html;charset=utf-8' });
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.href = url;
-                    link.download = 'published-page.html';
+                    link.download = 'clean-site.html';
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
@@ -1280,19 +1626,15 @@
                 });
             }
 
-            // Generate standalone, self-contained HTML production export
             function generateCleanExport() {
                 const clone = canvas.cloneNode(true);
-
-                // Remove designer tags and artifacts
                 clone.querySelectorAll('.element-tag').forEach(tag => tag.remove());
                 clone.querySelectorAll('.canvas-node').forEach(node => {
                     node.classList.remove('canvas-node', 'is-selected');
                     node.removeAttribute('data-node-type');
                     node.removeAttribute('contenteditable');
 
-                    // Ensure buttons function as clickable links if configured
-                    const btn = node.querySelector('button.node-text-btn');
+                    const btn = node.querySelector('.node-custom-btn');
                     if (btn) {
                         const url = btn.getAttribute('data-target-url');
                         if (url && url !== '#') {
@@ -1301,23 +1643,17 @@
                     }
                 });
 
-                const exportBodyContent = clone.innerHTML.trim();
-
                 return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Published Page</title>
+  <title>Published Site</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background-color: #121214;
-      color: #a1a1aa;
+      background-color: #141416;
+      color: #a0a0aa;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       font-size: 13px;
       line-height: 1.6;
@@ -1325,64 +1661,42 @@
       display: flex;
       justify-content: center;
     }
-    .page-container {
+    .page-wrap {
       width: 100%;
       max-width: 960px;
       display: flex;
       flex-direction: column;
       gap: 16px;
     }
-    a {
-      text-decoration: none;
-      color: #93939f;
-      transition: color 0.15s ease;
-    }
-    a:hover {
-      color: #ffffff;
-      text-decoration: none;
-    }
-    .node-text-btn {
-      background: transparent;
-      border: none;
-      color: #71717a;
+    a { text-decoration: none; color: #888894; transition: color 0.15s ease; }
+    a:hover { color: #ffffff; text-decoration: none; }
+    .node-text-wrap { width: 100%; }
+    .node-button-wrap { display: flex; width: 100%; align-items: center; }
+    .node-custom-btn {
       cursor: pointer;
       border-radius: 2px;
-      transition: color 0.15s ease, background 0.15s ease;
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       text-decoration: none;
+      transition: all 0.15s ease;
+      box-sizing: border-box;
     }
-    .node-text-btn:hover {
-      color: #f4f4f5;
-      background-color: rgba(255, 255, 255, 0.04);
+    .node-custom-btn:hover {
+      color: var(--hover-color, #ffffff) !important;
+      background-color: var(--hover-bg, rgba(255, 255, 255, 0.04)) !important;
     }
-    .node-container {
-      border: 1px solid #27272a;
-      padding: 20px;
-      border-radius: 2px;
-      background: rgba(255, 255, 255, 0.01);
-    }
-    .node-media-frame {
-      width: 100%;
-      border: none;
-      background: #000;
-      border-radius: 2px;
-    }
-    .node-image {
-      max-width: 100%;
-      height: auto;
-      border-radius: 2px;
-      display: block;
-    }
-    .node-audio {
-      width: 100%;
-      height: 40px;
-      filter: invert(0.9) hue-rotate(180deg);
-    }
+    .node-spacer { width: 100%; display: flex; align-items: center; justify-content: center; }
+    .node-spacer-line { width: 100%; height: 1px; background-color: #2a2a30; }
+    .node-container { border: 1px solid #2a2a30; padding: 18px; border-radius: 2px; background: rgba(255, 255, 255, 0.01); }
+    .node-media-frame { width: 100%; border: none; background: #000; border-radius: 2px; }
+    .node-image { max-width: 100%; height: auto; border-radius: 2px; display: block; border: 1px solid #2a2a30; }
+    .node-audio { width: 100%; height: 40px; filter: invert(0.9) hue-rotate(180deg); }
   </style>
 </head>
 <body>
-  <div class="page-container">
-${exportBodyContent}
+  <div class="page-wrap">
+${clone.innerHTML.trim()}
   </div>
 </body>
 </html>`;
