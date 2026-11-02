@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculator & Prime Factorization</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    body {
+      background-color: #121316;
+      color: #909090;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Subtle minimalist buttons */
+    .calc-btn {
+      background-color: #1a1c20;
+      color: #7d7d7d;
+      border: 1px solid #23272e;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.65rem 0.5rem;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .calc-btn:hover {
+      background-color: #242830;
+      color: #f5f5f5;
+      border-color: #353b47;
+    }
+
+    .calc-btn:active,
+    .calc-btn.active-key {
+      background-color: #2e333d;
+      color: #ffffff;
+      border-color: #485060;
+    }
+
+    .calc-btn.op-btn {
+      color: #8c8c8c;
+    }
+
+    .calc-btn.action-btn {
+      color: #636363;
+    }
+
+    .calc-btn.accent-eval {
+      background-color: #1f2227;
+      color: #a8a8a8;
+      border-color: #2b3038;
+    }
+    
+    .calc-btn.accent-eval:hover {
+      background-color: #2b3038;
+      color: #ffffff;
+      border-color: #404854;
+    }
+
+    /* Subdued links and buttons without underlines */
+    .subdued-action {
+      text-decoration: none;
+      color: #555555;
+      font-size: 0.72rem;
+      transition: color 0.12s ease;
+      cursor: pointer;
+    }
+    
+    .subdued-action:hover {
+      color: #888888;
+    }
+
+    /* Fixed-size theme toggle button to prevent resizing and line-breaks */
+    #themeToggleBtn {
+      white-space: nowrap;
+      min-width: 175px;
+      max-width: 175px;
+      text-align: right;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: inline-block;
+    }
+
+    /* Custom scrollbar for expressions */
+    .custom-scroll::-webkit-scrollbar {
+      height: 3px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #16181d;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #272c35;
+      border-radius: 2px;
+    }
+
+    /* Flashbang Overlay */
+    #flashOverlay {
+      position: fixed;
+      inset: 0;
+      background: #ffffff;
+      pointer-events: none;
+      z-index: 99999;
+      opacity: 0;
+      display: none;
+    }
+
+    /* Light Theme Overrides */
+    body.light-theme {
+      background-color: #f8fafc;
+      color: #475569;
+    }
+
+    body.light-theme main {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+    }
+
+    body.light-theme header,
+    body.light-theme section {
+      border-color: #e2e8f0 !important;
+    }
+
+    body.light-theme #screenBox,
+    body.light-theme #directBox {
+      background-color: #f1f5f9 !important;
+      border-color: #cbd5e1 !important;
+    }
+
+    body.light-theme #expressionDisplay {
+      color: #64748b !important;
+    }
+
+    body.light-theme #mainDisplay {
+      color: #0f172a !important;
+    }
+
+    body.light-theme #factorDisplay,
+    body.light-theme #directFactorDisplay {
+      color: #1e293b !important;
+    }
+
+    body.light-theme .calc-btn {
+      background-color: #f8fafc;
+      color: #334155;
+      border-color: #cbd5e1;
+    }
+
+    body.light-theme .calc-btn:hover {
+      background-color: #e2e8f0;
+      color: #0f172a;
+      border-color: #94a3b8;
+    }
+
+    body.light-theme .calc-btn:active,
+    body.light-theme .calc-btn.active-key {
+      background-color: #cbd5e1;
+      color: #020617;
+      border-color: #64748b;
+    }
+
+    body.light-theme .calc-btn.op-btn {
+      color: #2563eb;
+    }
+
+    body.light-theme .calc-btn.action-btn {
+      color: #dc2626;
+    }
+
+    body.light-theme .calc-btn.accent-eval {
+      background-color: #e2e8f0;
+      color: #0f172a;
+      border-color: #94a3b8;
+    }
+
+    body.light-theme .subdued-action {
+      color: #64748b;
+    }
+
+    body.light-theme .subdued-action:hover {
+      color: #0f172a;
+    }
+
+    body.light-theme #directInput {
+      background-color: #ffffff !important;
+      border-color: #cbd5e1 !important;
+      color: #0f172a !important;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-3 sm:p-6">
+
+  <!-- Blinding Flashbang Screen Overlay -->
+  <div id="flashOverlay"></div>
+
+  <!-- Main Container -->
+  <main class="w-full max-w-sm bg-[#16181d] border border-[#23272e] p-5 shadow-2xl transition-colors duration-300" style="border-radius: 5px;">
+    
+    <!-- Header / Context Bar -->
+    <header class="flex items-center justify-between pb-3 mb-3 border-b border-[#22262d] gap-2">
+      <span class="text-[10px] tracking-wider uppercase text-[#505050] font-medium shrink-0">Calc // Factor</span>
+      <div class="flex items-center justify-end gap-2.5 min-w-0">
+        <button id="themeToggleBtn" class="subdued-action transition-colors duration-150" title="Switch theme">light mode</button>
+        <span class="text-[#2b3038] text-[10px] shrink-0">|</span>
+        <button id="clearHistoryBtn" class="subdued-action whitespace-nowrap shrink-0" title="Clear displayed factoring and output">clear</button>
+      </div>
+    </header>
+
+    <!-- Calculation Screen -->
+    <section id="screenBox" class="bg-[#121316] border border-[#1e2229] p-3 mb-4 transition-colors duration-300" style="border-radius: 4px;">
+      <!-- Expression Line -->
+      <div id="expressionDisplay" class="custom-scroll overflow-x-auto whitespace-nowrap text-right text-xs text-[#555555] tracking-wide min-h-[1.2rem] select-text"></div>
+      
+      <!-- Current Main Value -->
+      <div id="mainDisplay" class="custom-scroll overflow-x-auto whitespace-nowrap text-right text-2xl font-light text-[#dedede] tracking-tight mt-1 mb-2 select-text">0</div>
+      
+      <!-- Factorization Output Line -->
+      <div class="border-t border-[#1e2229] pt-2 mt-1">
+        <div class="flex items-center justify-between text-[10px] text-[#444444] mb-1">
+          <span class="uppercase tracking-wider">Prime Factorization</span>
+          <span id="factorStatus" class="tracking-normal text-[#555555]">idle</span>
+        </div>
+        <div id="factorDisplay" class="custom-scroll overflow-x-auto whitespace-nowrap text-right text-xs text-[#a0a0a0] min-h-[1.25rem] select-text">
+          -
+        </div>
+      </div>
+    </section>
+
+    <!-- Primary Control Grid -->
+    <section class="grid grid-cols-4 gap-1.5" aria-label="Keypad">
+      <!-- Row 1 -->
+      <button class="calc-btn action-btn" data-key="Clear" title="Clear All (Esc)">AC</button>
+      <button class="calc-btn action-btn" data-key="Backspace" title="Backspace (Del)">DEL</button>
+      <button class="calc-btn op-btn" data-key="(">(</button>
+      <button class="calc-btn op-btn" data-key=")">)</button>
+
+      <!-- Row 2 -->
+      <button class="calc-btn" data-key="7">7</button>
+      <button class="calc-btn" data-key="8">8</button>
+      <button class="calc-btn" data-key="9">9</button>
+      <button class="calc-btn op-btn" data-key="/">/</button>
+
+      <!-- Row 3 -->
+      <button class="calc-btn" data-key="4">4</button>
+      <button class="calc-btn" data-key="5">5</button>
+      <button class="calc-btn" data-key="6">6</button>
+      <button class="calc-btn op-btn" data-key="*">*</button>
+
+      <!-- Row 4 -->
+      <button class="calc-btn" data-key="1">1</button>
+      <button class="calc-btn" data-key="2">2</button>
+      <button class="calc-btn" data-key="3">3</button>
+      <button class="calc-btn op-btn" data-key="-">-</button>
+
+      <!-- Row 5 -->
+      <button class="calc-btn" data-key="0">0</button>
+      <button class="calc-btn" data-key=".">.</button>
+      <button class="calc-btn op-btn" data-key="^" title="Power (^)">^</button>
+      <button class="calc-btn op-btn" data-key="+">+</button>
+
+      <!-- Row 6 -->
+      <button class="calc-btn accent-eval col-span-4" data-key="Enter" title="Calculate (=)">=</button>
+    </section>
+
+    <!-- Factorize Action Section -->
+    <div class="mt-2 pt-2 border-t border-[#1c1c1c] flex flex-col gap-1.5">
+      <button id="factorizeBtn" class="calc-btn w-full tracking-wider uppercase text-[11px] py-2.5 font-medium" data-key="factorize">
+        Factorize Calculator Result
+      </button>
+
+      <!-- Footer Subdued Details -->
+      <div class="flex items-center justify-between px-0.5 pt-1 text-[10px]">
+        <span class="text-[#3c3c3c]">Keyboard active (0-9, + - * / = Enter)</span>
+        <button id="copyFactorBtn" class="subdued-action" title="Copy factorization string">copy factor</button>
+      </div>
+    </div>
+
+    <!-- Direct Prime Factor Calculator Section -->
+    <section class="mt-4 pt-3 border-t border-[#22262d]">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[10px] tracking-wider uppercase text-[#505050] font-medium">Direct Prime Factorizer</span>
+        <button id="clearDirectBtn" class="subdued-action" title="Clear direct input">clear</button>
+      </div>
+
+      <div class="flex gap-1.5 mb-2">
+        <input 
+          id="directInput" 
+          type="text" 
+          inputmode="numeric" 
+          placeholder="Enter integer directly..."
+          class="flex-1 bg-[#121316] border border-[#23272e] text-xs text-[#dedede] px-2.5 py-1.5 rounded-[4px] outline-none focus:border-[#404854] placeholder-[#383838] transition-colors duration-300"
+        />
+        <button id="directFactorizeBtn" class="calc-btn text-xs px-3 py-1.5 whitespace-nowrap">
+          Factorize
+        </button>
+      </div>
+
+      <!-- Direct Output Card -->
+      <div id="directBox" class="bg-[#121316] border border-[#1e2229] p-2.5 rounded-[4px] transition-colors duration-300">
+        <div class="flex items-center justify-between text-[10px] text-[#444444] mb-1">
+          <span class="uppercase tracking-wider">Direct Result</span>
+          <span id="directStatus" class="tracking-normal text-[#555555]">idle</span>
+        </div>
+        <div id="directFactorDisplay" class="custom-scroll overflow-x-auto whitespace-nowrap text-right text-xs text-[#a0a0a0] min-h-[1.25rem] select-text">
+          -
+        </div>
+        <div class="flex items-center justify-end gap-3 mt-1.5 pt-1.5 border-t border-[#1e2229]">
+          <button id="sendToCalcBtn" class="subdued-action" title="Load input number into main calculator">send to calculator</button>
+          <button id="copyDirectFactorBtn" class="subdued-action" title="Copy direct factor result">copy</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Application State
+    const state = {
+      expression: '',
+      currentResult: '0',
+      lastEvaluated: false,
+      lastFactorization: '',
+      lastDirectFactorization: ''
+    };
+
+    // DOM Elements
+    const expressionDisplay = document.getElementById('expressionDisplay');
+    const mainDisplay = document.getElementById('mainDisplay');
+    const factorDisplay = document.getElementById('factorDisplay');
+    const factorStatus = document.getElementById('factorStatus');
+    const factorizeBtn = document.getElementById('factorizeBtn');
+    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+    const copyFactorBtn = document.getElementById('copyFactorBtn');
+
+    // Direct Factorization DOM Elements
+    const directInput = document.getElementById('directInput');
+    const directFactorizeBtn = document.getElementById('directFactorizeBtn');
+    const directFactorDisplay = document.getElementById('directFactorDisplay');
+    const directStatus = document.getElementById('directStatus');
+    const clearDirectBtn = document.getElementById('clearDirectBtn');
+    const copyDirectFactorBtn = document.getElementById('copyDirectFactorBtn');
+    const sendToCalcBtn = document.getElementById('sendToCalcBtn');
+
+    // Theme & Troll Transition Elements
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const flashOverlay = document.getElementById('flashOverlay');
+
+    let isLightMode = false;
+    let trollStage = 0; // 0: 'light mode', 1: 'are you sure?', 2: in sequence
+    let revertTimeout = null;
+
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+    async function executeFlashbangSequence() {
+      trollStage = 2;
+      themeToggleBtn.disabled = true;
+      themeToggleBtn.style.pointerEvents = 'none';
+      themeToggleBtn.textContent = 'get ready to be blinded!!';
+
+      // 1. Wait 1000ms
+      await sleep(1000);
+
+      // 2. Flashbang: instantly cover screen with solid white overlay (0s transition)
+      flashOverlay.style.display = 'block';
+      flashOverlay.style.transition = 'none';
+      flashOverlay.style.opacity = '1';
+
+      // 3. Apply light theme to the underlying page while solid white
+      document.body.classList.add('light-theme');
+      isLightMode = true;
+
+      // 4. Hold solid blinding white screen for 1500ms
+      await sleep(1500);
+
+      // 5. Slowly fade out white overlay over 5000ms
+      flashOverlay.style.transition = 'opacity 5s ease-out';
+      flashOverlay.style.opacity = '0';
+
+      // Wait 5000ms for fade to complete
+      await sleep(5000);
+
+      // 6. Complete transition: hide overlay, re-enable button, update text
+      flashOverlay.style.display = 'none';
+      themeToggleBtn.disabled = false;
+      themeToggleBtn.style.pointerEvents = 'auto';
+      themeToggleBtn.textContent = 'dark mode';
+      trollStage = 0;
+    }
+
+    function switchBackToDark() {
+      document.body.classList.remove('light-theme');
+      isLightMode = false;
+      themeToggleBtn.textContent = 'light mode';
+      trollStage = 0;
+    }
+
+    themeToggleBtn.addEventListener('click', () => {
+      if (isLightMode) {
+        // Smooth quick switch back to dark mode
+        switchBackToDark();
+        return;
+      }
+
+      if (trollStage === 0) {
+        trollStage = 1;
+        themeToggleBtn.textContent = 'are you sure?';
+
+        if (revertTimeout) clearTimeout(revertTimeout);
+        revertTimeout = setTimeout(() => {
+          if (trollStage === 1 && !isLightMode) {
+            themeToggleBtn.textContent = 'light mode';
+            trollStage = 0;
+          }
+        }, 4000);
+      } else if (trollStage === 1) {
+        if (revertTimeout) clearTimeout(revertTimeout);
+        executeFlashbangSequence();
+      }
+    });
+
+    // Superscript mapping table
+    const SUPERSCRIPTS = {
+      '0': '\u2070',
+      '1': '\u00B9',
+      '2': '\u00B2',
+      '3': '\u00B3',
+      '4': '\u2074',
+      '5': '\u2075',
+      '6': '\u2076',
+      '7': '\u2077',
+      '8': '\u2078',
+      '9': '\u2079',
+      '-': '\u207B'
+    };
+
+    function toSuperscript(number) {
+      return String(number).split('').map(ch => SUPERSCRIPTS[ch] || ch).join('');
+    }
+
+    // Mathematical Tokenizing & Evaluation using Safe Shunting-Yard Parser
+    function evaluateExpression(expr) {
+      if (!expr || expr.trim() === '') return 0;
+      
+      // Remove trailing operators, spaces or equals signs
+      let cleanExpr = expr.replace(/=/g, '').trim();
+      cleanExpr = cleanExpr.replace(/[\s+\-*\/^]+$/, '').trim();
+      if (!cleanExpr) return 0;
+
+      // Normalize operators: '**' to '^'
+      cleanExpr = cleanExpr.replace(/\*\*/g, '^');
+
+      // Tokenizer without flawed regex character range errors
+      const tokens = [];
+      let i = 0;
+
+      while (i < cleanExpr.length) {
+        const ch = cleanExpr[i];
+
+        if (ch === ' ' || ch === '\t') {
+          i++;
+          continue;
+        }
+
+        if (ch === '+' || ch === '-' || ch === '*' || ch === '/' || ch === '^' || ch === '(' || ch === ')') {
+          if (ch === '-') {
+            const prev = tokens[tokens.length - 1];
+            if (!prev || (prev.type === 'op' && prev.value !== ')') || prev.value === '(') {
+              tokens.push({ type: 'op', value: 'u-' });
+              i++;
+              continue;
+            }
+          }
+          tokens.push({ type: 'op', value: ch });
+          i++;
+        } else if (/[0-9.]/.test(ch)) {
+          let numStr = '';
+          while (i < cleanExpr.length && /[0-9.]/.test(cleanExpr[i])) {
+            numStr += cleanExpr[i];
+            i++;
+          }
+          tokens.push({ type: 'num', value: parseFloat(numStr) });
+        } else {
+          throw new Error('Invalid symbol: ' + ch);
+        }
+      }
+
+      // Shunting-yard algorithm to Postfix (RPN)
+      // '^' is right-associative with higher precedence
+      const prec = { 'u-': 5, '^': 4, '*': 3, '/': 3, '+': 2, '-': 2 };
+      const rightAssoc = { '^': true, 'u-': true };
+      const outputQueue = [];
+      const opStack = [];
+
+      for (const token of tokens) {
+        if (token.type === 'num') {
+          outputQueue.push(token);
+        } else if (token.type === 'op') {
+          const val = token.value;
+          if (val === '(') {
+            opStack.push(val);
+          } else if (val === ')') {
+            while (opStack.length && opStack[opStack.length - 1] !== '(') {
+              outputQueue.push({ type: 'op', value: opStack.pop() });
+            }
+            if (!opStack.length) throw new Error('Mismatched parentheses');
+            opStack.pop(); // Pop '('
+          } else {
+            while (
+              opStack.length &&
+              opStack[opStack.length - 1] !== '(' &&
+              (
+                (!rightAssoc[val] && prec[opStack[opStack.length - 1]] >= prec[val]) ||
+                (rightAssoc[val] && prec[opStack[opStack.length - 1]] > prec[val])
+              )
+            ) {
+              outputQueue.push({ type: 'op', value: opStack.pop() });
+            }
+            opStack.push(val);
+          }
+        }
+      }
+
+      while (opStack.length) {
+        const top = opStack.pop();
+        if (top === '(' || top === ')') throw new Error('Mismatched parentheses');
+        outputQueue.push({ type: 'op', value: top });
+      }
+
+      // Evaluate RPN
+      const evalStack = [];
+      for (const token of outputQueue) {
+        if (token.type === 'num') {
+          evalStack.push(token.value);
+        } else {
+          if (token.value === 'u-') {
+            if (evalStack.length < 1) throw new Error('Syntax error');
+            evalStack.push(-evalStack.pop());
+          } else {
+            if (evalStack.length < 2) throw new Error('Syntax error');
+            const b = evalStack.pop();
+            const a = evalStack.pop();
+            let res = 0;
+            if (token.value === '+') res = a + b;
+            else if (token.value === '-') res = a - b;
+            else if (token.value === '*') res = a * b;
+            else if (token.value === '^') res = Math.pow(a, b);
+            else if (token.value === '/') {
+              if (b === 0) throw new Error('Division by zero');
+              res = a / b;
+            }
+            evalStack.push(res);
+          }
+        }
+      }
+
+      if (evalStack.length !== 1) throw new Error('Invalid syntax');
+      return evalStack[0];
+    }
+
+    // Prime Factorization Function with BigInt support for precision
+    function getPrimeFactors(val) {
+      if (typeof val === 'string') {
+        val = Number(val);
+      }
+      
+      if (isNaN(val)) return { error: 'Not a number' };
+      if (!isFinite(val)) return { error: 'Infinite value' };
+      if (!Number.isInteger(val)) return { error: 'Factorization requires an integer' };
+      if (val === 0) return { error: '0 has infinite factors' };
+      if (Math.abs(val) > Number.MAX_SAFE_INTEGER) return { error: 'Exceeds max safe integer' };
+
+      const isNegative = val < 0;
+      let n = BigInt(Math.abs(val));
+
+      if (n === 1n) {
+        return {
+          factors: [],
+          isNegative,
+          isOne: true,
+          formatted: isNegative ? '-1' : '1'
+        };
+      }
+
+      const factorCounts = new Map();
+      const two = 2n;
+
+      // Extract 2s
+      let count2 = 0;
+      while (n % two === 0n) {
+        count2++;
+        n /= two;
+      }
+      if (count2 > 0) {
+        factorCounts.set('2', count2);
+      }
+
+      // Extract odd numbers
+      let divisor = 3n;
+      while (divisor * divisor <= n) {
+        if (n % divisor === 0n) {
+          let count = 0;
+          while (n % divisor === 0n) {
+            count++;
+            n /= divisor;
+          }
+          factorCounts.set(divisor.toString(), count);
+        }
+        divisor += 2n;
+      }
+
+      if (n > 1n) {
+        factorCounts.set(n.toString(), 1);
+      }
+
+      // Format as string with superscripts (e.g. 2³ × 3² × 5)
+      const parts = [];
+      if (isNegative) parts.push('-1');
+
+      for (const [factor, exp] of factorCounts.entries()) {
+        if (exp === 1) {
+          parts.push(factor);
+        } else {
+          parts.push(`${factor}${toSuperscript(exp)}`);
+        }
+      }
+
+      return {
+        factors: Array.from(factorCounts.entries()),
+        isNegative,
+        isOne: false,
+        formatted: parts.join(' \u00D7 ')
+      };
+    }
+
+    // UI Updates
+    function updateDisplay() {
+      expressionDisplay.textContent = state.expression;
+      mainDisplay.textContent = state.currentResult;
+    }
+
+    function compute() {
+      if (!state.expression && state.currentResult !== '0') return;
+      const target = state.expression || state.currentResult;
+
+      try {
+        const evaluated = evaluateExpression(target);
+        // Normalize float display
+        let formattedRes = String(evaluated);
+        if (Number.isFinite(evaluated) && !Number.isInteger(evaluated)) {
+          formattedRes = parseFloat(evaluated.toFixed(10)).toString();
+        }
+
+        state.expression = target + ' =';
+        state.currentResult = formattedRes;
+        state.lastEvaluated = true;
+        updateDisplay();
+        factorStatus.textContent = 'ready to factor';
+      } catch (err) {
+        state.currentResult = 'Error';
+        factorStatus.textContent = 'syntax error';
+        updateDisplay();
+      }
+    }
+
+    function runFactorization() {
+      // First ensure calculation is performed if an unevaluated expression exists
+      if (!state.lastEvaluated && state.expression) {
+        compute();
+      }
+
+      const num = Number(state.currentResult);
+      factorStatus.textContent = 'factored';
+
+      const result = getPrimeFactors(num);
+
+      if (result.error) {
+        state.lastFactorization = result.error;
+        factorDisplay.textContent = result.error;
+        factorStatus.textContent = 'notice';
+      } else {
+        state.lastFactorization = result.formatted;
+        factorDisplay.textContent = result.formatted;
+      }
+    }
+
+    // Direct Instant Factorization Logic
+    function runDirectFactorization() {
+      const raw = directInput.value.trim();
+      if (!raw) {
+        directFactorDisplay.textContent = '-';
+        directStatus.textContent = 'idle';
+        return;
+      }
+
+      // Check if valid integer string
+      if (!/^-?\d+$/.test(raw)) {
+        directStatus.textContent = 'notice';
+        directFactorDisplay.textContent = 'Please enter a valid integer';
+        return;
+      }
+
+      directStatus.textContent = 'factored';
+      const result = getPrimeFactors(raw);
+
+      if (result.error) {
+        state.lastDirectFactorization = result.error;
+        directFactorDisplay.textContent = result.error;
+        directStatus.textContent = 'notice';
+      } else {
+        state.lastDirectFactorization = result.formatted;
+        directFactorDisplay.textContent = result.formatted;
+      }
+    }
+
+    function inputChar(char) {
+      if (state.lastEvaluated) {
+        if (['+', '-', '*', '/', '^'].includes(char)) {
+          state.expression = state.currentResult + ' ' + char + ' ';
+        } else {
+          state.expression = char;
+        }
+        state.lastEvaluated = false;
+      } else {
+        if (['+', '-', '*', '/', '^'].includes(char)) {
+          state.expression += ' ' + char + ' ';
+        } else {
+          state.expression += char;
+        }
+      }
+      
+      // Update intermediate display preview if possible
+      try {
+        const preview = state.expression.trim();
+        // Safe check without unescaped character range bugs
+        if (preview && !/[+\-*\/^(]$/.test(preview)) {
+          const evalRes = evaluateExpression(preview);
+          state.currentResult = String(evalRes);
+        }
+      } catch (e) {
+        // Keep prior display if partial expression is incomplete
+      }
+
+      updateDisplay();
+    }
+
+    function backspace() {
+      if (state.lastEvaluated) {
+        clearAll();
+        return;
+      }
+      let exp = state.expression.trimEnd();
+      if (exp.length > 0) {
+        if (/ [+\-*\/^]$/.test(state.expression)) {
+          state.expression = state.expression.slice(0, -3);
+        } else {
+          state.expression = state.expression.slice(0, -1);
+        }
+      }
+      if (state.expression.length === 0) {
+        state.currentResult = '0';
+      } else {
+        try {
+          const clean = state.expression.trim();
+          if (clean && !/[+\-*\/^(]$/.test(clean)) {
+            state.currentResult = String(evaluateExpression(clean));
+          }
+        } catch (e) {}
+      }
+      updateDisplay();
+    }
+
+    function clearAll() {
+      state.expression = '';
+      state.currentResult = '0';
+      state.lastEvaluated = false;
+      state.lastFactorization = '';
+      factorDisplay.textContent = '-';
+      factorStatus.textContent = 'idle';
+      updateDisplay();
+    }
+
+    // Button event listener
+    document.querySelectorAll('.calc-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-key');
+        handleAction(key);
+      });
+    });
+
+    clearHistoryBtn.addEventListener('click', clearAll);
+
+    copyFactorBtn.addEventListener('click', () => {
+      if (!state.lastFactorization || state.lastFactorization.includes('requires') || state.lastFactorization === '-') {
+        return;
+      }
+      const tempArea = document.createElement('textarea');
+      tempArea.value = state.lastFactorization;
+      document.body.appendChild(tempArea);
+      tempArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempArea);
+
+      const origText = factorStatus.textContent;
+      factorStatus.textContent = 'copied';
+      setTimeout(() => {
+        factorStatus.textContent = origText;
+      }, 1000);
+    });
+
+    // Direct Factorizer Event Listeners
+    directFactorizeBtn.addEventListener('click', runDirectFactorization);
+
+    directInput.addEventListener('keydown', (e) => {
+      e.stopPropagation(); // Avoid triggering calculator key shortcuts while typing
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        runDirectFactorization();
+      }
+    });
+
+    clearDirectBtn.addEventListener('click', () => {
+      directInput.value = '';
+      directFactorDisplay.textContent = '-';
+      directStatus.textContent = 'idle';
+      state.lastDirectFactorization = '';
+    });
+
+    copyDirectFactorBtn.addEventListener('click', () => {
+      if (!state.lastDirectFactorization || state.lastDirectFactorization === '-' || state.lastDirectFactorization.includes('valid')) {
+        return;
+      }
+      const tempArea = document.createElement('textarea');
+      tempArea.value = state.lastDirectFactorization;
+      document.body.appendChild(tempArea);
+      tempArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempArea);
+
+      const orig = directStatus.textContent;
+      directStatus.textContent = 'copied';
+      setTimeout(() => {
+        directStatus.textContent = orig;
+      }, 1000);
+    });
+
+    sendToCalcBtn.addEventListener('click', () => {
+      const raw = directInput.value.trim();
+      if (!raw || !/^-?\d+$/.test(raw)) return;
+      state.expression = raw;
+      state.currentResult = raw;
+      state.lastEvaluated = false;
+      updateDisplay();
+    });
+
+    function handleAction(key) {
+      if (!key) return;
+
+      if (key >= '0' && key <= '9') {
+        inputChar(key);
+      } else if (key === '.') {
+        inputChar('.');
+      } else if (['+', '-', '*', '/', '^'].includes(key)) {
+        inputChar(key);
+      } else if (key === '(' || key === ')') {
+        inputChar(key);
+      } else if (key === 'Enter' || key === '=') {
+        compute();
+      } else if (key === 'Backspace') {
+        backspace();
+      } else if (key === 'Clear' || key === 'Escape') {
+        clearAll();
+      } else if (key === 'factorize' || key === 'f' || key === 'F') {
+        runFactorization();
+      }
+    }
+
+    // Keyboard bindings
+    window.addEventListener('keydown', (e) => {
+      if (document.activeElement === directInput) return;
+
+      let key = e.key;
+
+      if (key === 'Enter' || key === '=') {
+        e.preventDefault();
+        key = 'Enter';
+      } else if (key === 'Escape') {
+        key = 'Clear';
+      } else if (key === 'f' || key === 'F') {
+        key = 'factorize';
+      }
+
+      const selector = `.calc-btn[data-key="${key}"]`;
+      const btn = document.querySelector(selector);
+      if (btn) {
+        btn.classList.add('active-key');
+        setTimeout(() => btn.classList.remove('active-key'), 120);
+      }
+
+      handleAction(key);
+    });
+
+    // Initialize
+    updateDisplay();
+  </script>
+</body>
+</html>
