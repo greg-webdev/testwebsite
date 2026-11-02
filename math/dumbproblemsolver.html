@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfect Power Problem Solver</title>
+  <style>
+    :root {
+      --bg: #141517;
+      --surface: #1b1c20;
+      --surface-elevated: #222328;
+      --border: #2b2c32;
+      --border-focus: #3e4047;
+      --text: #9da0a8;
+      --text-heading: #f0f1f4;
+      --text-dim: #65676e;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    body.light-mode {
+      --bg: #f5f6f8;
+      --surface: #ffffff;
+      --surface-elevated: #f0f2f5;
+      --border: #e2e4ea;
+      --border-focus: #b8bcc7;
+      --text: #595d66;
+      --text-heading: #121316;
+      --text-dim: #8b8f99;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px 56px 16px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    #flashOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #ffffff;
+      pointer-events: none;
+      opacity: 0;
+      z-index: 99999;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 660px;
+    }
+
+    header {
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    h1 {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      color: var(--text-heading);
+      text-transform: uppercase;
+    }
+
+    .header-sub {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+    }
+
+    .theme-toggle-btn {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      cursor: pointer;
+      padding: 2px 4px;
+      text-transform: lowercase;
+      letter-spacing: 0.03em;
+      transition: color 0.15s ease;
+    }
+
+    .theme-toggle-btn:hover {
+      color: var(--text-heading);
+    }
+
+    .card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .section-label {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+
+    .control-row {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .pill-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .pill-btn {
+      background-color: transparent;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+    }
+
+    .pill-btn:hover {
+      color: var(--text-heading);
+      border-color: var(--border-focus);
+    }
+
+    .pill-btn.active {
+      background-color: var(--surface-elevated);
+      color: var(--text-heading);
+      border-color: var(--border-focus);
+    }
+
+    .number-input-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    input[type="number"] {
+      width: 140px;
+      background-color: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--text-heading);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      padding: 7px 10px;
+      outline: none;
+      transition: border-color 0.15s ease;
+      -moz-appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--border-focus);
+    }
+
+    .preset-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .preset-chip {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 2px 7px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .preset-chip:hover {
+      color: var(--text-heading);
+      border-color: var(--border-focus);
+    }
+
+    .preview-box {
+      background-color: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 10px 14px;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .preview-highlight {
+      font-family: var(--font-mono);
+      color: var(--text-heading);
+      font-weight: 500;
+    }
+
+    .result-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 14px 16px;
+      margin-bottom: 18px;
+    }
+
+    .result-val {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-heading);
+    }
+
+    .text-action-btn {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      cursor: pointer;
+      padding: 4px 6px;
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .text-action-btn:hover {
+      color: var(--text-heading);
+    }
+
+    .step-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .step-unit {
+      border-left: 2px solid var(--border-focus);
+      padding-left: 12px;
+    }
+
+    .step-tag {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 3px;
+    }
+
+    .step-body {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .step-body span.hi {
+      color: var(--text-heading);
+    }
+
+    .table-container {
+      margin-top: 6px;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 5px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      color: var(--text-dim);
+      font-weight: 500;
+      background-color: var(--surface-elevated);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    td {
+      color: var(--text);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .error-notice {
+      border: 1px solid #4a2323;
+      background-color: #1e1515;
+      color: #e58787;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 10px 12px;
+      border-radius: 2px;
+      display: none;
+      margin-bottom: 16px;
+    }
+
+    body.light-mode .error-notice {
+      border-color: #f0b8b8;
+      background-color: #fdf2f2;
+      color: #b33939;
+    }
+  </style>
+</head>
+<body>
+  <div id="flashOverlay"></div>
+  <div class="container">
+    <header>
+      <div class="header-left">
+        <h1>Power Solver</h1>
+        <span class="header-sub">smallest positive integer n</span>
+      </div>
+      <button type="button" id="themeToggleBtn" class="theme-toggle-btn">light mode</button>
+    </header>
+
+    <div class="card">
+      <div class="control-row">
+        <div>
+          <div class="section-label">1. Select Operation</div>
+          <div class="pill-group" id="operationPills">
+            <button type="button" class="pill-btn active" data-op="multiply">Multiply (k &times; n)</button>
+            <button type="button" class="pill-btn" data-op="divide">Divide (k / n)</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-label">2. Select Target Power</div>
+          <div class="pill-group" id="powerPills">
+            <button type="button" class="pill-btn" data-power="2">Square (2)</button>
+            <button type="button" class="pill-btn active" data-power="3">Cube (3)</button>
+            <button type="button" class="pill-btn" data-power="4">4th Power (4)</button>
+            <button type="button" class="pill-btn" data-power="5">5th Power (5)</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-label">3. Select Question Phrasing Style</div>
+          <div class="pill-group" id="stylePills">
+            <button type="button" class="pill-btn active" data-style="conditional">"If ... is a ..., find the smallest integer n"</button>
+            <button type="button" class="pill-btn" data-style="direct">"Find the smallest integer n such that ... is a ..."</button>
+            <button type="button" class="pill-btn" data-style="writedown">"Write down the smallest integer n such that ..."</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-label">4. Type Base Integer (k)</div>
+          <div class="number-input-row">
+            <input type="number" id="baseNumberInput" min="2" step="1" value="60">
+            <div class="preset-chips">
+              <span style="font-size: 10px; color: var(--text-dim); font-family: var(--font-mono); margin-right: 2px;">SELECT:</span>
+              <button type="button" class="preset-chip" data-val="24">24</button>
+              <button type="button" class="preset-chip" data-val="54">54</button>
+              <button type="button" class="preset-chip" data-val="60">60</button>
+              <button type="button" class="preset-chip" data-val="72">72</button>
+              <button type="button" class="preset-chip" data-val="120">120</button>
+              <button type="button" class="preset-chip" data-val="180">180</button>
+              <button type="button" class="preset-chip" data-val="250">250</button>
+              <button type="button" class="preset-chip" data-val="432">432</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-label" style="margin-top: 18px;">Problem Statement Preview</div>
+      <div class="preview-box" id="questionPreview"></div>
+    </div>
+
+    <div id="errorBox" class="error-notice"></div>
+
+    <div id="solutionCard" class="card">
+      <div class="result-bar">
+        <div>
+          <div class="section-label" style="margin-bottom: 2px;">Smallest Positive Integer Solution</div>
+          <div class="result-val" id="resultValue">n = 0</div>
+        </div>
+        <button type="button" id="copyBtn" class="text-action-btn">Copy value</button>
+      </div>
+
+      <div class="step-list" id="stepsOutput"></div>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      op: "multiply",
+      power: 3,
+      style: "conditional",
+      k: 60
+    };
+
+    function getPrimeFactors(num) {
+      const factors = {};
+      let n = Math.abs(num);
+      let d = 2;
+
+      while (d * d <= n) {
+        while (n % d === 0) {
+          factors[d] = (factors[d] || 0) + 1;
+          n = Math.floor(n / d);
+        }
+        d = d === 2 ? 3 : d + 2;
+      }
+
+      if (n > 1) {
+        factors[n] = (factors[n] || 0) + 1;
+      }
+
+      return factors;
+    }
+
+    function formatFactors(factors) {
+      const primes = Object.keys(factors).map(Number).sort((a, b) => a - b);
+      if (primes.length === 0) return "1";
+      return primes.map(p => {
+        const e = factors[p];
+        return e === 1 ? `${p}` : `${p}^${e}`;
+      }).join(" \u00D7 ");
+    }
+
+    function updatePreview() {
+      const powerNames = { 2: "square", 3: "cube", 4: "4th power", 5: "5th power" };
+      const powerStr = powerNames[state.power] || `${state.power}th power`;
+      const article = state.power === 4 ? "a" : (state.power === 8 ? "an" : "a");
+      const expr = state.op === "multiply" ? `${state.k}n` : `${state.k}/n`;
+
+      let text = "";
+      if (state.style === "conditional") {
+        text = `If <span class="preview-highlight">${expr}</span> is ${article} perfect <span class="preview-highlight">${powerStr}</span>, find the smallest possible integer of <span class="preview-highlight">n</span>.`;
+      } else if (state.style === "direct") {
+        text = `Find the smallest positive integer <span class="preview-highlight">n</span> such that <span class="preview-highlight">${expr}</span> is ${article} perfect <span class="preview-highlight">${powerStr}</span>.`;
+      } else {
+        text = `Write down the smallest possible integer of <span class="preview-highlight">n</span>, such that <span class="preview-highlight">${expr}</span> is ${article} perfect <span class="preview-highlight">${powerStr}</span>.`;
+      }
+
+      document.getElementById("questionPreview").innerHTML = text;
+    }
+
+    function calculate() {
+      const errBox = document.getElementById("errorBox");
+      const solCard = document.getElementById("solutionCard");
+
+      if (isNaN(state.k) || state.k === null || state.k < 2) {
+        errBox.textContent = "Please enter an integer k \u2265 2.";
+        errBox.style.display = "block";
+        solCard.style.display = "none";
+        return;
+      }
+
+      errBox.style.display = "none";
+      solCard.style.display = "block";
+
+      const factors = getPrimeFactors(state.k);
+      const primes = Object.keys(factors).map(Number).sort((a, b) => a - b);
+      const nFactors = {};
+      let nVal = 1;
+      const tableRows = [];
+
+      primes.forEach(p => {
+        const e = factors[p];
+        let needed = 0;
+        let finalExp = 0;
+
+        if (state.op === "multiply") {
+          const rem = e % state.power;
+          needed = rem === 0 ? 0 : state.power - rem;
+          finalExp = e + needed;
+        } else {
+          needed = e % state.power;
+          finalExp = e - needed;
+        }
+
+        if (needed > 0) {
+          nFactors[p] = needed;
+          nVal *= Math.pow(p, needed);
+        }
+
+        tableRows.push({
+          prime: p,
+          current: e,
+          needed: needed,
+          final: finalExp
+        });
+      });
+
+      // Special case when base is already a perfect power
+      if (Object.keys(nFactors).length === 0) {
+        nVal = 1;
+      }
+
+      const totalResult = state.op === "multiply" ? (state.k * nVal) : Math.floor(state.k / nVal);
+      const root = Math.round(Math.pow(totalResult, 1 / state.power));
+      const powerNames = { 2: "square", 3: "cube", 4: "4th power", 5: "5th power" };
+      const powerName = powerNames[state.power] || `${state.power}th power`;
+      const opSign = state.op === "multiply" ? "\u00D7" : "/";
+
+      // Result header
+      document.getElementById("resultValue").textContent = `n = ${nVal}`;
+
+      // Step by step breakdown
+      const factorStr = formatFactors(factors);
+      const nFactorStr = Object.keys(nFactors).length > 0 ? formatFactors(nFactors) : "1";
+
+      const step1Html = `
+        <div class="step-unit">
+          <div class="step-tag">Step 1: Prime Factorization</div>
+          <div class="step-body"><span class="hi">${state.k}</span> = ${factorStr}</div>
+        </div>
+      `;
+
+      const step2Rule = state.op === "multiply"
+        ? `In the product <span class="hi">${state.k} \u00D7 n</span>, every prime exponent must be a multiple of ${state.power} (${[0, state.power, state.power*2].join(", ")}, \u2026). Each missing exponent is rounded up to the nearest multiple: <span class="hi">\u2308e / ${state.power}\u2309 \u00D7 ${state.power} \u2212 e</span>.`
+        : `In the quotient <span class="hi">${state.k} / n</span>, any remainder prime exponent not forming a full multiple of ${state.power} must be divided out: <span class="hi">e mod ${state.power}</span>.`;
+
+      const step2Html = `
+        <div class="step-unit">
+          <div class="step-tag">Step 2: Perfect ${powerName} Rule</div>
+          <div class="step-body">${step2Rule}</div>
+        </div>
+      `;
+
+      const tableHtml = `
+        <div class="step-unit">
+          <div class="step-tag">Step 3: Exponent Adjustment Table</div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Prime (p)</th>
+                  <th>Current Exp (in ${state.k})</th>
+                  <th>${state.op === "multiply" ? "Required for n (+)" : "Canceled by n (\u2212)"}</th>
+                  <th>Resulting Exp</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${tableRows.map(r => `
+                  <tr>
+                    <td><span class="hi">${r.prime}</span></td>
+                    <td>${r.current}</td>
+                    <td><span class="hi">${r.needed === 0 ? "0" : (r.prime + "^" + r.needed + " (" + r.needed + ")")}</span></td>
+                    <td>${r.final}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+
+      const step4Html = `
+        <div class="step-unit">
+          <div class="step-tag">Step 4: Compute Smallest Integer n</div>
+          <div class="step-body">
+            n = ${nFactorStr} = <span class="hi">${nVal}</span>
+          </div>
+        </div>
+      `;
+
+      const step5Html = `
+        <div class="step-unit">
+          <div class="step-tag">Step 5: Verification</div>
+          <div class="step-body">
+            ${state.k} ${opSign} ${nVal} = <span class="hi">${totalResult}</span> = <span class="hi">${root}^${state.power}</span>
+          </div>
+        </div>
+      `;
+
+      document.getElementById("stepsOutput").innerHTML = step1Html + step2Html + tableHtml + step4Html + step5Html;
+    }
+
+    // Set up pill group button listeners
+    function setupPillGroup(groupId, stateKey, parser) {
+      const container = document.getElementById(groupId);
+      container.querySelectorAll(".pill-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          container.querySelectorAll(".pill-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          const val = btn.getAttribute(`data-${stateKey.toLowerCase()}`) || btn.getAttribute("data-op") || btn.getAttribute("data-power") || btn.getAttribute("data-style");
+          state[stateKey] = parser ? parser(val) : val;
+          updatePreview();
+          calculate();
+        });
+      });
+    }
+
+    setupPillGroup("operationPills", "op");
+    setupPillGroup("powerPills", "power", v => parseInt(v, 10));
+    setupPillGroup("stylePills", "style");
+
+    // Number input live calculation
+    const numInput = document.getElementById("baseNumberInput");
+    numInput.addEventListener("input", (e) => {
+      const val = parseInt(e.target.value, 10);
+      state.k = isNaN(val) ? null : val;
+      updatePreview();
+      calculate();
+    });
+
+    // Preset chips
+    document.querySelectorAll(".preset-chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        const val = parseInt(chip.getAttribute("data-val"), 10);
+        numInput.value = val;
+        state.k = val;
+        updatePreview();
+        calculate();
+      });
+    });
+
+    // Copy button
+    document.getElementById("copyBtn").addEventListener("click", () => {
+      const val = document.getElementById("resultValue").textContent.replace("n = ", "").trim();
+      const temp = document.createElement("input");
+      temp.value = val;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand("copy");
+      document.body.removeChild(temp);
+
+      const btn = document.getElementById("copyBtn");
+      const prev = btn.textContent;
+      btn.textContent = "Copied";
+      setTimeout(() => { btn.textContent = prev; }, 1200);
+    });
+
+    // Light mode blind sequence
+    const themeBtn = document.getElementById("themeToggleBtn");
+    const flashOverlay = document.getElementById("flashOverlay");
+    let themeStep = 0; // 0: 'light mode', 1: 'are you sure?', 2: in transition / light active
+    let isLightMode = false;
+
+    themeBtn.addEventListener("click", () => {
+      if (isLightMode) {
+        document.body.classList.remove("light-mode");
+        isLightMode = false;
+        themeStep = 0;
+        themeBtn.textContent = "light mode";
+        return;
+      }
+
+      if (themeStep === 0) {
+        themeStep = 1;
+        themeBtn.textContent = "are you sure?";
+        return;
+      }
+
+      if (themeStep === 1) {
+        themeStep = 2;
+        themeBtn.textContent = "get ready to be blinded!!";
+        themeBtn.disabled = true;
+
+        setTimeout(() => {
+          // Instant harsh blinding flash
+          flashOverlay.style.transition = "none";
+          flashOverlay.style.opacity = "1";
+
+          // Switch theme styles underneath while blinded
+          document.body.classList.add("light-mode");
+          isLightMode = true;
+
+          // Hold the solid white screen for 1.5 seconds before starting the 5s fade
+          setTimeout(() => {
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                flashOverlay.style.transition = "opacity 5s ease-out";
+                flashOverlay.style.opacity = "0";
+
+                setTimeout(() => {
+                  themeBtn.disabled = false;
+                  themeBtn.textContent = "dark mode";
+                }, 5000);
+              });
+            });
+          }, 1500);
+        }, 1000);
+      }
+    });
+
+    window.onload = function() {
+      updatePreview();
+      calculate();
+    };
+  </script>
+</body>
+</html>
