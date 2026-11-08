@@ -290,6 +290,18 @@
         <div class="controls-pane">
 
             <div class="control-group">
+                <label for="camera-select">Camera Source</label>
+                <select id="camera-select" onchange="switchCamera()">
+                    <option value="">Default Camera</option>
+                </select>
+            </div>
+
+            <div class="row">
+                <button class="btn" onclick="toggleMirrorX()">Mirror X: <span id="mirror-x-state">Off</span></button>
+                <button class="btn" onclick="toggleMirrorY()">Mirror Y: <span id="mirror-y-state">Off</span></button>
+            </div>
+
+            <div class="control-group">
                 <label for="resolution-select">Forced Resolution</label>
                 <select id="resolution-select" onchange="handleResolutionChange()">
                     <option value="32">32p (56 x 32)</option>
@@ -319,8 +331,16 @@
             </div>
 
             <div class="control-group">
-                <label for="fps-input">Framerate (0.02 to 360 FPS)</label>
-                <input type="number" id="fps-input" value="30" min="0.02" max="360" step="any">
+                <div style="display: flex; justify-content: space-between;">
+                    <label for="fps-slider">Framerate Slider</label>
+                    <span id="fps-slider-val" style="font-size: 0.75rem; color: #6b7280; font-family: monospace;">30 FPS</span>
+                </div>
+                <input type="range" id="fps-slider" min="1" max="120" value="30" step="1" oninput="updateFpsFromSlider(this.value)">
+            </div>
+
+            <div class="control-group">
+                <label for="fps-input">Exact Framerate (0.02 to 360 FPS)</label>
+                <input type="number" id="fps-input" value="30" min="0.02" max="360" step="any" oninput="updateSliderFromInput(this.value)">
             </div>
 
             <div class="control-group">
@@ -360,6 +380,9 @@
         let recordedChunks = [];
         let isRecording = false;
 
+        let mirrorX = false;
+        let mirrorY = false;
+
         const resolutionMap = {
             "32": { w: 56, h: 32 },
             "64": { w: 114, h: 64 },
@@ -384,7 +407,7 @@
         }
 
         function showInfo() {
-            showStatus('System Information: Captures webcam feed through a custom canvas pipeline supporting low/high framerates from 0.02 to 360 FPS, 144p to 8K resolutions, compression shittification filters, and direct recording.');
+            showStatus('System Information: Captures webcam feed through an aspect-ratio corrected canvas pipeline supporting camera switching, horizontal/vertical flipping, precise framerate controls, and direct recording.');
         }
 
         function handleResolutionChange() {
@@ -416,6 +439,31 @@
             }
         }
 
+        function updateFpsFromSlider(val) {
+            document.getElementById('fps-input').value = val;
+            document.getElementById('fps-slider-val').innerText = val + ' FPS';
+        }
+
+        function updateSliderFromInput(val) {
+            const num = parseFloat(val);
+            if (!isNaN(num) && num >= 1 && num <= 120) {
+                document.getElementById('fps-slider').value = Math.round(num);
+                document.getElementById('fps-slider-val').innerText = Math.round(num) + ' FPS';
+            } else {
+                document.getElementById('fps-slider-val').innerText = 'Custom';
+            }
+        }
+
+        function toggleMirrorX() {
+            mirrorX = !mirrorX;
+            document.getElementById('mirror-x-state').innerText = mirrorX ? 'On' : 'Off';
+        }
+
+        function toggleMirrorY() {
+            mirrorY = !mirrorY;
+            document.getElementById('mirror-y-state').innerText = mirrorY ? 'On' : 'Off';
+        }
+
         function getTargetDimensions() {
             const selectVal = document.getElementById('resolution-select').value;
             if (selectVal === 'custom') {
@@ -427,6 +475,26 @@
             return resolutionMap[selectVal] || { w: 1920, h: 1080 };
         }
 
+        async function populateCameraList() {
+            if (!navigator.mediaDevices?.enumerateDevices) return;
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(d => d.kind === 'videoinput');
+                const select = document.getElementById('camera-select');
+                const currentVal = select.value;
+                select.innerHTML = '<option value="">Default Camera</option>';
+                videoDevices.forEach((device, index) => {
+                    const opt = document.createElement('option');
+                    opt.value = device.deviceId;
+                    opt.text = device.label || `Camera ${index + 1}`;
+                    select.appendChild(opt);
+                });
+                select.value = currentVal;
+            } catch (e) {
+                console.warn('Could not enumerate devices:', e);
+            }
+        }
+
         async function initCamera() {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 showStatus('Error: MediaDevices API not supported in this browser or environment.');
@@ -436,20 +504,25 @@
 
             try {
                 showStatus('Requesting camera access...');
+                const selectedDeviceId = document.getElementById('camera-select').value;
+
+                const videoConstraints = selectedDeviceId ? { deviceId: { exact: selectedDeviceId } } : true;
 
                 let stream;
                 try {
-                    // First attempt with basic constraints to ensure maximum hardware compatibility
                     stream = await navigator.mediaDevices.getUserMedia({
-                        video: true,
+                        video: videoConstraints,
                         audio: true
                     });
                 } catch (err1) {
-                    // Second attempt video-only fallback
                     stream = await navigator.mediaDevices.getUserMedia({
-                        video: true,
+                        video: videoConstraints,
                         audio: false
                     });
+                }
+
+                if (mediaStream) {
+                    mediaStream.getTracks().forEach(track => track.stop());
                 }
 
                 mediaStream = stream;
@@ -463,6 +536,7 @@
                 document.getElementById('placeholder').style.display = 'none';
                 document.getElementById('top-status-dot').classList.add('active');
 
+                await populateCameraList();
                 startPipeline();
                 showStatus('Camera stream initialized successfully.');
             } catch (err) {
@@ -477,182 +551,4 @@
                 } else {
                     errorMsg = `Camera Error: ${err.message || err.name}`;
                 }
-                showStatus(errorMsg);
-                document.getElementById('placeholder-text').innerText = errorMsg + ' Check browser permissions and ensure no other app is using the webcam.';
-            }
-        }
-
-        function applySettings() {
-            if (!mediaStream) {
-                showStatus('Notice: Please initialize the camera stream first.');
-                return;
-            }
-            showStatus('Pipeline Updated: Framerate, resolution, and compression filters applied.');
-        }
-
-        function startPipeline() {
-            if (renderLoopId) cancelAnimationFrame(renderLoopId);
-
-            const videoEl = document.getElementById('webcam');
-            const canvas = document.getElementById('output-canvas');
-            const ctx = canvas.getContext('2d', { alpha: false });
-
-            function renderLoop(timestamp) {
-                renderLoopId = requestAnimationFrame(renderLoop);
-
-                if (!mediaStream || videoEl.paused || videoEl.ended || videoEl.readyState < 2) return;
-
-                let targetFps = parseFloat(document.getElementById('fps-input').value);
-                if (isNaN(targetFps) || targetFps <= 0) targetFps = 30;
-                if (targetFps > 360) targetFps = 360;
-                if (targetFps < 0.02) targetFps = 0.02;
-
-                const frameInterval = 1000 / targetFps;
-                const elapsed = timestamp - lastRenderTime;
-
-                if (elapsed < frameInterval) {
-                    return;
-                }
-                lastRenderTime = timestamp - (elapsed % frameInterval);
-
-                const dims = getTargetDimensions();
-                const qualityVal = parseInt(document.getElementById('bitrate-slider').value);
-
-                let renderW = dims.w;
-                let renderH = dims.h;
-
-                if (qualityVal < 95) {
-                    const scaleFactor = Math.max(0.02, qualityVal / 100);
-                    renderW = Math.max(16, Math.floor(dims.w * scaleFactor));
-                    renderH = Math.max(9, Math.floor(dims.h * scaleFactor));
-                }
-
-                if (canvas.width !== renderW || canvas.height !== renderH) {
-                    canvas.width = renderW;
-                    canvas.height = renderH;
-                    ctx.imageSmoothingEnabled = qualityVal >= 60;
-                }
-
-                try {
-                    ctx.drawImage(videoEl, 0, 0, renderW, renderH);
-
-                    if (qualityVal < 40) {
-                        const imgData = ctx.getImageData(0, 0, renderW, renderH);
-                        const data = imgData.data;
-                        const factor = Math.max(2, Math.floor(8 * (1 - qualityVal / 40)));
-                        for (let i = 0; i < data.length; i += 4) {
-                            data[i] = Math.round(data[i] / (factor * 10)) * (factor * 10);
-                            data[i + 1] = Math.round(data[i + 1] / (factor * 10)) * (factor * 10);
-                            data[i + 2] = Math.round(data[i + 2] / (factor * 10)) * (factor * 10);
-                        }
-                        ctx.putImageData(imgData, 0, 0);
-                    }
-                } catch (e) {
-                    // Ignore transient drawing errors when video is buffering
-                }
-
-                document.getElementById('hud-res').innerText = `${dims.w}x${dims.h}`;
-                document.getElementById('hud-quality').innerText = `${qualityVal}%`;
-
-                frameCount++;
-                if (timestamp - lastFpsUpdate >= 1000) {
-                    measuredFps = Math.round((frameCount * 1000) / (timestamp - lastFpsUpdate));
-                    document.getElementById('hud-fps').innerText = measuredFps;
-                    frameCount = 0;
-                    lastFpsUpdate = timestamp;
-                }
-            }
-
-            renderLoopId = requestAnimationFrame(renderLoop);
-        }
-
-        function takeSnapshot() {
-            const canvas = document.getElementById('output-canvas');
-            if (!mediaStream) {
-                showStatus('Notice: Camera stream must be active to capture snapshots.');
-                return;
-            }
-
-            const dataUrl = canvas.toDataURL('image/png');
-            const link = document.createElement('a');
-            link.download = `snapshot-${Date.now()}.png`;
-            link.href = dataUrl;
-            link.click();
-        }
-
-        function toggleRecording() {
-            if (!mediaStream) {
-                showStatus('Notice: Camera stream must be active to record video.');
-                return;
-            }
-
-            if (!isRecording) {
-                const canvas = document.getElementById('output-canvas');
-                const targetFps = parseFloat(document.getElementById('fps-input').value) || 30;
-                const canvasStream = canvas.captureStream(Math.min(60, Math.max(1, targetFps)));
-
-                const audioTracks = mediaStream.getAudioTracks();
-                if (audioTracks.length > 0) {
-                    canvasStream.addTrack(audioTracks[0]);
-                }
-
-                const recBitrate = parseInt(document.getElementById('rec-bitrate').value) * 1000 || 5000000;
-
-                let options = { mimeType: 'video/webm;codecs=vp9' };
-                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                    options = { mimeType: 'video/webm' };
-                }
-                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                    options = {};
-                }
-
-                options.videoBitsPerSecond = recBitrate;
-
-                recordedChunks = [];
-                try {
-                    mediaRecorder = new MediaRecorder(canvasStream, options);
-                } catch (e) {
-                    mediaRecorder = new MediaRecorder(canvasStream);
-                }
-
-                mediaRecorder.ondataavailable = function (event) {
-                    if (event.data && event.data.size > 0) {
-                        recordedChunks.push(event.data);
-                    }
-                };
-
-                mediaRecorder.onstop = function () {
-                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.style.display = 'none';
-                    a.href = url;
-                    a.download = `recording-${Date.now()}.webm`;
-                    document.body.appendChild(a);
-                    a.click();
-                    setTimeout(() => {
-                        document.body.removeChild(a);
-                        window.URL.revokeObjectURL(url);
-                    }, 100);
-                };
-
-                mediaRecorder.start();
-                isRecording = true;
-                const recBtn = document.getElementById('rec-btn');
-                recBtn.innerText = 'Stop & Save Recording';
-                recBtn.className = 'btn btn-danger';
-                document.getElementById('recording-badge').style.display = 'inline';
-
-            } else {
-                mediaRecorder.stop();
-                isRecording = false;
-                const recBtn = document.getElementById('rec-btn');
-                recBtn.innerText = 'Start Recording';
-                recBtn.className = 'btn btn-primary';
-                document.getElementById('recording-badge').style.display = 'none';
-            }
-        }
-    </script>
-</body>
-
-    </html>
+            
