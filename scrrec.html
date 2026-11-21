@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Screen Recorder</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 32px 24px;
+      background-color: #23262b;
+      color: #d4d8de;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 820px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      border-bottom: 1px solid #32363e;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 500;
+      color: #e6e9ee;
+    }
+
+    .status {
+      font-size: 12px;
+      color: #9aa0a8;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .option {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #adb3bc;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .option input[type="checkbox"] {
+      accent-color: #9aa0a8;
+      cursor: pointer;
+    }
+
+    select {
+      background-color: #2b2f36;
+      color: #d4d8de;
+      border: 1px solid #383d46;
+      border-radius: 3px;
+      padding: 2px 6px;
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    select:focus {
+      outline: none;
+      border-color: #5c6370;
+    }
+
+    select:disabled {
+      color: #5c6169;
+      border-color: #2e3239;
+      cursor: not-allowed;
+    }
+
+    .text-btn {
+      background: none;
+      border: none;
+      padding: 2px 4px;
+      color: #9ca2ab;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: color 0.15s ease;
+    }
+
+    .text-btn:hover:not(:disabled) {
+      color: #ffffff;
+    }
+
+    .text-btn:disabled {
+      color: #5c6169;
+      cursor: not-allowed;
+    }
+
+    .download-link {
+      color: #7c828c;
+      text-decoration: none;
+      font-size: 13px;
+      padding: 2px 4px;
+      border-radius: 3px;
+      transition: color 0.15s ease;
+    }
+
+    .download-link:hover {
+      color: #ffffff;
+    }
+
+    .download-link.disabled {
+      color: #5c6169;
+      pointer-events: none;
+    }
+
+    .viewport-wrap {
+      background-color: #2b2f36;
+      border-radius: 3px;
+      padding: 12px;
+    }
+
+    video {
+      display: block;
+      width: 100%;
+      max-height: 460px;
+      background-color: #1c1f24;
+      border-radius: 3px;
+    }
+
+    .meta {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #9aa0a8;
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Screen Recorder</h1>
+      <span id="status" class="status">Idle</span>
+    </div>
+
+    <div class="controls">
+      <button id="startBtn" class="text-btn" type="button">Start Recording</button>
+      <button id="stopBtn" class="text-btn" type="button" disabled>Stop</button>
+      <a id="downloadLink" class="download-link disabled" href="#" download="recording.webm">Download Video</a>
+
+      <label class="option">
+        <span>Quality</span>
+        <select id="qualitySelect">
+          <option value="low">Low (15 FPS, 1.5 Mbps)</option>
+          <option value="medium">Medium (24 FPS, 6 Mbps)</option>
+          <option value="high" selected>High (30 FPS, 25 Mbps)</option>
+          <option value="ultra">Ultra (60 FPS, 100 Mbps)</option>
+          <option value="custom">Custom</option>
+        </select>
+      </label>
+
+      <label class="option">
+        <span>FPS</span>
+        <select id="fpsSelect">
+          <option value="15">15</option>
+          <option value="24">24</option>
+          <option value="30" selected>30</option>
+          <option value="60">60</option>
+        </select>
+      </label>
+
+      <label class="option">
+        <span>Bitrate</span>
+        <select id="bitrateSelect">
+          <option value="1500000">1.5 Mbps</option>
+          <option value="3000000">3 Mbps</option>
+          <option value="6000000">6 Mbps</option>
+          <option value="10000000">10 Mbps</option>
+          <option value="25000000" selected>25 Mbps</option>
+          <option value="50000000">50 Mbps</option>
+          <option value="100000000">100 Mbps</option>
+        </select>
+      </label>
+
+      <label class="option">
+        <input id="micToggle" type="checkbox" />
+        <span>Include microphone</span>
+      </label>
+    </div>
+
+    <div class="viewport-wrap">
+      <video id="preview" controls playsinline></video>
+      <div class="meta">
+        <span id="timer">00:00</span>
+        <span id="fileInfo">No recording yet</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const startBtn = document.getElementById("startBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const downloadLink = document.getElementById("downloadLink");
+    const qualitySelect = document.getElementById("qualitySelect");
+    const fpsSelect = document.getElementById("fpsSelect");
+    const bitrateSelect = document.getElementById("bitrateSelect");
+    const micToggle = document.getElementById("micToggle");
+    const preview = document.getElementById("preview");
+    const statusEl = document.getElementById("status");
+    const timerEl = document.getElementById("timer");
+    const fileInfoEl = document.getElementById("fileInfo");
+
+    const QUALITY_PRESETS = {
+      low: { fps: 15, bitrate: 1500000 },
+      medium: { fps: 24, bitrate: 6000000 },
+      high: { fps: 30, bitrate: 25000000 },
+      ultra: { fps: 60, bitrate: 100000000 }
+    };
+
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let activeStream = null;
+    let currentObjectUrl = null;
+    let timerInterval = null;
+    let elapsedSeconds = 0;
+
+    function formatTime(totalSec) {
+      const mins = String(Math.floor(totalSec / 60)).padStart(2, "0");
+      const secs = String(totalSec % 60).padStart(2, "0");
+      return `${mins}:${secs}`;
+    }
+
+    function startTimer() {
+      elapsedSeconds = 0;
+      timerEl.textContent = "00:00";
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        elapsedSeconds += 1;
+        timerEl.textContent = formatTime(elapsedSeconds);
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+
+    function setControlsLocked(recording) {
+      startBtn.disabled = recording;
+      stopBtn.disabled = !recording;
+      qualitySelect.disabled = recording;
+      fpsSelect.disabled = recording;
+      bitrateSelect.disabled = recording;
+      micToggle.disabled = recording;
+    }
+
+    qualitySelect.addEventListener("change", () => {
+      const preset = QUALITY_PRESETS[qualitySelect.value];
+      if (preset) {
+        fpsSelect.value = String(preset.fps);
+        bitrateSelect.value = String(preset.bitrate);
+      }
+    });
+
+    function syncQualityWithManualSelection() {
+      const currentFps = Number(fpsSelect.value);
+      const currentBitrate = Number(bitrateSelect.value);
+      const matchedEntry = Object.entries(QUALITY_PRESETS).find(
+        ([, cfg]) => cfg.fps === currentFps && cfg.bitrate === currentBitrate
+      );
+      qualitySelect.value = matchedEntry ? matchedEntry[0] : "custom";
+    }
+
+    fpsSelect.addEventListener("change", syncQualityWithManualSelection);
+    bitrateSelect.addEventListener("change", syncQualityWithManualSelection);
+
+    function pickMimeType() {
+      const candidates = [
+        "video/webm;codecs=vp9,opus",
+        "video/webm;codecs=vp8,opus",
+        "video/webm",
+        "video/mp4"
+      ];
+      for (const type of candidates) {
+        if (MediaRecorder.isTypeSupported(type)) {
+          return type;
+        }
+      }
+      return "";
+    }
+
+    startBtn.addEventListener("click", async () => {
+      const targetFps = Number(fpsSelect.value);
+      const videoBitsPerSecond = Number(bitrateSelect.value);
+      const qualityLabel = qualitySelect.options[qualitySelect.selectedIndex].text.split(" ")[0];
+
+      try {
+        statusEl.textContent = "Selecting source...";
+        const displayStream = await navigator.mediaDevices.getDisplayMedia({
+          video: {
+            frameRate: { ideal: targetFps, max: targetFps }
+          },
+          audio: true
+        });
+
+        const videoTrack = displayStream.getVideoTracks()[0];
+        if (videoTrack && videoTrack.applyConstraints) {
+          try {
+            await videoTrack.applyConstraints({ frameRate: targetFps });
+          } catch (_) {
+            // Fall back to browser-negotiated frame rate if strict constraint is unsupported
+          }
+        }
+
+        const tracks = [...displayStream.getVideoTracks(), ...displayStream.getAudioTracks()];
+
+        if (micToggle.checked) {
+          try {
+            const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            tracks.push(...micStream.getAudioTracks());
+          } catch (micErr) {
+            statusEl.textContent = "Mic unavailable, recording display only";
+          }
+        }
+
+        activeStream = new MediaStream(tracks);
+        preview.srcObject = null;
+        preview.muted = true;
+        preview.srcObject = activeStream;
+        await preview.play();
+
+        recordedChunks = [];
+        const mimeType = pickMimeType();
+        const recorderOptions = { videoBitsPerSecond };
+        if (mimeType) {
+          recorderOptions.mimeType = mimeType;
+        }
+
+        mediaRecorder = new MediaRecorder(activeStream, recorderOptions);
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data && event.data.size > 0) {
+            recordedChunks.push(event.data);
+          }
+        };
+
+        videoTrack.addEventListener("ended", () => {
+          if (mediaRecorder && mediaRecorder.state !== "inactive") {
+            mediaRecorder.stop();
+          }
+        });
+
+        mediaRecorder.onstop = () => {
+          stopTimer();
+          activeStream.getTracks().forEach((track) => track.stop());
+
+          const blobType = mediaRecorder.mimeType || "video/webm";
+          const blob = new Blob(recordedChunks, { type: blobType });
+
+          if (currentObjectUrl) {
+            URL.revokeObjectURL(currentObjectUrl);
+          }
+          currentObjectUrl = URL.createObjectURL(blob);
+
+          preview.srcObject = null;
+          preview.muted = false;
+          preview.src = currentObjectUrl;
+
+          const ext = blobType.includes("mp4") ? "mp4" : "webm";
+          downloadLink.href = currentObjectUrl;
+          downloadLink.download = `screen-recording.${ext}`;
+          downloadLink.classList.remove("disabled");
+
+          const sizeMb = (blob.size / (1024 * 1024)).toFixed(2);
+          const mbpsLabel = (videoBitsPerSecond / 1_000_000).toFixed(1).replace(/\.0$/, "");
+          fileInfoEl.textContent = `${sizeMb} MB (${ext.toUpperCase()}, ${qualityLabel} · ${targetFps} FPS @ ${mbpsLabel} Mbps)`;
+          statusEl.textContent = "Finished";
+
+          setControlsLocked(false);
+        };
+
+        mediaRecorder.start(250);
+        startTimer();
+        const mbpsLabel = (videoBitsPerSecond / 1_000_000).toFixed(1).replace(/\.0$/, "");
+        statusEl.textContent = "Recording";
+        fileInfoEl.textContent = `Capturing (${qualityLabel}) at ${targetFps} FPS / ${mbpsLabel} Mbps`;
+        setControlsLocked(true);
+        downloadLink.classList.add("disabled");
+      } catch (err) {
+        stopTimer();
+        if (activeStream) {
+          activeStream.getTracks().forEach((track) => track.stop());
+        }
+        statusEl.textContent = err.name === "NotAllowedError" ? "Permission cancelled" : "Error starting capture";
+        setControlsLocked(false);
+      }
+    });
+
+    stopBtn.addEventListener("click", () => {
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        statusEl.textContent = "Finalizing...";
+        mediaRecorder.stop();
+      }
+    });
+  </script>
+</body>
+</html>
