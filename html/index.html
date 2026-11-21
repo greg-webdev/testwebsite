@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual File System Drive</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#121212',
+                        cardbg: '#1e1e1e',
+                        bordercol: '#2a2a2a',
+                        textmuted: '#888888',
+                        textlight: '#dddddd',
+                        hoverwhite: '#ffffff',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for dark theme */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #121212;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a2a2a;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3a3a3a;
+        }
+    </style>
+</head>
+<body class="h-full bg-darkbg text-textlight flex flex-col antialiased selection:bg-neutral-800 selection:text-white">
+
+    <!-- Top Navigation / Header -->
+    <header class="border-b border-bordercol px-6 py-4 flex items-center justify-between bg-cardbg/50 backdrop-blur-sm select-none">
+        <div class="flex items-center space-x-3">
+            <h1 class="text-sm font-medium tracking-wide text-textlight uppercase">vfsdrive</h1>
+            <span class="text-xs text-textmuted border border-bordercol px-2 py-0.5 rounded">Memory Storage</span>
+        </div>
+        <div class="flex items-center space-x-4 text-xs">
+            <span id="storage-stats" class="text-textmuted">0 files stored (0 KB)</span>
+            <button onclick="app.clearStorage()" class="text-textmuted hover:text-hoverwhite transition-colors duration-150 no-underline cursor-pointer">Clear All</button>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 flex overflow-hidden">
+        
+        <!-- Left Sidebar: File Upload & Actions -->
+        <aside class="w-80 border-r border-bordercol bg-cardbg/20 p-6 flex flex-col space-y-6 overflow-y-auto">
+            <div>
+                <h2 class="text-xs font-semibold uppercase tracking-wider text-textmuted mb-3">Upload Files</h2>
+                <!-- Drop zone / File input container -->
+                <div id="drop-zone" class="border border-dashed border-bordercol hover:border-textmuted transition-colors rounded p-6 text-center cursor-pointer flex flex-col items-center justify-center space-y-2 bg-darkbg/40">
+                    <input type="file" id="file-input" multiple class="hidden">
+                    <span class="text-xs text-textmuted">Drag & drop files here or</span>
+                    <button type="button" onclick="document.getElementById('file-input').click()" class="text-xs text-textlight hover:text-hoverwhite border border-bordercol hover:border-textmuted px-3 py-1.5 rounded transition-colors duration-150 cursor-pointer">Browse Files</button>
+                </div>
+            </div>
+
+            <!-- Quick Creator (Create blank file) -->
+            <div>
+                <h2 class="text-xs font-semibold uppercase tracking-wider text-textmuted mb-3">New Virtual File</h2>
+                <div class="space-y-2">
+                    <input type="text" id="new-filename" placeholder="filename.html" class="w-full bg-darkbg border border-bordercol rounded px-3 py-1.5 text-xs text-textlight placeholder-textmuted focus:outline-none focus:border-textmuted">
+                    <button onclick="app.createNewFile()" class="w-full text-xs text-textlight hover:text-hoverwhite border border-bordercol hover:border-textmuted py-1.5 rounded transition-colors duration-150 bg-darkbg/40 cursor-pointer">Create File</button>
+                </div>
+            </div>
+
+            <!-- Helper notes -->
+            <div class="mt-auto border-t border-bordercol pt-4 text-[11px] text-textmuted space-y-2">
+                <p>Virtual File System stores files entirely in client memory (Blob URLs & Map).</p>
+                <p>Select any HTML file from the file explorer to view its code or launch it in a sandbox window.</p>
+            </div>
+        </aside>
+
+        <!-- Center / Right: File Manager Table & Preview/Editor Area -->
+        <section class="flex-1 flex flex-col overflow-hidden bg-darkbg">
+            
+            <!-- File Explorer Toolbar -->
+            <div class="border-b border-bordercol px-6 py-3 flex items-center justify-between bg-cardbg/10">
+                <div class="flex items-center space-x-2 text-xs">
+                    <span class="text-textmuted uppercase tracking-wider">Explorer</span>
+                    <span id="file-count-badge" class="text-textmuted"></span>
+                </div>
+                <div class="flex items-center space-x-3 text-xs">
+                    <button onclick="app.downloadSelected()" class="text-textmuted hover:text-hoverwhite transition-colors cursor-pointer">Download</button>
+                    <button onclick="app.deleteSelected()" class="text-textmuted hover:text-hoverwhite transition-colors cursor-pointer">Delete</button>
+                </div>
+            </div>
+
+            <!-- Split Panel: File Table on top/left, Viewer/Editor on bottom/right -->
+            <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+                
+                <!-- File List Table -->
+                <div class="flex-1 overflow-y-auto border-b lg:border-b-0 lg:border-r border-bordercol">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="border-b border-bordercol text-textmuted bg-cardbg/30 select-none">
+                                <th class="p-3 font-medium w-10 text-center">
+                                    <input type="checkbox" id="select-all" onclick="app.toggleSelectAll(this)" class="accent-neutral-700 cursor-pointer">
+                                </th>
+                                <th class="p-3 font-medium">Name</th>
+                                <th class="p-3 font-medium">Type</th>
+                                <th class="p-3 font-medium">Size</th>
+                                <th class="p-3 font-medium text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="file-table-body" class="divide-y divide-bordercol/50">
+                            <!-- Injected rows via JS -->
+                        </tbody>
+                    </table>
+                    <div id="empty-state" class="hidden flex flex-col items-center justify-center p-12 text-center text-xs text-textmuted">
+                        <p>No files uploaded yet.</p>
+                        <p class="mt-1">Upload files or create a new one to begin.</p>
+                    </div>
+                </div>
+
+                <!-- File Inspector / Editor Panel -->
+                <div class="w-full lg:w-[45%] flex flex-col bg-cardbg/10 overflow-hidden">
+                    <div class="border-b border-bordercol px-4 py-3 flex items-center justify-between bg-cardbg/20">
+                        <span id="inspector-title" class="text-xs font-medium text-textmuted truncate">No file selected</span>
+                        <div class="flex items-center space-x-3 text-xs">
+                            <button id="btn-save" onclick="app.saveCurrentFile()" class="hidden text-textmuted hover:text-hoverwhite transition-colors cursor-pointer">Save Changes</button>
+                            <button id="btn-launch" onclick="app.launchSelected()" class="hidden text-textlight hover:text-hoverwhite border border-bordercol hover:border-textmuted px-2.5 py-1 rounded transition-colors cursor-pointer">Launch in about:blank</button>
+                        </div>
+                    </div>
+                    <div class="flex-1 flex flex-col overflow-hidden p-4">
+                        <textarea id="file-editor" placeholder="Select a file to inspect or edit its contents..." class="w-full flex-1 bg-darkbg border border-bordercol rounded p-3 text-xs text-textlight font-mono resize-none focus:outline-none focus:border-textmuted placeholder-textmuted" spellcheck="false"></textarea>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <!-- Message Modal Notification Overlay -->
+    <div id="modal-overlay" class="fixed inset-0 bg-black/70 backdrop-blur-xs hidden items-center justify-center z-50">
+        <div class="bg-cardbg border border-bordercol rounded p-6 max-w-sm w-full mx-4 shadow-xl text-xs space-y-4">
+            <p id="modal-message" class="text-textlight leading-relaxed"></p>
+            <div class="flex justify-end space-x-2">
+                <button onclick="app.closeModal()" class="border border-bordercol hover:border-textmuted px-3 py-1.5 rounded text-textlight hover:text-hoverwhite transition-colors cursor-pointer">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        class VirtualFileSystemDrive {
+            constructor() {
+                // In-memory file store: Map<filename, { name, size, type, content, blobUrl, lastModified }>
+                this.files = new Map();
+                this.selectedFilename = null;
+                this.initListeners();
+            }
+
+            initListeners() {
+                const dropZone = document.getElementById('drop-zone');
+                const fileInput = document.getElementById('file-input');
+
+                // Drag and drop event wiring
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dropZone.classList.add('border-textmuted', 'bg-darkbg/80');
+                    }, false);
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dropZone.classList.remove('border-textmuted', 'bg-darkbg/80');
+                    }, false);
+                });
+
+                dropZone.addEventListener('drop', (e) => {
+                    const dt = e.dataTransfer;
+                    const items = dt.items;
+                    if (items) {
+                        for (let i = 0; i < items.length; i++) {
+                            const item = items[i].webkitGetAsEntry ? items[i].webkitGetAsEntry() : null;
+                            if (item) {
+                                this.traverseFileTree(item, '');
+                            } else {
+                                const file = dt.files[i];
+                                if (file) this.addFileObject(file, file.name);
+                            }
+                        }
+                    } else {
+                        const files = dt.files;
+                        for (let i = 0; i < files.length; i++) {
+                            this.addFileObject(files[i], files[i].name);
+                        }
+                    }
+                });
+
+                fileInput.addEventListener('change', (e) => {
+                    const files = e.target.files;
+                    for (let i = 0; i < files.length; i++) {
+                        this.addFileObject(files[i], files[i].name);
+                    }
+                    fileInput.value = '';
+                });
+
+                // Auto-save detection or editor changes
+                document.getElementById('file-editor').addEventListener('input', () => {
+                    if (this.selectedFilename && this.files.has(this.selectedFilename)) {
+                        document.getElementById('btn-save').classList.remove('hidden');
+                    }
+                });
+            }
+
+            async traverseFileTree(item, path) {
+                path = path || '';
+                if (item.isFile) {
+                    item.file(file => {
+                        const fullPath = path + file.name;
+                        this.addFileObject(file, fullPath);
+                    });
+                } else if (item.isDirectory) {
+                    const dirReader = item.createReader();
+                    dirReader.readEntries(entries => {
+                        for (let i = 0; i < entries.length; i++) {
+                            this.traverseFileTree(entries[i], path + item.name + '/');
+                        }
+                    });
+                }
+            }
+
+            addFileObject(fileObj, customPath) {
+                const reader = new FileReader();
+                const fileName = customPath || fileObj.name;
+                
+                // Determine reader type based on mime or extension
+                const isText = this.isTextFile(fileName, fileObj.type);
+
+                if (isText) {
+                    reader.onload = (e) => {
+                        const content = e.target.result;
+                        this.storeFileRecord(fileName, content, fileObj.type || 'text/plain', fileObj.size);
+                    };
+                    reader.readAsText(fileObj);
+                } else {
+                    reader.onload = (e) => {
+                        const content = e.target.result; // ArrayBuffer or DataURL
+                        this.storeFileRecord(fileName, content, fileObj.type || 'application/octet-stream', fileObj.size);
+                    };
+                    reader.readAsDataURL(fileObj);
+                }
+            }
+
+            isTextFile(filename, mimeType) {
+                const textExtensions = ['.html', '.htm', '.css', '.js', '.json', '.txt', '.md', '.svg', '.xml', '.csv'];
+                const lower = filename.toLowerCase();
+                if (textExtensions.some(ext => lower.endsWith(ext))) return true;
+                if (mimeType && (mimeType.startsWith('text/') || mimeType.includes('json') || mimeType.includes('javascript') || mimeType.includes('xml'))) return true;
+                return false;
+            }
+
+            storeFileRecord(name, content, type, size) {
+                // If blob URL exists previously, revoke it
+                if (this.files.has(name)) {
+                    const old = this.files.get(name);
+                    if (old.blobUrl) URL.revokeObjectURL(old.blobUrl);
+                }
+
+                let blob;
+                if (typeof content === 'string') {
+                    blob = new Blob([content], { type: type });
+                } else {
+                    // DataURL or ArrayBuffer
+                    blob = this.dataURItoBlob(content, type);
+                }
+                const blobUrl = URL.createObjectURL(blob);
+
+                this.files.set(name, {
+                    name: name,
+                    size: size || blob.size,
+                    type: type,
+                    content: content,
+                    blobUrl: blobUrl,
+                    lastModified: Date.now()
+                });
+
+                this.renderFileList();
+                this.updateStats();
+
+                // Automatically select if first file or currently selected
+                if (!this.selectedFilename) {
+                    this.selectFile(name);
+                }
+            }
+
+            dataURItoBlob(dataURI, mimeString) {
+                if (typeof dataURI !== 'string' || !dataURI.startsWith('data:')) {
+                    return new Blob([dataURI], { type: mimeString });
+                }
+                const byteString = atob(dataURI.split(',')[1]);
+                const ab = new ArrayBuffer(byteString.length);
+                const ia = new Uint8Array(ab);
+                for (let i = 0; i < byteString.length; i++) {
+                    ia[i] = byteString.charCodeAt(i);
+                }
+                return new Blob([ab], { type: mimeString });
+            }
+
+            createNewFile() {
+                const input = document.getElementById('new-filename');
+                const filename = input.value.trim();
+                if (!filename) {
+                    this.showModal('Please enter a valid filename.');
+                    return;
+                }
+                if (this.files.has(filename)) {
+                    this.showModal('A file with this name already exists.');
+                    return;
+                }
+
+                const defaultContent = filename.endsWith('.html') ? 
+                    '<!DOCTYPE html>\n<html>\n<head>\n    <title>New Page</title>\n</head>\n<body>\n    <h1>Hello from VFS Drive</h1>\n</body>\n</html>' : 
+                    '// New file: ' + filename;
+
+                this.storeFileRecord(filename, defaultContent, filename.endsWith('.html') ? 'text/html' : 'text/plain', defaultContent.length);
+                input.value = '';
+                this.selectFile(filename);
+            }
+
+            selectFile(filename) {
+                this.selectedFilename = filename;
+                this.renderFileList();
+
+                const fileRecord = this.files.get(filename);
+                const editor = document.getElementById('file-editor');
+                const titleEl = document.getElementById('inspector-title');
+                const launchBtn = document.getElementById('btn-launch');
+                const saveBtn = document.getElementById('btn-save');
+
+                saveBtn.classList.add('hidden');
+                titleEl.textContent = filename;
+
+                if (fileRecord) {
+                    if (typeof fileRecord.content === 'string' && !fileRecord.content.startsWith('data:')) {
+                        editor.value = fileRecord.content;
+                        editor.disabled = false;
+                    } else {
+                        editor.value = '[Binary or Non-text file content preview not available]';
+                        editor.disabled = true;
+                    }
+
+                    // Show launch button if HTML file
+                    if (filename.toLowerCase().endsWith('.html') || filename.toLowerCase().endsWith('.htm')) {
+                        launchBtn.classList.remove('hidden');
+                    } else {
+                        launchBtn.classList.add('hidden');
+                    }
+                }
+            }
+
+            saveCurrentFile() {
+                if (!this.selectedFilename || !this.files.has(this.selectedFilename)) return;
+                const fileRecord = this.files.get(this.selectedFilename);
+                const editorVal = document.getElementById('file-editor').value;
+
+                fileRecord.content = editorVal;
+                
+                // Recreate blob url
+                if (fileRecord.blobUrl) URL.revokeObjectURL(fileRecord.blobUrl);
+                const blob = new Blob([editorVal], { type: fileRecord.type });
+                fileRecord.blobUrl = URL.createObjectURL(blob);
+                fileRecord.size = blob.size;
+
+                document.getElementById('btn-save').classList.add('hidden');
+                this.renderFileList();
+                this.updateStats();
+                this.showModal('File saved successfully.');
+            }
+
+            launchSelected() {
+                if (!this.selectedFilename || !this.files.has(this.selectedFilename)) return;
+                const fileRecord = this.files.get(this.selectedFilename);
+
+                // Open new about:blank window
+                const newWindow = window.open('about:blank', '_blank');
+                if (!newWindow) {
+                    this.showModal('Popup blocked. Please allow popups for this site to launch files in about:blank.');
+                    return;
+                }
+
+                this.openVirtualWindow(fileRecord, newWindow);
+            }
+
+            openVirtualWindow(fileRecord, win) {
+                let htmlContent = '';
+                if (typeof fileRecord.content === 'string' && !fileRecord.content.startsWith('data:')) {
+                    htmlContent = fileRecord.content;
+                } else {
+                    win.location.href = fileRecord.blobUrl;
+                    return;
+                }
+
+                const vfsRegistryJson = {};
+                const vfsContentJson = {};
+                for (let [fname, rec] of this.files.entries()) {
+                    vfsRegistryJson[fname] = rec.blobUrl;
+                    if (typeof rec.content === 'string' && !rec.content.startsWith('data:')) {
+                        vfsContentJson[fname] = rec.content;
+                    }
+                }
+
+                // Comprehensive VFS Bridge and Resource Interceptor injected into launched about:blank windows
+                const interceptionScript = `<script src="https://cdn.tailwindcss.com"><\/script>` +
+                `<script>` +
+                `(function() {` +
+                `    const vfsMap = ` + JSON.stringify(vfsRegistryJson) + `;` +
+                `    const vfsContents = ` + JSON.stringify(vfsContentJson) + `;` +
+                `    ` +
+                `    // Global VFS API for user scripts to read, write, and list virtual files` +
+                `    window.VFS = {` +
+                `        listFiles: function() {` +
+                `            return Object.keys(vfsMap);` +
+                `        },` +
+                `        readFile: function(filename) {` +
+                `            return vfsContents[filename] || null;` +
+                `        },` +
+                `        getUrl: function(filename) {` +
+                `            return vfsMap[filename] || null;` +
+                `        },` +
+                `        writeFile: function(filename, content) {` +
+                `            vfsContents[filename] = content;` +
+                `            const blob = new Blob([content], { type: 'text/plain' });` +
+                `            vfsMap[filename] = URL.createObjectURL(blob);` +
+                `            if (window.opener && typeof window.opener.appSyncFile === 'function') {` +
+                `                window.opener.appSyncFile(filename, content);` +
+                `            }` +
+                `        }` +
+                `    };` +
+                `` +
+                `    function resolveVFSUrl(url) {` +
+                `        if (!url) return url;` +
+                `        try {` +
+                `            const parsed = new URL(url, window.location.href);` +
+                `            let pathname = parsed.pathname.replace(/^\\/+/, '');` +
+                `            if (vfsMap[pathname]) return vfsMap[pathname];` +
+                `            if (vfsMap[url]) return vfsMap[url];` +
+                `            const baseName = url.split('/').pop();` +
+                `            if (vfsMap[baseName]) return vfsMap[baseName];` +
+                `        } catch(e) {}` +
+                `        return url;` +
+                `    }` +
+                `` +
+                `    const origOpen = XMLHttpRequest.prototype.open;` +
+                `    XMLHttpRequest.prototype.open = function(method, url, ...args) {` +
+                `        return origOpen.call(this, method, resolveVFSUrl(url), ...args);` +
+                `    };` +
+                `` +
+                `    const origFetch = window.fetch;` +
+                `    window.fetch = function(input, init) {` +
+                `        if (typeof input === 'string') {` +
+                `            input = resolveVFSUrl(input);` +
+                `        } else if (input instanceof Request) {` +
+                `            input = new Request(resolveVFSUrl(input.url), input);` +
+                `        }` +
+                `        return origFetch.call(this, input, init);` +
+                `    };` +
+                `` +
+                `    document.addEventListener('DOMContentLoaded', () => {` +
+                `        document.querySelectorAll('script[src], link[rel="stylesheet"], img[src], iframe[src]').forEach(el => {` +
+                `            const attr = el.tagName === 'LINK' ? 'href' : 'src';` +
+                `            const val = el.getAttribute(attr);` +
+                `            if (val) {` +
+                `                const resolved = resolveVFSUrl(val);` +
+                `                if (resolved !== val) el.setAttribute(attr, resolved);` +
+                `            }` +
+                `        });` +
+                `    });` +
+                `})();` +
+                `<\/script>`;
+
+                let injectedContent = htmlContent;
+                if (injectedContent.includes('<head>')) {
+                    injectedContent = injectedContent.replace('<head>', '<head>' + interceptionScript);
+                } else if (injectedContent.includes('<html>')) {
+                    injectedContent = injectedContent.replace('<html>', '<html><head>' + interceptionScript + '</head>');
+                } else {
+                    injectedContent = interceptionScript + injectedContent;
+                }
+
+                win.document.open();
+                win.document.write(injectedContent);
+                win.document.close();
+            }
+
+            toggleSelectAll(master) {
+                const checkboxes = document.querySelectorAll('.file-checkbox');
+                checkboxes.forEach(cb => cb.checked = master.checked);
+            }
+
+            renderFileList() {
+                const tbody = document.getElementById('file-table-body');
+                const emptyState = document.getElementById('empty-state');
+                const countBadge = document.getElementById('file-count-badge');
+                
+                tbody.innerHTML = '';
+                countBadge.textContent = `(${this.files.size})`;
+
+                if (this.files.size === 0) {
+                    emptyState.classList.remove('hidden');
+                    return;
+                } else {
+                    emptyState.classList.add('hidden');
+                }
+
+                for (let [name, rec] of this.files.entries()) {
+                    const tr = document.createElement('tr');
+                    const isSelected = this.selectedFilename === name;
+                    tr.className = `border-b border-bordercol/30 hover:bg-cardbg/40 transition-colors cursor-pointer ${isSelected ? 'bg-cardbg/60 text-white font-medium' : 'text-textmuted'}`;
+                    
+                    tr.onclick = (e) => {
+                        if (e.target.tagName !== 'INPUT') {
+                            this.selectFile(name);
+                        }
+                    };
+
+                    const sizeStr = rec.size < 1024 ? rec.size + ' B' : (rec.size < 1024 * 1024 ? (rec.size / 1024).toFixed(1) + ' KB' : (rec.size / (1024 * 1024)).toFixed(1) + ' MB');
+
+                    tr.innerHTML = `
+                        <td class="p-3 text-center" onclick="event.stopPropagation()">
+                            <input type="checkbox" value="${name}" class="file-checkbox accent-neutral-700 cursor-pointer">
+                        </td>
+                        <td class="p-3 truncate max-w-[180px]">${name}</td>
+                        <td class="p-3 uppercase text-[10px] text-textmuted">${rec.type.split('/')[1] || rec.type}</td>
+                        <td class="p-3 text-textmuted">${sizeStr}</td>
+                        <td class="p-3 text-right space-x-2" onclick="event.stopPropagation()">
+                            <button onclick="app.downloadFile('${name}')" class="hover:text-hoverwhite transition-colors cursor-pointer">Download</button>
+                            <button onclick="app.deleteFile('${name}')" class="hover:text-hoverwhite transition-colors cursor-pointer">Delete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            }
+
+            updateStats() {
+                const statsEl = document.getElementById('storage-stats');
+                let totalSize = 0;
+                for (let rec of this.files.values()) {
+                    totalSize += rec.size;
+                }
+                const sizeStr = totalSize < 1024 ? totalSize + ' B' : (totalSize < 1024 * 1024 ? (totalSize / 1024).toFixed(1) + ' KB' : (totalSize / (1024 * 1024)).toFixed(1) + ' MB');
+                statsEl.textContent = `${this.files.size} file${this.files.size === 1 ? '' : 's'} stored (${sizeStr})`;
+            }
+
+            downloadFile(name) {
+                const rec = this.files.get(name);
+                if (!rec) return;
+                const a = document.createElement('a');
+                a.href = rec.blobUrl;
+                a.download = name;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+
+            deleteFile(name) {
+                const rec = this.files.get(name);
+                if (rec && rec.blobUrl) URL.revokeObjectURL(rec.blobUrl);
+                this.files.delete(name);
+                if (this.selectedFilename === name) {
+                    this.selectedFilename = this.files.size > 0 ? this.files.keys().next().value : null;
+                    if (this.selectedFilename) {
+                        this.selectFile(this.selectedFilename);
+                    } else {
+                        document.getElementById('file-editor').value = '';
+                        document.getElementById('file-editor').disabled = true;
+                        document.getElementById('inspector-title').textContent = 'No file selected';
+                        document.getElementById('btn-launch').classList.add('hidden');
+                        document.getElementById('btn-save').classList.add('hidden');
+                    }
+                }
+                this.renderFileList();
+                this.updateStats();
+            }
+
+            downloadSelected() {
+                const checked = document.querySelectorAll('.file-checkbox:checked');
+                if (checked.length === 0) {
+                    this.showModal('Please select at least one file to download.');
+                    return;
+                }
+                checked.forEach(cb => this.downloadFile(cb.value));
+            }
+
+            deleteSelected() {
+                const checked = document.querySelectorAll('.file-checkbox:checked');
+                if (checked.length === 0) {
+                    this.showModal('Please select at least one file to delete.');
+                    return;
+                }
+                checked.forEach(cb => this.deleteFile(cb.value));
+                document.getElementById('select-all').checked = false;
+            }
+
+            clearStorage() {
+                if (this.files.size === 0) return;
+                for (let rec of this.files.values()) {
+                    if (rec.blobUrl) URL.revokeObjectURL(rec.blobUrl);
+                }
+                this.files.clear();
+                this.selectedFilename = null;
+                document.getElementById('file-editor').value = '';
+                document.getElementById('file-editor').disabled = true;
+                document.getElementById('inspector-title').textContent = 'No file selected';
+                document.getElementById('btn-launch').classList.add('hidden');
+                document.getElementById('btn-save').classList.add('hidden');
+                document.getElementById('select-all').checked = false;
+                this.renderFileList();
+                this.updateStats();
+                this.showModal('All files cleared from virtual drive.');
+            }
+
+            showModal(msg) {
+                document.getElementById('modal-message').textContent = msg;
+                document.getElementById('modal-overlay').classList.remove('hidden');
+                document.getElementById('modal-overlay').classList.add('flex');
+            }
+
+            closeModal() {
+                document.getElementById('modal-overlay').classList.remove('flex');
+                document.getElementById('modal-overlay').classList.add('hidden');
+            }
+        }
+
+        // Initialize application instance immediately so inline onclick handlers have access to `app`
+        const app = new VirtualFileSystemDrive();
+
+        // Global sync function for launched windows to push updates back to the parent drive
+        window.appSyncFile = function(filename, content) {
+            app.storeFileRecord(filename, content, 'text/plain', content.length);
+        };
+    </script>
+</body>
+</html>
